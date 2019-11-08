@@ -8,7 +8,8 @@ from .credential_definitions import MESSAGE_TYPES as CRED_DEF_MESSAGES
 from .schemas import MESSAGE_TYPES as SCHEMA_MESSAGES
 from .dids import MESSAGE_TYPES as DID_MESSAGES
 from .static_connections import MESSAGE_TYPES as STATIC_CONN_MESSAGES
-
+from .holder import MESSAGE_TYPES as HOLDER_MESSAGES
+from .issuer import MESSAGE_TYPES as ISSUER_MESSAGES
 
 async def setup(context: InjectionContext):
     """Setup Toolbox Plugin."""
@@ -19,4 +20,6 @@ async def setup(context: InjectionContext):
         SCHEMA_MESSAGES,
         DID_MESSAGES,
         STATIC_CONN_MESSAGES,
+        HOLDER_MESSAGES,
+        ISSUER_MESSAGES
     )

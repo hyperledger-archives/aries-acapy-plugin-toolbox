@@ -8,35 +8,35 @@ from uuid import uuid4
 
 from marshmallow import fields
 
-from . import generate_model_schema, admin_only
-from ..base_handler import BaseHandler, BaseResponder, RequestContext
-from ..decorators.attach_decorator import AttachDecorator
-from ..issue_credential.v1_0.routes import (
+from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
+from aries_cloudagent.messaging.decorators.attach_decorator import AttachDecorator
+from aries_cloudagent.protocols.issue_credential.v1_0.routes import (
     V10CredentialExchangeListResultSchema,
     V10CredentialProposalRequestSchema
 )
-from ..issue_credential.v1_0.models.credential_exchange import (
+from aries_cloudagent.protocols.issue_credential.v1_0.models.credential_exchange import (
     V10CredentialExchange,
     V10CredentialExchangeSchema,
 )
-from ..issue_credential.v1_0.messages.credential_proposal import (
+from aries_cloudagent.protocols.issue_credential.v1_0.messages.credential_proposal import (
     CredentialProposal
 )
-from ..present_proof.v1_0.routes import (
+from aries_cloudagent.protocols.present_proof.v1_0.routes import (
     V10PresentationExchangeListSchema,
     V10PresentationRequestRequestSchema
 )
-from ..present_proof.v1_0.models.presentation_exchange import (
+from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import (
     V10PresentationExchange,
     V10PresentationExchangeSchema,
 )
-from ..present_proof.v1_0.messages.presentation_request import PresentationRequest
-from ..present_proof.v1_0.manager import PresentationManager
-from ..issue_credential.v1_0.manager import CredentialManager
-from ..connections.models.connection_record import ConnectionRecord
-from ...storage.error import StorageNotFoundError
-from ..problem_report.message import ProblemReport
+from aries_cloudagent.protocols.present_proof.v1_0.messages.presentation_request import PresentationRequest
+from aries_cloudagent.protocols.present_proof.v1_0.manager import PresentationManager
+from aries_cloudagent.protocols.issue_credential.v1_0.manager import CredentialManager
+from aries_cloudagent.connections.models.connection_record import ConnectionRecord
+from aries_cloudagent.storage.error import StorageNotFoundError
+from aries_cloudagent.protocols.problem_report.message import ProblemReport
 
+from .util import generate_model_schema, admin_only
 PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0'
 
 SEND_CREDENTIAL = '{}/send-credential'.format(PROTOCOL)
@@ -50,28 +50,28 @@ PRESENTATIONS_LIST = '{}/presentations-list'.format(PROTOCOL)
 
 MESSAGE_TYPES = {
     SEND_CREDENTIAL:
-        'aries_cloudagent.messaging.admin.issuer.SendCred',
+        'aca_plugin_toolbox.issuer.SendCred',
     REQUEST_PRESENTATION:
-        'aries_cloudagent.messaging.admin.issuer.RequestPres',
+        'aca_plugin_toolbox.issuer.RequestPres',
     CREDENTIALS_GET_LIST:
-        'aries_cloudagent.messaging.admin.issuer.CredGetList',
+        'aca_plugin_toolbox.issuer.CredGetList',
     CREDENTIALS_LIST:
-        'aries_cloudagent.messaging.admin.issuer.CredList',
+        'aca_plugin_toolbox.issuer.CredList',
     PRESENTATIONS_GET_LIST:
-        'aries_cloudagent.messaging.admin.issuer.PresGetList',
+        'aca_plugin_toolbox.issuer.PresGetList',
     PRESENTATIONS_LIST:
-        'aries_cloudagent.messaging.admin.issuer.PresList',
+        'aca_plugin_toolbox.issuer.PresList',
 }
 
 SendCred, SendCredSchema = generate_model_schema(
     name='SendCred',
-    handler='aries_cloudagent.messaging.admin.issuer.SendCredHandler',
+    handler='aca_plugin_toolbox.issuer.SendCredHandler',
     msg_type=SEND_CREDENTIAL,
     schema=V10CredentialProposalRequestSchema
 )
 IssuerCredExchange, IssuerCredExchangeSchema = generate_model_schema(
     name='IssuerCredExchange',
-    handler='aries_cloudagent.messaging.admin.PassHandler',
+    handler='aca_plugin_toolbox.util.PassHandler',
     msg_type=ISSUER_CRED_EXCHANGE,
     schema=V10CredentialExchangeSchema
 )
@@ -135,13 +135,13 @@ class SendCredHandler(BaseHandler):
 
 RequestPres, RequestPresSchema = generate_model_schema(
     name='RequestPres',
-    handler='aries_cloudagent.messaging.admin.issuer.RequestPresHandler',
+    handler='aca_plugin_toolbox.issuer.RequestPresHandler',
     msg_type=REQUEST_PRESENTATION,
     schema=V10PresentationRequestRequestSchema,
 )
 IssuerPresExchange, IssuerPresExchangeSchema = generate_model_schema(
     name='IssuerPresExchange',
-    handler='aries_cloudagent.messaging.admin.PassHandler',
+    handler='aca_plugin_toolbox.util.PassHandler',
     msg_type=ISSUER_PRES_EXCHANGE,
     schema=V10PresentationExchangeSchema
 )
@@ -212,7 +212,7 @@ class RequestPresHandler(BaseHandler):
 
 CredGetList, CredGetListSchema = generate_model_schema(
     name='CredGetList',
-    handler='aries_cloudagent.messaging.admin.issuer.CredGetListHandler',
+    handler='aca_plugin_toolbox.issuer.CredGetListHandler',
     msg_type=CREDENTIALS_GET_LIST,
     schema={
         'connection_id': fields.Str(required=False),
@@ -223,7 +223,7 @@ CredGetList, CredGetListSchema = generate_model_schema(
 
 CredList, CredListSchema = generate_model_schema(
     name='CredList',
-    handler='aries_cloudagent.messaging.admin.PassHandler',
+    handler='aca_plugin_toolbox.util.PassHandler',
     msg_type=CREDENTIALS_LIST,
     schema=V10CredentialExchangeListResultSchema
 )
@@ -252,7 +252,7 @@ class CredGetListHandler(BaseHandler):
 
 PresGetList, PresGetListSchema = generate_model_schema(
     name='PresGetList',
-    handler='aries_cloudagent.messaging.admin.issuer.PresGetListHandler',
+    handler='aca_plugin_toolbox.issuer.PresGetListHandler',
     msg_type=PRESENTATIONS_GET_LIST,
     schema={
         'connection_id': fields.Str(required=False),
@@ -262,7 +262,7 @@ PresGetList, PresGetListSchema = generate_model_schema(
 
 PresList, PresListSchema = generate_model_schema(
     name='PresList',
-    handler='aries_cloudagent.messaging.admin.PassHandler',
+    handler='aca_plugin_toolbox.util.PassHandler',
     msg_type=PRESENTATIONS_LIST,
     schema=V10PresentationExchangeListSchema
     # schema={
