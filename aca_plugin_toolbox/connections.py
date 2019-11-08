@@ -433,7 +433,10 @@ class InvitationGetListHandler(BaseHandler):
         records = await ConnectionRecord.query(context, tag_filter)
         results = []
         for connection in records:
-            invitation = await connection.retrieve_invitation(context)
+            try:
+                invitation = await connection.retrieve_invitation(context)
+            except StorageNotFoundError:
+                continue
 
             row = {
                 'connection': connection.serialize(),
