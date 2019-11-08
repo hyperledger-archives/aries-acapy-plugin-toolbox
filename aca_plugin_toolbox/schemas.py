@@ -7,12 +7,13 @@ from asyncio import shield
 
 from marshmallow import fields
 
-from . import generate_model_schema, admin_only
-from ..base_handler import BaseHandler, BaseResponder, RequestContext
-from ..models.base_record import BaseRecord, BaseRecordSchema
-from ...ledger.base import BaseLedger
-from ...storage.error import StorageNotFoundError
-from ...config.injection_context import InjectionContext
+from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
+from aries_cloudagent.messaging.models.base_record import BaseRecord, BaseRecordSchema
+from aries_cloudagent.ledger.base import BaseLedger
+from aries_cloudagent.storage.error import StorageNotFoundError
+from aries_cloudagent.config.injection_context import InjectionContext
+
+from .util import generate_model_schema, admin_only
 
 PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0'
 
@@ -25,22 +26,22 @@ SCHEMA_LIST = '{}/schema-list'.format(PROTOCOL)
 
 MESSAGE_TYPES = {
     SEND_SCHEMA:
-        'aries_cloudagent.messaging.admin.schemas'
+        'aca_plugin_toolbox.schemas'
         '.SendSchema',
     SCHEMA_ID:
-        'aries_cloudagent.messaging.admin.schemas'
+        'aca_plugin_toolbox.schemas'
         '.SchemaID',
     SCHEMA_GET:
-        'aries_cloudagent.messaging.admin.schemas'
+        'aca_plugin_toolbox.schemas'
         '.SchemaGet',
     SCHEMA:
-        'aries_cloudagent.messaging.admin.schemas'
+        'aca_plugin_toolbox.schemas'
         '.Schema',
     SCHEMA_GET_LIST:
-        'aries_cloudagent.messaging.admin.schemas'
+        'aca_plugin_toolbox.schemas'
         '.SchemaGetList',
     SCHEMA_LIST:
-        'aries_cloudagent.messaging.admin.schemas'
+        'aca_plugin_toolbox.schemas'
         '.SchemaList',
 }
 
@@ -134,7 +135,7 @@ class SchemaRecordSchema(BaseRecordSchema):
 
 SendSchema, SendSchemaSchema = generate_model_schema(
     name='SendSchema',
-    handler='aries_cloudagent.messaging.admin.schemas.SendSchemaHandler',
+    handler='aca_plugin_toolbox.schemas.SendSchemaHandler',
     msg_type=SEND_SCHEMA,
     schema={
         'schema_name': fields.Str(required=True),
@@ -144,7 +145,7 @@ SendSchema, SendSchemaSchema = generate_model_schema(
 )
 SchemaID, SchemaIDSchema = generate_model_schema(
     name='SchemaID',
-    handler='aries_cloudagent.messaging.admin.PassHandler',
+    handler='aca_plugin_toolbox.util.PassHandler',
     msg_type=SCHEMA_ID,
     schema={
         'schema_id': fields.Str()
@@ -184,7 +185,7 @@ class SendSchemaHandler(BaseHandler):
 
 SchemaGet, SchemaGetSchema = generate_model_schema(
     name='SchemaGet',
-    handler='aries_cloudagent.messaging.admin.schemas.SchemaGetHandler',
+    handler='aca_plugin_toolbox.schemas.SchemaGetHandler',
     msg_type=SCHEMA_GET,
     schema={
         'schema_id': fields.Str(required=True)
@@ -192,7 +193,7 @@ SchemaGet, SchemaGetSchema = generate_model_schema(
 )
 Schema, SchemaSchema = generate_model_schema(
     name='Schema',
-    handler='aries_cloudagent.messaging.admin.PassHandler',
+    handler='aca_plugin_toolbox.util.PassHandler',
     msg_type=SCHEMA,
     schema=SchemaRecordSchema
 )
@@ -237,14 +238,14 @@ class SchemaGetHandler(BaseHandler):
 
 SchemaGetList, SchemaGetListSchema = generate_model_schema(
     name='SchemaGetList',
-    handler='aries_cloudagent.messaging.admin.schemas.SchemaGetListHandler',
+    handler='aca_plugin_toolbox.schemas.SchemaGetListHandler',
     msg_type=SCHEMA_GET_LIST,
     schema={}
 )
 
 SchemaList, SchemaListSchema = generate_model_schema(
     name='SchemaList',
-    handler='aries_cloudagent.messaging.admin.PassHandler',
+    handler='aca_plugin_toolbox.util.PassHandler',
     msg_type=SCHEMA_LIST,
     schema={
         'results': fields.List(

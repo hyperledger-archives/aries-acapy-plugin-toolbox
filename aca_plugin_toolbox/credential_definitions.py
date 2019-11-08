@@ -7,15 +7,15 @@ from asyncio import shield
 
 from marshmallow import fields
 
-from . import generate_model_schema, admin_only
-from .schemas import SchemaRecord
-from ..base_handler import BaseHandler, BaseResponder, RequestContext
-from ..models.base_record import BaseRecord, BaseRecordSchema
-from ..problem_report.message import ProblemReport
-from ...ledger.base import BaseLedger
-from ...storage.error import StorageNotFoundError
-from ...config.injection_context import InjectionContext
+from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
+from aries_cloudagent.messaging.models.base_record import BaseRecord, BaseRecordSchema
+from aries_cloudagent.protocols.problem_report.message import ProblemReport
+from aries_cloudagent.ledger.base import BaseLedger
+from aries_cloudagent.storage.error import StorageNotFoundError
+from aries_cloudagent.config.injection_context import InjectionContext
 
+from .util import generate_model_schema, admin_only
+from .schemas import SchemaRecord
 
 PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0'
 
@@ -28,17 +28,17 @@ CRED_DEF_LIST = '{}/credential-definition-list'.format(PROTOCOL)
 
 MESSAGE_TYPES = {
     SEND_CRED_DEF:
-        'aries_cloudagent.messaging.admin.credential_definitions.SendCredDef',
+        'aca_plugin_toolbox.credential_definitions.SendCredDef',
     CRED_DEF_ID:
-        'aries_cloudagent.messaging.admin.credential_definitions.CredDefID',
+        'aca_plugin_toolbox.credential_definitions.CredDefID',
     CRED_DEF_GET:
-        'aries_cloudagent.messaging.admin.credential_definitions.CredDefGet',
+        'aca_plugin_toolbox.credential_definitions.CredDefGet',
     CRED_DEF:
-        'aries_cloudagent.messaging.admin.credential_definitions.CredDef',
+        'aca_plugin_toolbox.credential_definitions.CredDef',
     CRED_DEF_GET_LIST:
-        'aries_cloudagent.messaging.admin.credential_definitions.CredDefGetList',
+        'aca_plugin_toolbox.credential_definitions.CredDefGetList',
     CRED_DEF_LIST:
-        'aries_cloudagent.messaging.admin.credential_definitions.CredDefList',
+        'aca_plugin_toolbox.credential_definitions.CredDefList',
 }
 
 
@@ -127,7 +127,7 @@ class CredDefRecordSchema(BaseRecordSchema):
 
 SendCredDef, SendCredDefSchema = generate_model_schema(
     name='SendCredDef',
-    handler='aries_cloudagent.messaging.admin.credential_definitions'
+    handler='aca_plugin_toolbox.credential_definitions'
             '.SendCredDefHandler',
     msg_type=SEND_CRED_DEF,
     schema={
@@ -137,7 +137,7 @@ SendCredDef, SendCredDefSchema = generate_model_schema(
 
 CredDefID, CredDefIDSchema = generate_model_schema(
     name='CredDefID',
-    handler='aries_cloudagent.messaging.admin.PassHandler',
+    handler='aca_plugin_toolbox.util.PassHandler',
     msg_type=CRED_DEF_ID,
     schema={
         'cred_def_id': fields.Str(required=True)
@@ -213,7 +213,7 @@ class SendCredDefHandler(BaseHandler):
 
 CredDefGet, CredDefGetSchema = generate_model_schema(
     name="CredDefGet",
-    handler='aries_cloudagent.messaging.admin.credential_definitions'
+    handler='aca_plugin_toolbox.credential_definitions'
             '.CredDefGetHandler',
     msg_type=CRED_DEF_GET,
     schema={
@@ -223,7 +223,7 @@ CredDefGet, CredDefGetSchema = generate_model_schema(
 
 CredDef, CredDefSchema = generate_model_schema(
     name="CredDef",
-    handler='aries_cloudagent.messaging.admin.PassHandler',
+    handler='aca_plugin_toolbox.util.PassHandler',
     msg_type=CRED_DEF,
     schema=CredDefRecordSchema
 )
@@ -295,7 +295,7 @@ class CredDefGetHandler(BaseHandler):
 
 CredDefGetList, CredDefGetListSchema = generate_model_schema(
     name='CredDefGetList',
-    handler='aries_cloudagent.messaging.admin.credential_definitions'
+    handler='aca_plugin_toolbox.credential_definitions'
             '.CredDefGetListHandler',
     msg_type=CRED_DEF_GET_LIST,
     schema={
@@ -304,7 +304,7 @@ CredDefGetList, CredDefGetListSchema = generate_model_schema(
 
 CredDefList, CredDefListSchema = generate_model_schema(
     name='CredDefList',
-    handler='aries_cloudagent.messaging.admin.PassHandler',
+    handler='aca_plugin_toolbox.util.PassHandler',
     msg_type=CRED_DEF_LIST,
     schema={
         'results': fields.List(

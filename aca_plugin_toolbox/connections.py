@@ -5,18 +5,18 @@
 
 from marshmallow import fields, validate
 
-from . import generate_model_schema, admin_only
-from ..base_handler import BaseHandler, BaseResponder, RequestContext
-from ..connections.manager import ConnectionManager
-from ..connections.models.connection_record import (
+from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
+from aries_cloudagent.protocols.connections.manager import ConnectionManager
+from aries_cloudagent.connections.models.connection_record import (
     ConnectionRecord, ConnectionRecordSchema
 )
-from ..connections.messages.connection_invitation import (
+from aries_cloudagent.protocols.connections.messages.connection_invitation import (
     ConnectionInvitation,
 )
-from ..problem_report.message import ProblemReport
-from ...storage.error import StorageNotFoundError
+from aries_cloudagent.protocols.problem_report.message import ProblemReport
+from aries_cloudagent.storage.error import StorageNotFoundError
 
+from .util import generate_model_schema, admin_only
 
 PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0'
 
@@ -40,53 +40,53 @@ CONNECTION_ACK = '{}/ack'.format(PROTOCOL)
 # Message Type string to Message Class map
 MESSAGE_TYPES = {
     CONNECTION_GET_LIST:
-        'aries_cloudagent.messaging.admin.connections'
+        'aca_plugin_toolbox.connections'
         '.ConnectionGetList',
     CONNECTION_LIST:
-        'aries_cloudagent.messaging.admin.connections'
+        'aca_plugin_toolbox.connections'
         '.ConnectionList',
     CONNECTION_GET:
-        'aries_cloudagent.messaging.admin.connections'
+        'aca_plugin_toolbox.connections'
         '.ConnectionGet',
     CONNECTION:
-        'aries_cloudagent.messaging.admin.connections'
+        'aca_plugin_toolbox.connections'
         '.Connnection',
     CREATE_INVITATION:
-        'aries_cloudagent.messaging.admin.connections'
+        'aca_plugin_toolbox.connections'
         '.CreateInvitation',
     INVITATION_GET_LIST:
-        'aries_cloudagent.messaging.admin.connections'
+        'aca_plugin_toolbox.connections'
         '.InvitationGetList',
     INVITATION:
-        'aries_cloudagent.messaging.admin.connections'
+        'aca_plugin_toolbox.connections'
         '.Invitation',
     RECEIVE_INVITATION:
-        'aries_cloudagent.messaging.admin.connections'
+        'aca_plugin_toolbox.connections'
         '.ReceiveInvitation',
     ACCEPT_INVITATION:
-        'aries_cloudagent.messaging.admin.connections'
+        'aca_plugin_toolbox.connections'
         '.AcceptInvitation',
     ACCEPT_REQUEST:
-        'aries_cloudagent.messaging.admin.connections'
+        'aca_plugin_toolbox.connections'
         '.AcceptRequest',
     ESTABLISH_INBOUND:
-        'aries_cloudagent.messaging.admin.connections'
+        'aca_plugin_toolbox.connections'
         '.EstablishInbound',
     DELETE_CONNECTION:
-        'aries_cloudagent.messaging.admin.connections'
+        'aca_plugin_toolbox.connections'
         '.DeleteConnection',
     CONNECTION_ACK:
-        'aries_cloudagent.messaging.admin.connections'
+        'aca_plugin_toolbox.connections'
         '.ConnectionAck',
     UPDATE_CONNECTION:
-        'aries_cloudagent.messaging.admin.connections'
+        'aca_plugin_toolbox.connections'
         '.UpdateConnection',
 }
 
 
 ConnectionGetList, ConnectionGetListSchema = generate_model_schema(
     name='ConnectionGetList',
-    handler='aries_cloudagent.messaging.admin.connections.ConnectionGetListHandler',
+    handler='aca_plugin_toolbox.connections.ConnectionGetListHandler',
     msg_type=CONNECTION_GET_LIST,
     schema={
         'initiator': fields.Str(
@@ -114,7 +114,7 @@ ConnectionGetList, ConnectionGetListSchema = generate_model_schema(
 
 ConnectionList, ConnectionListSchema = generate_model_schema(
     name='ConnectionList',
-    handler='aries_cloudagent.messaging.admin.PassHandler',
+    handler='aca_plugin_toolbox.util.PassHandler',
     msg_type=CONNECTION_LIST,
     schema={
         'results': fields.List(
@@ -126,7 +126,7 @@ ConnectionList, ConnectionListSchema = generate_model_schema(
 
 ConnectionGet, ConnectionGetSchema = generate_model_schema(
     name='ConnectionGet',
-    handler='aries_cloudagent.messaging.admin.connections.ConnectionGetHandler',
+    handler='aca_plugin_toolbox.connections.ConnectionGetHandler',
     msg_type=CONNECTION_GET,
     schema={
         'connection_id': fields.Str(required=True)
@@ -135,7 +135,7 @@ ConnectionGet, ConnectionGetSchema = generate_model_schema(
 
 Connection, ConnectionSchema = generate_model_schema(
     name='Connection',
-    handler='aries_cloudagent.messaging.admin.PassHandler',
+    handler='aca_plugin_toolbox.util.PassHandler',
     msg_type=CONNECTION,
     schema={
         'connection': fields.Nested(ConnectionRecordSchema, required=True),
@@ -144,7 +144,7 @@ Connection, ConnectionSchema = generate_model_schema(
 
 InvitationGetList, InvitationGetListSchema = generate_model_schema(
     name='InvitationGetList',
-    handler='aries_cloudagent.messaging.admin.connections.InvitationGetListHandler',
+    handler='aca_plugin_toolbox.connections.InvitationGetListHandler',
     msg_type=INVITATION_GET_LIST,
     schema={
         'initiator': fields.Str(
@@ -160,7 +160,7 @@ InvitationGetList, InvitationGetListSchema = generate_model_schema(
 
 CreateInvitation, CreateInvitationSchema = generate_model_schema(
     name='CreateInvitation',
-    handler='aries_cloudagent.messaging.admin.connections.CreateInvitationHandler',
+    handler='aca_plugin_toolbox.connections.CreateInvitationHandler',
     msg_type=CREATE_INVITATION,
     schema={
         'label': fields.Str(required=False),
@@ -176,7 +176,7 @@ CreateInvitation, CreateInvitationSchema = generate_model_schema(
 
 Invitation, InvitationSchema = generate_model_schema(
     name='Invitation',
-    handler='aries_cloudagent.messaging.admin.PassHandler',
+    handler='aca_plugin_toolbox.util.PassHandler',
     msg_type=INVITATION,
     schema={
         'connection_id': fields.Str(required=True),
@@ -187,7 +187,7 @@ Invitation, InvitationSchema = generate_model_schema(
 
 InvitationList, InvitationListSchema = generate_model_schema(
     name='InvitationList',
-    handler='aries_cloudagent.messaging.admin.PassHandler',
+    handler='aca_plugin_toolbox.util.PassHandler',
     msg_type=INVITATION_LIST,
     schema={
         'results': fields.List(fields.Dict(
@@ -222,7 +222,7 @@ class CreateInvitationHandler(BaseHandler):
 
 ReceiveInvitation, ReceiveInvitationSchema = generate_model_schema(
     name='ReceiveInvitation',
-    handler='aries_cloudagent.messaging.admin.connections.ReceiveInvitationHandler',
+    handler='aca_plugin_toolbox.connections.ReceiveInvitationHandler',
     msg_type=RECEIVE_INVITATION,
     schema={
         'invitation': fields.Str(required=True),
@@ -251,7 +251,7 @@ class ReceiveInvitationHandler(BaseHandler):
 
 AcceptInvitation, AcceptInvitationSchema = generate_model_schema(
     name='AcceptInvitation',
-    handler='aries_cloudagent.messaging.admin.connections.AcceptInvitationHandler',
+    handler='aca_plugin_toolbox.connections.AcceptInvitationHandler',
     msg_type=ACCEPT_INVITATION,
     schema={
         'connection_id': fields.Str(required=True),
@@ -262,7 +262,7 @@ AcceptInvitation, AcceptInvitationSchema = generate_model_schema(
 
 AcceptRequest, AcceptRequestSchema = generate_model_schema(
     name='AcceptRequest',
-    handler='aries_cloudagent.messaging.admin.connections.AcceptRequestHandler',
+    handler='aca_plugin_toolbox.connections.AcceptRequestHandler',
     msg_type=ACCEPT_REQUEST,
     schema={
         'connection_id': fields.Str(required=True),
@@ -272,7 +272,7 @@ AcceptRequest, AcceptRequestSchema = generate_model_schema(
 
 EstablishInbound, EstablishInboundSchema = generate_model_schema(
     name='EstablishInbound',
-    handler='aries_cloudagent.messaging.admin.connections.EstablishInboundHandler',
+    handler='aca_plugin_toolbox.connections.EstablishInboundHandler',
     msg_type=ESTABLISH_INBOUND,
     schema={
         'connection_id': fields.Str(required=True),
@@ -282,7 +282,7 @@ EstablishInbound, EstablishInboundSchema = generate_model_schema(
 
 DeleteConnection, DeleteConnectionSchema = generate_model_schema(
     name='DeleteConnection',
-    handler='aries_cloudagent.messaging.admin.connections.DeleteConnectionHandler',
+    handler='aca_plugin_toolbox.connections.DeleteConnectionHandler',
     msg_type=DELETE_CONNECTION,
     schema={
         'connection_id': fields.Str(required=True),
@@ -291,14 +291,14 @@ DeleteConnection, DeleteConnectionSchema = generate_model_schema(
 
 ConnectionAck, ConnectionAckSchema = generate_model_schema(
     name='ConnectionAck',
-    handler='aries_cloudagent.messaging.admin.PassHandler',
+    handler='aca_plugin_toolbox.util.PassHandler',
     msg_type=CONNECTION_ACK,
     schema={}
 )
 
 UpdateConnection, UpdateConnectionSchema = generate_model_schema(
     name='UpdateConnection',
-    handler='aries_cloudagent.messaging.admin.connections.UpdateConnectionHandler',
+    handler='aca_plugin_toolbox.connections.UpdateConnectionHandler',
     msg_type=UPDATE_CONNECTION,
     schema={
         'connection_id': fields.Str(required=True),
