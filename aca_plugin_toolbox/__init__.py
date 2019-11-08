@@ -7,6 +7,7 @@ from .connections import MESSAGE_TYPES as CONNECTION_MESSAGES
 from .credential_definitions import MESSAGE_TYPES as CRED_DEF_MESSAGES
 from .schemas import MESSAGE_TYPES as SCHEMA_MESSAGES
 from .dids import MESSAGE_TYPES as DID_MESSAGES
+from .static_connections import MESSAGE_TYPES as STATIC_CONN_MESSAGES
 
 
 async def setup(context: InjectionContext):
@@ -17,4 +18,5 @@ async def setup(context: InjectionContext):
         CRED_DEF_MESSAGES,
         SCHEMA_MESSAGES,
         DID_MESSAGES,
+        STATIC_CONN_MESSAGES,
     )

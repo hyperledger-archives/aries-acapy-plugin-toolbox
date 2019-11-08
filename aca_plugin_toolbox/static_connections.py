@@ -5,18 +5,17 @@
 
 from marshmallow import fields, validate
 
-from ...wallet.base import BaseWallet
-
-from . import generate_model_schema, admin_only
-from ..base_handler import BaseHandler, BaseResponder, RequestContext
-from ..connections.manager import ConnectionManager
-from ..connections.models.connection_record import ConnectionRecord
-from ..connections.models.diddoc import (
+from aries_cloudagent.wallet.base import BaseWallet
+from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
+from aries_cloudagent.protocols.connections.manager import ConnectionManager
+from aries_cloudagent.connections.models.connection_record import ConnectionRecord
+from aries_cloudagent.connections.models.diddoc import (
     DIDDoc, PublicKey, PublicKeyType, Service
 )
-from ..problem_report.message import ProblemReport
-from ...storage.error import StorageNotFoundError
+from aries_cloudagent.protocols.problem_report.message import ProblemReport
+from aries_cloudagent.storage.error import StorageNotFoundError
 
+from .util import generate_model_schema, admin_only
 
 PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0'
 
@@ -29,23 +28,23 @@ STATIC_CONNECTION_LIST = '{}/static-connection-list'.format(PROTOCOL)
 # Message Type to Message Class Map
 MESSAGE_TYPES = {
     CREATE_STATIC_CONNECTION:
-        'aries_cloudagent.messaging.admin.static_connections'
+        'aca_plugin_toolbox.static_connections'
         '.CreateStaticConnection',
     STATIC_CONNECTION_INFO:
-        'aries_cloudagent.messaging.admin.static_connections'
+        'aca_plugin_toolbox.static_connections'
         '.StaticConnectionInfo',
     STATIC_CONNECTION_GET_LIST:
-        'aries_cloudagent.messaging.admin.static_connections'
+        'aca_plugin_toolbox.static_connections'
         '.StaticConnectionGetList',
     STATIC_CONNECTION_LIST:
-        'aries_cloudagent.messaging.admin.static_connections'
+        'aca_plugin_toolbox.static_connections'
         '.StaticConnectionList',
 }
 
 # Models and Schemas
 CreateStaticConnection, CreateStaticConnectionSchema = generate_model_schema(
     name='CreateStaticConnection',
-    handler='aries_cloudagent.messaging.admin.static_connections'
+    handler='aca_plugin_toolbox.static_connections'
             '.CreateStaticConnectionHandler',
     msg_type=CREATE_STATIC_CONNECTION,
     schema={
@@ -58,7 +57,7 @@ CreateStaticConnection, CreateStaticConnectionSchema = generate_model_schema(
 )
 StaticConnectionInfo, StaticConnectionInfoSchema = generate_model_schema(
     name='StaticConnectionInfo',
-    handler='aries_cloudagent.messaging.admin.static_connections'
+    handler='aca_plugin_toolbox.static_connections'
             '.StaticConnectionInfoHandler',
     msg_type=STATIC_CONNECTION_INFO,
     schema={
@@ -133,7 +132,7 @@ class CreateStaticConnectionHandler(BaseHandler):
 
 StaticConnectionGetList, StaticConnectionGetListSchema = generate_model_schema(
     name='StaticConnectionGetList',
-    handler='aries_cloudagent.messaging.admin.static_connections'
+    handler='aca_plugin_toolbox.static_connections'
             '.StaticConnectionGetListHandler',
     msg_type=STATIC_CONNECTION_GET_LIST,
     schema={
@@ -150,7 +149,7 @@ StaticConnectionGetList, StaticConnectionGetListSchema = generate_model_schema(
 
 StaticConnectionList, StaticConnectionListSchema = generate_model_schema(
     name='StaticConnectionList',
-    handler='aries_cloudagent.messaging.admin.PassHandler',
+    handler='aca_plugin_toolbox.util.PassHandler',
     msg_type=STATIC_CONNECTION_LIST,
     schema={
         'results': fields.List(fields.Dict(
