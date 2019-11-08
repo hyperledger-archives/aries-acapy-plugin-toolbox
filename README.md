@@ -12,7 +12,7 @@ Requirements:
 > ACA-Py. Once a release including the new plugin interface is published to
 > PyPI, these instructions will be updated accordingly.
 
-First, clone and
+First, clone
 [ACA-Py](https://github.com/hyperledger/aries-cloudagent-python) and prepare a
 virtual environment:
 ```sh
