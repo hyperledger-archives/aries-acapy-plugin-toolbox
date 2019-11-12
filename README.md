@@ -12,6 +12,14 @@ Requirements:
 > ACA-Py. Once a release including the new plugin interface is published to
 > PyPI, these instructions will be updated accordingly.
 
+### Setup Aries Cloud Agent - Python
+
+If you already have an existing installation of ACA-Py, you can skip these steps
+and move on to [plugin installation](#plugin-installation). It is also worth
+noting that this is not the only way to setup an ACA-Py instance. For more setup
+configurations, see the [Aries Cloud Agent - Python
+repository](https://github.com/hyperledger/aries-cloudagent-python).
+
 First, clone
 [ACA-Py](https://github.com/hyperledger/aries-cloudagent-python) and prepare a
 virtual environment:
@@ -30,6 +38,8 @@ $ pip install -e .
 ```sh
 $ pip install -e .[indy]
 ```
+
+### Plugin Installation
 
 Install this plugin into the virtual environment:
 ```sh
