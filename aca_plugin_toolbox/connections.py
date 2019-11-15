@@ -439,8 +439,6 @@ class InvitationGetListHandler(BaseHandler):
             }.items()
         ))
         records = await ConnectionRecord.query(context, tag_filter, post_filter)
-        print('HERE ARE THE RECORDS:', records)
-        print('For filter: {} and post filter: {}'.format(tag_filter, post_filter))
         results = []
         for connection in records:
             try:
