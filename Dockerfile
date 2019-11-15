@@ -1,12 +1,6 @@
 FROM bcgovimages/von-image:py36-1.11-1
-
-COPY ./aries-cloudagent-python/requirements*.txt ./
-RUN pip3 install --no-cache-dir -r requirements.txt -r requirements.dev.txt
-
-ADD ./aries-cloudagent-python/aries_cloudagent ./aries_cloudagent
-ADD ./aries-cloudagent-python/bin ./bin
-ADD ./aries-cloudagent-python/README.md ./README.md
-ADD ./aries-cloudagent-python/setup.py ./setup.py
+# 77f4.... should be changed to a supported tag when there is one.
+RUN pip3 install git+https://github.com/hyperledger/aries-cloudagent-python.git@77f47b7f3d47bad89f6177f4e95b8a50abc38b5d#egg=aries-cloudagent
 
 RUN pip3 install --no-cache-dir -e .[indy]
 RUN pip3 install git+https://github.com/sovrin-foundation/aca-plugin-toolbox.git@master#egg=aca-plugin-toolbox
