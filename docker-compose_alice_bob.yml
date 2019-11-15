@@ -1,0 +1,19 @@
+version: "3"
+services:
+  ngrok-alice:
+    image: wernight/ngrok
+    command: ngrok http agent-alice:3000 --log stdout
+  agent-alice:
+    build: .
+    environment:
+      NGROK_NAME: ngrok-alice
+      AGENT_NAME: Alice
+
+  ngrok-bob:
+    image: wernight/ngrok
+    command: ngrok http agent-bob:3000 --log stdout
+  agent-bob:
+    build: .
+    environment:
+      NGROK_NAME: ngrok-bob
+      AGENT_NAME: Bob
