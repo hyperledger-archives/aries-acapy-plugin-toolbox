@@ -393,15 +393,19 @@ class ConnectionGetListHandler(BaseHandler):
 
         tag_filter = dict(
             filter(lambda item: item[1] is not None, {
-                'initiator': context.message.initiator,
-                'invitation_key': context.message.invitation_key,
                 'my_did': context.message.my_did,
-                'state': context.message.state,
                 'their_did': context.message.their_did,
-                'their_role': context.message.their_role
             }.items())
         )
-        records = await ConnectionRecord.query(context, tag_filter)
+        post_filter = dict(filter(
+            lambda item: item[1] is not None,
+            {
+                'initiator': context.message.initiator,
+                'state': context.message.state,
+                'their_role': context.message.their_role
+            }.items()
+        ))
+        records = await ConnectionRecord.query(context, tag_filter, post_filter)
         results = []
         for record in records:
             row = record.serialize()
@@ -422,15 +426,19 @@ class InvitationGetListHandler(BaseHandler):
 
         tag_filter = dict(
             filter(lambda item: item[1] is not None, {
-                'initiator': context.message.initiator,
-                'invitation_key': context.message.invitation_key,
                 'my_did': context.message.my_did,
-                'state': 'invitation',
                 'their_did': context.message.their_did,
-                'their_role': context.message.their_role
             }.items())
         )
-        records = await ConnectionRecord.query(context, tag_filter)
+        post_filter = dict(filter(
+            lambda item: item[1] is not None,
+            {
+                'initiator': context.message.initiator,
+                'state': 'invitation',
+                'their_role': context.message.their_role
+            }.items()
+        ))
+        records = await ConnectionRecord.query(context, tag_filter, post_filter)
         results = []
         for connection in records:
             try:
