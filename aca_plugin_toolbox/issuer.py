@@ -84,12 +84,12 @@ class SendCredHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received send request."""
         connection_id = str(context.message.connection_id)
-        credential_definition_id = context.message.credential_definition_id
+        cred_def_id = context.message.cred_def_id
         comment = context.message.comment
         credential_proposal = CredentialProposal(
             comment=comment,
             credential_proposal=context.message.credential_proposal,
-            cred_def_id=credential_definition_id,
+            cred_def_id=cred_def_id,
         )
 
         credential_manager = CredentialManager(context)
@@ -118,7 +118,7 @@ class SendCredHandler(BaseHandler):
             return
 
         credential_exchange_record = await credential_manager.prepare_send(
-            credential_definition_id,
+            cred_def_id,
             connection_id,
             credential_proposal=credential_proposal
         )
