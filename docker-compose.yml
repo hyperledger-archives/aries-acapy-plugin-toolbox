@@ -1,0 +1,10 @@
+version: "3"
+services:
+  ngrok:
+    image: wernight/ngrok
+    command: ngrok http agent:3000 --log stdout
+  agent:
+    build: .
+    environment:
+      NGROK_NAME: ngrok
+      AGENT_NAME: MyAgent
