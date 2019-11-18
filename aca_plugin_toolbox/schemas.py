@@ -15,7 +15,7 @@ from aries_cloudagent.config.injection_context import InjectionContext
 
 from .util import generate_model_schema, admin_only
 
-PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/1.0'
+PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1'
 
 SEND_SCHEMA = '{}/send-schema'.format(PROTOCOL)
 SCHEMA_ID = '{}/schema-id'.format(PROTOCOL)

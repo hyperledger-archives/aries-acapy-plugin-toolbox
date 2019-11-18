@@ -11,7 +11,7 @@ from aries_cloudagent.wallet.base import BaseWallet, DIDInfo
 from aries_cloudagent.wallet.error import WalletNotFoundError
 
 from .util import generate_model_schema, admin_only
-PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/1.0'
+PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1'
 
 GET_LIST_DIDS = '{}/get-list-dids'.format(PROTOCOL)
 LIST_DIDS = '{}/list-dids'.format(PROTOCOL)

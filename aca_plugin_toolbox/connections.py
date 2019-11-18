@@ -18,7 +18,7 @@ from aries_cloudagent.storage.error import StorageNotFoundError
 
 from .util import generate_model_schema, admin_only
 
-PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/1.0'
+PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1'
 
 # Message Types
 CONNECTION_GET_LIST = '{}/connection-get-list'.format(PROTOCOL)

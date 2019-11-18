@@ -17,7 +17,7 @@ from aries_cloudagent.storage.error import StorageNotFoundError
 
 from .util import generate_model_schema, admin_only
 
-PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/1.0'
+PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/0.1'
 
 # Message Types
 CREATE_STATIC_CONNECTION = '{}/create-static-connection'.format(PROTOCOL)
