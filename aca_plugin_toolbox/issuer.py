@@ -37,7 +37,7 @@ from aries_cloudagent.storage.error import StorageNotFoundError
 from aries_cloudagent.protocols.problem_report.message import ProblemReport
 
 from .util import generate_model_schema, admin_only
-PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/1.0'
+PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1'
 
 SEND_CREDENTIAL = '{}/send-credential'.format(PROTOCOL)
 REQUEST_PRESENTATION = '{}/request-presentation'.format(PROTOCOL)

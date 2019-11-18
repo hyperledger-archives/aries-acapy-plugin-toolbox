@@ -17,7 +17,7 @@ from aries_cloudagent.config.injection_context import InjectionContext
 from .util import generate_model_schema, admin_only
 from .schemas import SchemaRecord
 
-PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0'
+PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1'
 
 SEND_CRED_DEF = '{}/send-credential-definition'.format(PROTOCOL)
 CRED_DEF_ID = '{}/credential-definition-id'.format(PROTOCOL)
