@@ -13,6 +13,7 @@ from aries_cloudagent.protocols.problem_report.message import ProblemReport
 from aries_cloudagent.ledger.base import BaseLedger
 from aries_cloudagent.storage.error import StorageNotFoundError
 from aries_cloudagent.config.injection_context import InjectionContext
+from aries_cloudagent.messaging.utils import canon
 
 from .util import generate_model_schema, admin_only
 from .schemas import SchemaRecord
@@ -194,10 +195,14 @@ class SendCredDefHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
+        attributes=[];
+        for attribute in schema_record.attributes
+            attributes.append(canon(attribute))
+
         cred_def_record = CredDefRecord(
             cred_def_id=credential_definition_id,
             schema_id=context.message.schema_id,
-            attributes=schema_record.attributes,
+            attributes=attributes,
             state=CredDefRecord.STATE_WRITTEN,
             author=CredDefRecord.AUTHOR_SELF
         )
@@ -276,10 +281,15 @@ class CredDefGetHandler(BaseHandler):
             )
             await schema_record.save(context, reason='Retrieved from ledger')
 
+        attributes=[];
+        for attribute in schema_record.attributes
+            attributes.append(canon(attribute))
+
+
         cred_def_record = CredDefRecord(
             cred_def_id=credential_definition['id'],
             schema_id=schema_record.schema_id,
-            attributes=schema_record.attributes,
+            attributes=attributes,
             state=CredDefRecord.STATE_WRITTEN,
             author=CredDefRecord.AUTHOR_OTHER
         )
