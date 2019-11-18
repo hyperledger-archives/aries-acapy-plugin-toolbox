@@ -216,7 +216,7 @@ CredGetList, CredGetListSchema = generate_model_schema(
     msg_type=CREDENTIALS_GET_LIST,
     schema={
         'connection_id': fields.Str(required=False),
-        'credential_definition_id': fields.Str(required=False),
+        'cred_def_id': fields.Str(required=False),
         'schema_id': fields.Str(required=False)
     }
 )
@@ -241,7 +241,7 @@ class CredGetListHandler(BaseHandler):
                 # 'state': V10CredentialExchange.STATE_ISSUED,
                 'role': V10CredentialExchange.ROLE_ISSUER,
                 'connection_id': context.message.connection_id,
-                'credential_definition_id': context.message.credential_definition_id,
+                'cred_def_id': context.message.cred_def_id,
                 'schema_id': context.message.schema_id
             }.items())
         )

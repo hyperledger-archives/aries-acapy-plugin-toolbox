@@ -18,7 +18,7 @@ from aries_cloudagent.messaging.utils import canon
 from .util import generate_model_schema, admin_only
 from .schemas import SchemaRecord
 
-PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1'
+PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/1.0'
 
 SEND_CRED_DEF = '{}/send-credential-definition'.format(PROTOCOL)
 CRED_DEF_ID = '{}/credential-definition-id'.format(PROTOCOL)
@@ -195,14 +195,10 @@ class SendCredDefHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
-        attributes=[];
-        for attribute in schema_record.attributes
-            attributes.append(canon(attribute))
-
         cred_def_record = CredDefRecord(
             cred_def_id=credential_definition_id,
             schema_id=context.message.schema_id,
-            attributes=attributes,
+            attributes=list(map(canon, schema_record.attributes)),
             state=CredDefRecord.STATE_WRITTEN,
             author=CredDefRecord.AUTHOR_SELF
         )
@@ -281,15 +277,10 @@ class CredDefGetHandler(BaseHandler):
             )
             await schema_record.save(context, reason='Retrieved from ledger')
 
-        attributes=[];
-        for attribute in schema_record.attributes
-            attributes.append(canon(attribute))
-
-
         cred_def_record = CredDefRecord(
             cred_def_id=credential_definition['id'],
             schema_id=schema_record.schema_id,
-            attributes=attributes,
+            attributes=list(map(canon, schema_record.attributes)),
             state=CredDefRecord.STATE_WRITTEN,
             author=CredDefRecord.AUTHOR_OTHER
         )
