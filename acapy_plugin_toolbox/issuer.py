@@ -55,28 +55,28 @@ PRESENTATIONS_LIST = '{}/presentations-list'.format(PROTOCOL)
 
 MESSAGE_TYPES = {
     SEND_CREDENTIAL:
-        'aca_plugin_toolbox.issuer.SendCred',
+        'acapy_plugin_toolbox.issuer.SendCred',
     REQUEST_PRESENTATION:
-        'aca_plugin_toolbox.issuer.RequestPres',
+        'acapy_plugin_toolbox.issuer.RequestPres',
     CREDENTIALS_GET_LIST:
-        'aca_plugin_toolbox.issuer.CredGetList',
+        'acapy_plugin_toolbox.issuer.CredGetList',
     CREDENTIALS_LIST:
-        'aca_plugin_toolbox.issuer.CredList',
+        'acapy_plugin_toolbox.issuer.CredList',
     PRESENTATIONS_GET_LIST:
-        'aca_plugin_toolbox.issuer.PresGetList',
+        'acapy_plugin_toolbox.issuer.PresGetList',
     PRESENTATIONS_LIST:
-        'aca_plugin_toolbox.issuer.PresList',
+        'acapy_plugin_toolbox.issuer.PresList',
 }
 
 SendCred, SendCredSchema = generate_model_schema(
     name='SendCred',
-    handler='aca_plugin_toolbox.issuer.SendCredHandler',
+    handler='acapy_plugin_toolbox.issuer.SendCredHandler',
     msg_type=SEND_CREDENTIAL,
     schema=V10CredentialProposalRequestSchema
 )
 IssuerCredExchange, IssuerCredExchangeSchema = generate_model_schema(
     name='IssuerCredExchange',
-    handler='aca_plugin_toolbox.util.PassHandler',
+    handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=ISSUER_CRED_EXCHANGE,
     schema=V10CredentialExchangeSchema
 )
@@ -144,13 +144,13 @@ class SendCredHandler(BaseHandler):
 
 RequestPres, RequestPresSchema = generate_model_schema(
     name='RequestPres',
-    handler='aca_plugin_toolbox.issuer.RequestPresHandler',
+    handler='acapy_plugin_toolbox.issuer.RequestPresHandler',
     msg_type=REQUEST_PRESENTATION,
     schema=V10PresentationRequestRequestSchema,
 )
 IssuerPresExchange, IssuerPresExchangeSchema = generate_model_schema(
     name='IssuerPresExchange',
-    handler='aca_plugin_toolbox.util.PassHandler',
+    handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=ISSUER_PRES_EXCHANGE,
     schema=V10PresentationExchangeSchema
 )
@@ -221,7 +221,7 @@ class RequestPresHandler(BaseHandler):
 
 CredGetList, CredGetListSchema = generate_model_schema(
     name='CredGetList',
-    handler='aca_plugin_toolbox.issuer.CredGetListHandler',
+    handler='acapy_plugin_toolbox.issuer.CredGetListHandler',
     msg_type=CREDENTIALS_GET_LIST,
     schema={
         'connection_id': fields.Str(required=False),
@@ -232,7 +232,7 @@ CredGetList, CredGetListSchema = generate_model_schema(
 
 CredList, CredListSchema = generate_model_schema(
     name='CredList',
-    handler='aca_plugin_toolbox.util.PassHandler',
+    handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=CREDENTIALS_LIST,
     schema=V10CredentialExchangeListResultSchema
 )
@@ -261,7 +261,7 @@ class CredGetListHandler(BaseHandler):
 
 PresGetList, PresGetListSchema = generate_model_schema(
     name='PresGetList',
-    handler='aca_plugin_toolbox.issuer.PresGetListHandler',
+    handler='acapy_plugin_toolbox.issuer.PresGetListHandler',
     msg_type=PRESENTATIONS_GET_LIST,
     schema={
         'connection_id': fields.Str(required=False),
@@ -271,7 +271,7 @@ PresGetList, PresGetListSchema = generate_model_schema(
 
 PresList, PresListSchema = generate_model_schema(
     name='PresList',
-    handler='aca_plugin_toolbox.util.PassHandler',
+    handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=PRESENTATIONS_LIST,
     schema=V10PresentationExchangeListSchema
     # schema={
