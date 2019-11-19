@@ -10,6 +10,7 @@ from marshmallow import fields
 
 from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
 from aries_cloudagent.messaging.decorators.attach_decorator import AttachDecorator
+from aries_cloudagent.messaging.credential_definitions.util import CRED_DEF_TAGS
 from aries_cloudagent.protocols.issue_credential.v1_0.routes import (
     V10CredentialExchangeListResultSchema,
     V10CredentialProposalRequestSchema
@@ -20,6 +21,10 @@ from aries_cloudagent.protocols.issue_credential.v1_0.models.credential_exchange
 )
 from aries_cloudagent.protocols.issue_credential.v1_0.messages.credential_proposal import (
     CredentialProposal
+)
+from aries_cloudagent.protocols.issue_credential.v1_0.messages.inner.credential_preview import (
+    CredentialPreview,
+    CredentialPreviewSchema,
 )
 from aries_cloudagent.protocols.present_proof.v1_0.routes import (
     V10PresentationExchangeListSchema,
@@ -83,16 +88,9 @@ class SendCredHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received send request."""
-        connection_id = str(context.message.connection_id)
-        cred_def_id = context.message.cred_def_id
         comment = context.message.comment
-        credential_proposal = CredentialProposal(
-            comment=comment,
-            credential_proposal=context.message.credential_proposal,
-            cred_def_id=cred_def_id,
-        )
-
-        credential_manager = CredentialManager(context)
+        connection_id = str(context.message.connection_id)
+        preview_spec = context.message.credential_proposal
 
         try:
             connection_record = await ConnectionRecord.retrieve_by_id(
@@ -117,18 +115,29 @@ class SendCredHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
-        credential_exchange_record = await credential_manager.prepare_send(
-            cred_def_id,
-            connection_id,
-            credential_proposal=credential_proposal
+        credential_proposal = CredentialProposal(
+            comment=comment,
+            credential_proposal=CredentialPreview.deserialize(preview_spec),
+            **{
+                t: getattr(context.message, t)
+                for t in CRED_DEF_TAGS if hasattr(context.message, t)
+            },
         )
-        asyncio.ensure_future(
-            credential_manager.perform_send(
-                credential_exchange_record,
-                responder.send
+
+        credential_manager = CredentialManager(context)
+
+
+        cred_exchange_record, cred_offer_message = \
+            await credential_manager.prepare_send(
+                connection_id,
+                credential_proposal=credential_proposal
             )
+
+        await responder.send(
+            cred_offer_message,
+            connection_id=cred_exchange_record.connection_id
         )
-        cred_exchange = IssuerCredExchange(**credential_exchange_record.serialize())
+        cred_exchange = IssuerCredExchange(**cred_exchange_record.serialize())
         cred_exchange.assign_thread_from(context.message)
         await responder.send_reply(cred_exchange)
 
