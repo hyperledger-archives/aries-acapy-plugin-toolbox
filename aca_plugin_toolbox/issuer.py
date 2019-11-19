@@ -117,7 +117,7 @@ class SendCredHandler(BaseHandler):
 
         credential_proposal = CredentialProposal(
             comment=comment,
-            credential_proposal=CredentialPreview.deserialize(preview_spec),
+            credential_proposal=preview_spec,
             **{
                 t: getattr(context.message, t)
                 for t in CRED_DEF_TAGS if hasattr(context.message, t)
