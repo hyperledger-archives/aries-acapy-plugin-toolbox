@@ -48,7 +48,7 @@ $ pip install git+https://github.com/sovrin-foundation/aca-plugin-toolbox.git@ma
 
 Start up ACA-Py with the plugin parameter:
 ```sh
-$ aca-py start -it localhost 3000 -ot http -e http://localhost 3000 --plugin aca_plugin_toolbox
+$ aca-py start -it localhost 3000 -ot http -e http://localhost 3000 --plugin acapy_plugin_toolbox
 ```
 
 To use all the features of the toolbox, you'll need the `indy` feature installed
@@ -66,5 +66,5 @@ $ aca-py start \
     --invite --invite-role admin --invite-label "$AGENT_NAME (admin)" \
     --genesis-url https://raw.githubusercontent.com/sovrin-foundation/sovrin/master/sovrin/pool_transactions_sandbox_genesis \
     --wallet-type indy \
-    --plugin aca_plugin_toolbox
+    --plugin acapy_plugin_toolbox
 ```

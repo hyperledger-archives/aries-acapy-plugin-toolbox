@@ -28,23 +28,23 @@ STATIC_CONNECTION_LIST = '{}/static-connection-list'.format(PROTOCOL)
 # Message Type to Message Class Map
 MESSAGE_TYPES = {
     CREATE_STATIC_CONNECTION:
-        'aca_plugin_toolbox.static_connections'
+        'acapy_plugin_toolbox.static_connections'
         '.CreateStaticConnection',
     STATIC_CONNECTION_INFO:
-        'aca_plugin_toolbox.static_connections'
+        'acapy_plugin_toolbox.static_connections'
         '.StaticConnectionInfo',
     STATIC_CONNECTION_GET_LIST:
-        'aca_plugin_toolbox.static_connections'
+        'acapy_plugin_toolbox.static_connections'
         '.StaticConnectionGetList',
     STATIC_CONNECTION_LIST:
-        'aca_plugin_toolbox.static_connections'
+        'acapy_plugin_toolbox.static_connections'
         '.StaticConnectionList',
 }
 
 # Models and Schemas
 CreateStaticConnection, CreateStaticConnectionSchema = generate_model_schema(
     name='CreateStaticConnection',
-    handler='aca_plugin_toolbox.static_connections'
+    handler='acapy_plugin_toolbox.static_connections'
             '.CreateStaticConnectionHandler',
     msg_type=CREATE_STATIC_CONNECTION,
     schema={
@@ -57,7 +57,7 @@ CreateStaticConnection, CreateStaticConnectionSchema = generate_model_schema(
 )
 StaticConnectionInfo, StaticConnectionInfoSchema = generate_model_schema(
     name='StaticConnectionInfo',
-    handler='aca_plugin_toolbox.static_connections'
+    handler='acapy_plugin_toolbox.static_connections'
             '.StaticConnectionInfoHandler',
     msg_type=STATIC_CONNECTION_INFO,
     schema={
@@ -132,7 +132,7 @@ class CreateStaticConnectionHandler(BaseHandler):
 
 StaticConnectionGetList, StaticConnectionGetListSchema = generate_model_schema(
     name='StaticConnectionGetList',
-    handler='aca_plugin_toolbox.static_connections'
+    handler='acapy_plugin_toolbox.static_connections'
             '.StaticConnectionGetListHandler',
     msg_type=STATIC_CONNECTION_GET_LIST,
     schema={
@@ -149,7 +149,7 @@ StaticConnectionGetList, StaticConnectionGetListSchema = generate_model_schema(
 
 StaticConnectionList, StaticConnectionListSchema = generate_model_schema(
     name='StaticConnectionList',
-    handler='aca_plugin_toolbox.util.PassHandler',
+    handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=STATIC_CONNECTION_LIST,
     schema={
         'results': fields.List(fields.Dict(

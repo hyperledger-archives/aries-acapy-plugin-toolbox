@@ -26,34 +26,34 @@ GET_DID_ENDPOINT = '{}/get-did-endpoint'.format(PROTOCOL)
 
 MESSAGE_TYPES = {
     GET_LIST_DIDS:
-        'aca_plugin_toolbox.dids'
+        'acapy_plugin_toolbox.dids'
         '.GetListDids',
     LIST_DIDS:
-        'aca_plugin_toolbox.dids'
+        'acapy_plugin_toolbox.dids'
         '.ListDids',
     CREATE_DID:
-        'aca_plugin_toolbox.dids'
+        'acapy_plugin_toolbox.dids'
         '.CreateDid',
     SET_DID_METADATA:
-        'aca_plugin_toolbox.dids'
+        'acapy_plugin_toolbox.dids'
         '.SetDidMetadata',
     DID:
-        'aca_plugin_toolbox.did'
+        'acapy_plugin_toolbox.did'
         '.Did',
     GET_PUBLIC_DID:
-        'aca_plugin_toolbox.dids'
+        'acapy_plugin_toolbox.dids'
         '.GetPublicDid',
     SET_PUBLIC_DID:
-        'aca_plugin_toolbox.dids'
+        'acapy_plugin_toolbox.dids'
         '.SetPublicDid',
     REGISTER_DID:
-        'aca_plugin_toolbox.dids'
+        'acapy_plugin_toolbox.dids'
         '.RegisterDid',
     GET_DID_VERKEY:
-        'aca_plugin_toolbox.dids'
+        'acapy_plugin_toolbox.dids'
         '.GetDidVerkey',
     GET_DID_ENDPOINT:
-    'aca_plugin_toolbox.dids'
+    'acapy_plugin_toolbox.dids'
         '.GetDidEndpoint'
 }
 
@@ -99,7 +99,7 @@ class DidRecordSchema(BaseRecordSchema):
 
 GetListDids, GetListDidsSchema = generate_model_schema(
     name='GetListDids',
-    handler='aca_plugin_toolbox.dids.ListDidHandler',
+    handler='acapy_plugin_toolbox.dids.ListDidHandler',
     msg_type=GET_LIST_DIDS,
     schema={
         'did': fields.Str(required=False),
@@ -110,7 +110,7 @@ GetListDids, GetListDidsSchema = generate_model_schema(
 
 ListDids, ListDidsSchema = generate_model_schema(
     name='ListDids',
-    handler='aca_plugin_toolbox.util.PassHandler',
+    handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=LIST_DIDS,
     schema={
         'result': fields.List(
@@ -122,7 +122,7 @@ ListDids, ListDidsSchema = generate_model_schema(
 
 CreateDid, CreateDidSchema = generate_model_schema(
     name='CreateDid',
-    handler='aca_plugin_toolbox.dids.CreateDidHandler',
+    handler='acapy_plugin_toolbox.dids.CreateDidHandler',
     msg_type=CREATE_DID,
     schema={
         'seed': fields.Str(required=False),
@@ -133,7 +133,7 @@ CreateDid, CreateDidSchema = generate_model_schema(
 
 SetDidMetadata, SetDidMetadataSchema = generate_model_schema(
     name='SetDidMetadata',
-    handler='aca_plugin_toolbox.dids.SetDidMetadataHandler',
+    handler='acapy_plugin_toolbox.dids.SetDidMetadataHandler',
     msg_type=SET_DID_METADATA,
     schema={
         'did': fields.Str(required=True),
@@ -143,7 +143,7 @@ SetDidMetadata, SetDidMetadataSchema = generate_model_schema(
 
 Did, DidSchema = generate_model_schema(
     name='Did',
-    handler='aca_plugin_toolbox.util.PassHandler',
+    handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=DID,
     schema={
         'result': fields.Nested(DidRecordSchema, required=False)
@@ -152,14 +152,14 @@ Did, DidSchema = generate_model_schema(
 
 GetPublicDid, GetPublicDidSchema = generate_model_schema(
     name='GetPublicDid',
-    handler='aca_plugin_toolbox.dids.GetPublicDidHandler',
+    handler='acapy_plugin_toolbox.dids.GetPublicDidHandler',
     msg_type=GET_PUBLIC_DID,
     schema={}
 )
 
 SetPublicDid, SetPublicDidSchema = generate_model_schema(
     name='SetPublicDid',
-    handler='aca_plugin_toolbox.dids.SetPublicDidHandler',
+    handler='acapy_plugin_toolbox.dids.SetPublicDidHandler',
     msg_type=SET_PUBLIC_DID,
     schema={
         'did': fields.Str(required=True)
@@ -168,7 +168,7 @@ SetPublicDid, SetPublicDidSchema = generate_model_schema(
 
 RegisterDid, RegisterDidSchema = generate_model_schema(
     name='RegisterDid',
-    handler='aca_plugin_toolbox.dids.RegisterDidHandler',
+    handler='acapy_plugin_toolbox.dids.RegisterDidHandler',
     msg_type=SET_PUBLIC_DID,
     schema={
         'did': fields.Str(required=True),
@@ -180,7 +180,7 @@ RegisterDid, RegisterDidSchema = generate_model_schema(
 
 GetDidVerkey, GetDidVerkeySchema = generate_model_schema(
     name='GetDidVerkey',
-    handler='aca_plugin_toolbox.dids.GetDidVerkeyHandler',
+    handler='acapy_plugin_toolbox.dids.GetDidVerkeyHandler',
     msg_type=GET_DID_VERKEY,
     schema={
         'did': fields.Str(required=True)
@@ -189,7 +189,7 @@ GetDidVerkey, GetDidVerkeySchema = generate_model_schema(
 
 GetDidEndpoint, GetDidEndpointSchema = generate_model_schema(
     name='GetDidEndpoint',
-    handler='aca_plugin_toolbox.dids.GetDidEndpointHandler',
+    handler='acapy_plugin_toolbox.dids.GetDidEndpointHandler',
     msg_type=GET_DID_VERKEY,
     schema={
         'did': fields.Str(required=True)

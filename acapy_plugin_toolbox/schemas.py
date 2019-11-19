@@ -26,22 +26,22 @@ SCHEMA_LIST = '{}/schema-list'.format(PROTOCOL)
 
 MESSAGE_TYPES = {
     SEND_SCHEMA:
-        'aca_plugin_toolbox.schemas'
+        'acapy_plugin_toolbox.schemas'
         '.SendSchema',
     SCHEMA_ID:
-        'aca_plugin_toolbox.schemas'
+        'acapy_plugin_toolbox.schemas'
         '.SchemaID',
     SCHEMA_GET:
-        'aca_plugin_toolbox.schemas'
+        'acapy_plugin_toolbox.schemas'
         '.SchemaGet',
     SCHEMA:
-        'aca_plugin_toolbox.schemas'
+        'acapy_plugin_toolbox.schemas'
         '.Schema',
     SCHEMA_GET_LIST:
-        'aca_plugin_toolbox.schemas'
+        'acapy_plugin_toolbox.schemas'
         '.SchemaGetList',
     SCHEMA_LIST:
-        'aca_plugin_toolbox.schemas'
+        'acapy_plugin_toolbox.schemas'
         '.SchemaList',
 }
 
@@ -135,7 +135,7 @@ class SchemaRecordSchema(BaseRecordSchema):
 
 SendSchema, SendSchemaSchema = generate_model_schema(
     name='SendSchema',
-    handler='aca_plugin_toolbox.schemas.SendSchemaHandler',
+    handler='acapy_plugin_toolbox.schemas.SendSchemaHandler',
     msg_type=SEND_SCHEMA,
     schema={
         'schema_name': fields.Str(required=True),
@@ -145,7 +145,7 @@ SendSchema, SendSchemaSchema = generate_model_schema(
 )
 SchemaID, SchemaIDSchema = generate_model_schema(
     name='SchemaID',
-    handler='aca_plugin_toolbox.util.PassHandler',
+    handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=SCHEMA_ID,
     schema={
         'schema_id': fields.Str()
@@ -185,7 +185,7 @@ class SendSchemaHandler(BaseHandler):
 
 SchemaGet, SchemaGetSchema = generate_model_schema(
     name='SchemaGet',
-    handler='aca_plugin_toolbox.schemas.SchemaGetHandler',
+    handler='acapy_plugin_toolbox.schemas.SchemaGetHandler',
     msg_type=SCHEMA_GET,
     schema={
         'schema_id': fields.Str(required=True)
@@ -193,7 +193,7 @@ SchemaGet, SchemaGetSchema = generate_model_schema(
 )
 Schema, SchemaSchema = generate_model_schema(
     name='Schema',
-    handler='aca_plugin_toolbox.util.PassHandler',
+    handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=SCHEMA,
     schema=SchemaRecordSchema
 )
@@ -238,14 +238,14 @@ class SchemaGetHandler(BaseHandler):
 
 SchemaGetList, SchemaGetListSchema = generate_model_schema(
     name='SchemaGetList',
-    handler='aca_plugin_toolbox.schemas.SchemaGetListHandler',
+    handler='acapy_plugin_toolbox.schemas.SchemaGetListHandler',
     msg_type=SCHEMA_GET_LIST,
     schema={}
 )
 
 SchemaList, SchemaListSchema = generate_model_schema(
     name='SchemaList',
-    handler='aca_plugin_toolbox.util.PassHandler',
+    handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=SCHEMA_LIST,
     schema={
         'results': fields.List(

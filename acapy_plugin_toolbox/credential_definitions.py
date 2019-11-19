@@ -29,17 +29,17 @@ CRED_DEF_LIST = '{}/credential-definition-list'.format(PROTOCOL)
 
 MESSAGE_TYPES = {
     SEND_CRED_DEF:
-        'aca_plugin_toolbox.credential_definitions.SendCredDef',
+        'acapy_plugin_toolbox.credential_definitions.SendCredDef',
     CRED_DEF_ID:
-        'aca_plugin_toolbox.credential_definitions.CredDefID',
+        'acapy_plugin_toolbox.credential_definitions.CredDefID',
     CRED_DEF_GET:
-        'aca_plugin_toolbox.credential_definitions.CredDefGet',
+        'acapy_plugin_toolbox.credential_definitions.CredDefGet',
     CRED_DEF:
-        'aca_plugin_toolbox.credential_definitions.CredDef',
+        'acapy_plugin_toolbox.credential_definitions.CredDef',
     CRED_DEF_GET_LIST:
-        'aca_plugin_toolbox.credential_definitions.CredDefGetList',
+        'acapy_plugin_toolbox.credential_definitions.CredDefGetList',
     CRED_DEF_LIST:
-        'aca_plugin_toolbox.credential_definitions.CredDefList',
+        'acapy_plugin_toolbox.credential_definitions.CredDefList',
 }
 
 
@@ -128,7 +128,7 @@ class CredDefRecordSchema(BaseRecordSchema):
 
 SendCredDef, SendCredDefSchema = generate_model_schema(
     name='SendCredDef',
-    handler='aca_plugin_toolbox.credential_definitions'
+    handler='acapy_plugin_toolbox.credential_definitions'
             '.SendCredDefHandler',
     msg_type=SEND_CRED_DEF,
     schema={
@@ -138,7 +138,7 @@ SendCredDef, SendCredDefSchema = generate_model_schema(
 
 CredDefID, CredDefIDSchema = generate_model_schema(
     name='CredDefID',
-    handler='aca_plugin_toolbox.util.PassHandler',
+    handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=CRED_DEF_ID,
     schema={
         'cred_def_id': fields.Str(required=True)
@@ -214,7 +214,7 @@ class SendCredDefHandler(BaseHandler):
 
 CredDefGet, CredDefGetSchema = generate_model_schema(
     name="CredDefGet",
-    handler='aca_plugin_toolbox.credential_definitions'
+    handler='acapy_plugin_toolbox.credential_definitions'
             '.CredDefGetHandler',
     msg_type=CRED_DEF_GET,
     schema={
@@ -224,7 +224,7 @@ CredDefGet, CredDefGetSchema = generate_model_schema(
 
 CredDef, CredDefSchema = generate_model_schema(
     name="CredDef",
-    handler='aca_plugin_toolbox.util.PassHandler',
+    handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=CRED_DEF,
     schema=CredDefRecordSchema
 )
@@ -296,7 +296,7 @@ class CredDefGetHandler(BaseHandler):
 
 CredDefGetList, CredDefGetListSchema = generate_model_schema(
     name='CredDefGetList',
-    handler='aca_plugin_toolbox.credential_definitions'
+    handler='acapy_plugin_toolbox.credential_definitions'
             '.CredDefGetListHandler',
     msg_type=CRED_DEF_GET_LIST,
     schema={
@@ -305,7 +305,7 @@ CredDefGetList, CredDefGetListSchema = generate_model_schema(
 
 CredDefList, CredDefListSchema = generate_model_schema(
     name='CredDefList',
-    handler='aca_plugin_toolbox.util.PassHandler',
+    handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=CRED_DEF_LIST,
     schema={
         'results': fields.List(

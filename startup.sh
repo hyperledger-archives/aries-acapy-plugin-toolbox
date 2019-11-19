@@ -9,4 +9,4 @@ aca-py start \
     --invite --invite-role admin --invite-label "$AGENT_NAME (admin)" \
     --genesis-url https://raw.githubusercontent.com/sovrin-foundation/sovrin/master/sovrin/pool_transactions_sandbox_genesis \
     --wallet-type indy \
-    --plugin aca_plugin_toolbox
+    --plugin acapy_plugin_toolbox
