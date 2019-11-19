@@ -13,7 +13,7 @@ from aries_cloudagent.protocols.problem_report.message import ProblemReport
 from aries_cloudagent.ledger.base import BaseLedger
 from aries_cloudagent.storage.error import StorageNotFoundError
 from aries_cloudagent.config.injection_context import InjectionContext
-from aries_cloudagent.messaging.utils import canon
+from aries_cloudagent.messaging.util import canon
 
 from .util import generate_model_schema, admin_only
 from .schemas import SchemaRecord
