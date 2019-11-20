@@ -43,7 +43,7 @@ $ pip install -e .[indy]
 
 Install this plugin into the virtual environment:
 ```sh
-$ pip install git+https://github.com/sovrin-foundation/aca-plugin-toolbox.git@master#egg=aca-plugin-toolbox
+$ pip install git+https://github.com/hyperledger/aries-acapy-plugin-toolbox.git@master#egg=acapy-plugin-toolbox
 ```
 
 Start up ACA-Py with the plugin parameter:
