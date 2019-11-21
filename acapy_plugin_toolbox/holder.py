@@ -240,7 +240,7 @@ class CredGetListHandler(BaseHandler):
         # cred_list = CredList(results=credentials)
         # await responder.send_reply(cred_list)
 
-        tag_filter = dict(
+        post_filter = dict(
             filter(lambda item: item[1] is not None, {
                 # 'state': V10CredentialExchange.STATE_CREDENTIAL_RECEIVED,
                 'role': V10CredentialExchange.ROLE_HOLDER,
@@ -249,7 +249,7 @@ class CredGetListHandler(BaseHandler):
                 'schema_id': context.message.schema_id
             }.items())
         )
-        records = await V10CredentialExchange.query(context, tag_filter)
+        records = await V10CredentialExchange.query(context, {}, post_filter)
         cred_list = CredList(results=records)
         await responder.send_reply(cred_list)
 
@@ -282,7 +282,7 @@ class PresGetListHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received get cred list request."""
 
-        tag_filter = dict(
+        post_filter = dict(
             filter(lambda item: item[1] is not None, {
                 # 'state': V10PresentialExchange.STATE_CREDENTIAL_RECEIVED,
                 'role': V10PresentationExchange.ROLE_PROVER,
@@ -290,6 +290,6 @@ class PresGetListHandler(BaseHandler):
                 'verified': context.message.verified,
             }.items())
         )
-        records = await V10PresentationExchange.query(context, tag_filter)
+        records = await V10PresentationExchange.query(context, {}, post_filter)
         cred_list = PresList(results=records)
         await responder.send_reply(cred_list)

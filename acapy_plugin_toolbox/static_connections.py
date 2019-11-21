@@ -182,15 +182,19 @@ class StaticConnectionGetListHandler(BaseHandler):
         try:
             tag_filter = dict(
                 filter(lambda item: item[1] is not None, {
+                    'my_did': context.message.my_did,
+                    'their_did': context.message.their_did,
+                }.items())
+            )
+            post_filter = dict(
+                filter(lambda item: item[1] is not None, {
                     'initiator': context.message.initiator,
                     'invitation_key': context.message.invitation_key,
-                    'my_did': context.message.my_did,
                     'invitation_mode': ConnectionRecord.INVITATION_MODE_STATIC,
-                    'their_did': context.message.their_did,
                     'their_role': context.message.their_role
                 }.items())
             )
-            records = await ConnectionRecord.query(context, tag_filter)
+            records = await ConnectionRecord.query(context, tag_filter, post_filter)
         except StorageNotFoundError:
             report = ProblemReport(
                 explain_ltxt='Connection not found.',
