@@ -4,9 +4,9 @@ RUN pip3 install git+https://github.com/hyperledger/aries-cloudagent-python.git@
 
 ADD . .
 
+USER root
 RUN pip3 install --no-cache-dir -e .
 
-USER root
 ADD https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 ./jq
 RUN chmod +x ./jq
 COPY startup.sh startup.sh
