@@ -406,11 +406,7 @@ class ConnectionGetListHandler(BaseHandler):
             }.items()
         ))
         records = await ConnectionRecord.query(context, tag_filter, post_filter)
-        results = []
-        for record in records:
-            row = record.serialize()
-            row["activity"] = await record.fetch_activity(context)
-            results.append(row)
+        results = [record.serialize() for record in records]
         results.sort(key=connection_sort_key)
         connection_list = ConnectionList(results=results)
         connection_list.assign_thread_from(context.message)
