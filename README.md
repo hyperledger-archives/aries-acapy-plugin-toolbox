@@ -48,7 +48,7 @@ $ pip install git+https://github.com/hyperledger/aries-acapy-plugin-toolbox.git@
 
 Start up ACA-Py with the plugin parameter:
 ```sh
-$ aca-py start -it localhost 3000 -ot http -e http://localhost 3000 --plugin acapy_plugin_toolbox
+$ aca-py start -it localhost 3000 -ot http -e http://localhost:3000 --plugin acapy_plugin_toolbox
 ```
 
 To use all the features of the toolbox, you'll need the `indy` feature installed
