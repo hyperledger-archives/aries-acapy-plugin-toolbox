@@ -1,7 +1,7 @@
 """Plugin setup."""
 
 from aries_cloudagent.config.injection_context import InjectionContext
-from aries_cloudagent.messaging.protocol_registry import ProtocolRegistry
+from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 
 from .connections import MESSAGE_TYPES as CONNECTION_MESSAGES
 from .credential_definitions import MESSAGE_TYPES as CRED_DEF_MESSAGES
