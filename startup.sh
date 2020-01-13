@@ -1,7 +1,7 @@
 aca-py start \
-    -it http 0.0.0.0 3000 \
+    -it acapy_plugin_toolbox.http_ws 0.0.0.0 3000 \
     -ot http \
-    -e $ENDPOINT \
+    -e $ENDPOINT "${ENDPOINT/http/ws}" \
     --label $AGENT_NAME \
     --auto-accept-requests --auto-ping-connection \
     --auto-respond-credential-proposal --auto-respond-credential-offer --auto-respond-credential-request --auto-store-credential \
