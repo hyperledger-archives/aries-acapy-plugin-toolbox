@@ -1,6 +1,5 @@
 FROM bcgovimages/von-image:py36-1.11-1
-# 77f4.... should be changed to a supported tag when there is one.
-RUN pip3 install git+https://github.com/sovrin-foundation/aries-cloudagent-python.git@alternate-transport-loading#egg=aries-cloudagent[indy]
+RUN pip3 install git+https://github.com/sovrin-foundation/aries-cloudagent-python.git@demo#egg=aries-cloudagent[indy]
 
 ADD . .
 
