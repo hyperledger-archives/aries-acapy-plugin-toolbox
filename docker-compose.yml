@@ -8,3 +8,4 @@ services:
     environment:
       NGROK_NAME: ngrok
       AGENT_NAME: MyAgent
+      PORT: 3000

@@ -79,7 +79,7 @@ class SchemaRecord(BaseRecord):
         self.schema_id = schema_id
         self.schema_name = schema_name
         self.schema_version = schema_version
-        self.author=author
+        self.author = author
         self.attributes = attributes
 
     @property
@@ -90,7 +90,16 @@ class SchemaRecord(BaseRecord):
     @property
     def record_value(self) -> dict:
         """Get record value."""
-        return {'attributes': self.attributes}
+        return {
+            prop: getattr(self, prop)
+            for prop in (
+                'attributes',
+                'schema_name',
+                'schema_version',
+                'state',
+                'author'
+            )
+        }
 
     @property
     def record_tags(self) -> dict:
@@ -99,10 +108,6 @@ class SchemaRecord(BaseRecord):
             prop: getattr(self, prop)
             for prop in (
                 'schema_id',
-                'schema_name',
-                'schema_version',
-                'state',
-                'author'
             )
         }
 

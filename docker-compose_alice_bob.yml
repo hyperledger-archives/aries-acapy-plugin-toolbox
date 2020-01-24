@@ -8,6 +8,7 @@ services:
     environment:
       NGROK_NAME: ngrok-alice
       AGENT_NAME: Alice
+      PORT: 3000
 
   ngrok-bob:
     image: wernight/ngrok
@@ -17,3 +18,4 @@ services:
     environment:
       NGROK_NAME: ngrok-bob
       AGENT_NAME: Bob
+      PORT: 3000

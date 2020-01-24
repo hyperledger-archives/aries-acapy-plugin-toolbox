@@ -224,8 +224,8 @@ class StaticConnectionGetListHandler(BaseHandler):
         targets = []
         my_info = []
         for record in records:
-            targets.append(
-                await connection_mgr.get_connection_target(record)
+            targets.extend(
+                await connection_mgr.get_connection_targets(connection=record)
             )
             my_info.append(await wallet.get_local_did(record.my_did))
 
