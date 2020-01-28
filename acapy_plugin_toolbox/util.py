@@ -1,12 +1,43 @@
 """Utility functions."""
 
+# pylint: disable=too-few-public-methods
+
 import sys
 import logging
 import functools
+from datetime import datetime, timezone
+from dateutil.parser import isoparse
 
-from aries_cloudagent.messaging.agent_message import AgentMessage, AgentMessageSchema
-from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
-from aries_cloudagent.protocols.problem_report.message import ProblemReport
+from aries_cloudagent.messaging.agent_message import (
+    AgentMessage, AgentMessageSchema
+)
+from aries_cloudagent.messaging.base_handler import (
+    BaseHandler, BaseResponder, RequestContext
+)
+from aries_cloudagent.protocols.problem_report.message import (
+    ProblemReport
+)
+
+
+def timestamp_utc_iso(timespec: str = 'seconds') -> str:
+    """Timestamp in UTC in ISO 8601 format.
+
+    See https://docs.python.org/3.7/library/datetime.html for more details.
+
+    Args:
+        timespec (str): One of auto, hours, minutes, seconds, milliseconds,
+            microseconds. Specifies the precision of the output timestamp.
+    """
+    return datetime.now().replace(tzinfo=timezone.utc).isoformat(
+        timespec=timespec
+    ).replace('+00:00', 'Z')
+
+
+def datetime_from_iso(timestamp: str) -> datetime:
+    """Return a datetime from ISO 8601 formatted timestamp."""
+    timestamp = timestamp.replace(' ', 'T', 1)
+    return isoparse(timestamp)
+
 
 def require_role(role):
     """
@@ -25,8 +56,8 @@ def require_role(role):
             if not context.connection_record \
                     or context.connection_record.their_role != role:
                 report = ProblemReport(
-                    explain_ltxt='This connection is not authorized to perform '
-                                 'the requested action.',
+                    explain_ltxt='This connection is not authorized to perform'
+                                 ' the requested action.',
                     who_retries='none'
                 )
                 report.assign_thread_from(context.message)
@@ -52,30 +83,31 @@ def generic_init(instance, **kwargs):
     super(type(instance), instance).__init__(**kwargs)
 
 
-def generate_model_schema(
+def generate_model_schema(  # pylint: disable=protected-access
         name: str,
         handler: str,
         msg_type: str,
-        schema: dict
+        schema: dict,
+        *,
+        init: callable = None
         ):
-    """
-    Generate a Message model class and schema class programmatically.
+    """Generate a Message model class and schema class programmatically.
 
-    The following would result in a class named XYZ inheriting from AgentMessage
-    and XYZSchema inheriting from AgentMessageSchema.
+    The following would result in a class named XYZ inheriting from
+    AgentMessage and XYZSchema inheriting from AgentMessageSchema.
 
     XYZ, XYZSchema = generate_model_schema(
-        'XYZ',
-        'aries_cloudagent.admin.handlers.XYZHandler',
-        '{}/xyz'.format(PROTOCOL),
-        {}
+        name='XYZ',
+        handler='aries_cloudagent.admin.handlers.XYZHandler',
+        msg_type='{}/xyz'.format(PROTOCOL),
+        schema={}
     )
 
-    The attributes of XYZ are determined by schema_dict's keys. The actual
+    The attributes of XYZ are determined by schema's keys. The actual
     schema of XYZSchema is defined by the field-value combinations of
     schema_dict, similar to marshmallow's Schema.from_dict() (can't actually
     use that here as the model_class must be set in the Meta inner-class of
-    AgentMessageSchema's).
+    AgentMessageSchemas).
     """
     if isinstance(schema, dict):
         slots = list(schema.keys())
@@ -84,39 +116,38 @@ def generate_model_schema(
         slots = list(schema._declared_fields.keys())
         schema_dict = schema._declared_fields
     else:
-        raise TypeError('Schema must be dict or class defining _declared_fields')
+        raise TypeError(
+            'Schema must be dict or class defining _declared_fields'
+        )
 
-    Model = type(
-        name,
-        (AgentMessage,),
-        {
-            'Meta': type(
-                'Meta', (), {
-                    '__qualname__': name + '.Meta',
-                    'handler_class': handler,
-                    'message_type': msg_type,
-                    'schema_class': name + 'Schema',
-                }
-            ),
-            '__init__': generic_init,
-            '__slots__': slots
-        }
-    )
-    Model.__module__ = sys._getframe(1).f_globals['__name__']
-    Schema = type(
-        name + 'Schema',
-        (AgentMessageSchema,),
-        {
-            'Meta': type(
-                'Meta', (), {
-                    '__qualname__': name + 'Schema.Meta',
-                    'model_class': Model,
-                }
-            ),
-            **schema_dict
-        }
-    )
-    Schema.__module__ = sys._getframe(1).f_globals['__name__']
+    class Model(AgentMessage):
+        """Generated Model."""
+        __slots__ = slots
+        __qualname__ = name
+        __name__ = name
+        __module__ = sys._getframe(2).f_globals['__name__']
+        __init__ = init if init else generic_init
+
+        class Meta:
+            """Generated Meta."""
+            __qualname__ = name + '.Meta'
+            handler_class = handler
+            message_type = msg_type
+            schema_class = name + 'Schema'
+
+    class Schema(AgentMessageSchema):
+        """Generated Schema."""
+        __qualname__ = name + 'Schema'
+        __name__ = name + 'Schema'
+        __module__ = sys._getframe(2).f_globals['__name__']
+
+        class Meta:
+            """Generated Schema Meta."""
+            __qualname__ = name + 'Schema.Meta'
+            model_class = Model
+
+    Schema._declared_fields.update(schema_dict)
+
     return Model, Schema
 
 
@@ -125,6 +156,7 @@ class PassHandler(BaseHandler):
 
     async def handle(self, context: RequestContext, _responder):
         """Handle messages require no handling."""
+        # pylint: disable=protected-access
         logger = logging.getLogger(__name__)
         logger.debug(
             "Pass: Not handling message of type %s",
