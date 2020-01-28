@@ -10,5 +10,5 @@ function die {
 [[ "$(basename $PWD)" == "docs" ]] || die "Must be run from docs"
 
 for README in **/**/README.md; do
-    ./find_messages_in_doc.awk "$README"
+    ./generate_from_readme.awk "$README"
 done

@@ -22,5 +22,5 @@ p {
     link = matches[2]
     print "Generating " DIR "/" name "..."
     system("mkdir -p " DIR "/" name)
-    printf("See [%s](docs/%s%s)", name, FILE, link) > DIR "/" name "/README.md"
+    printf("See [%s](/docs/%s%s).", name, FILE, link) > DIR "/" name "/README.md"
 }
