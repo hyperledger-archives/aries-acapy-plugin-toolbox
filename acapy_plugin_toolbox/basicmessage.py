@@ -317,6 +317,7 @@ class GetHandler(BaseHandler):
             count=count,
             remaining=remaining
         )
+        msg_list.assign_thread_from(context.message)
         await responder.send_reply(msg_list)
 
 
@@ -382,6 +383,7 @@ class SendHandler(BaseHandler):
         )
         await record.save(context, reason='Message sent.')
         sent_msg = Sent(connection_id=connection.connection_id, message=record)
+        sent_msg.assign_thread_from(context.message)
         await responder.send_reply(sent_msg)
 
 
@@ -390,9 +392,10 @@ Delete, DeleteSchema = generate_model_schema(
     handler='acapy_plugin_toolbox.basicmessage.DeleteHandler',
     msg_type=DELETE,
     schema={
-        'connection_id': fields.Str(required=True),
+        'connection_id': fields.Str(required=False),
         'message_id': fields.Str(required=False),
-        'before_date': fields.Str(required=False)
+        'before_date': fields.Str(required=False),
+        'return_deleted': fields.Bool(required=False, missing=True)
     }
 )
 
@@ -402,10 +405,11 @@ Deleted, DeletedSchema = generate_model_schema(
     handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=f'{ADMIN_PROTOCOL_URI}/deleted',
     schema={
-        'connection_id': fields.Str(required=True),
+        'connection_id': fields.Str(required=False),
         'deleted': fields.List(fields.Nested(
             BasicMessageRecordSchema,
-            exclude=['created_at', 'updated_at']
+            exclude=['created_at', 'updated_at'],
+            required=False
         )),
     }
 )
@@ -437,6 +441,7 @@ class DeleteHandler(BaseHandler):
 
         ack = Deleted(
             connection_id=context.message.connection_id,
-            deleted=msgs
+            deleted=msgs if context.message.return_deleted else None
         )
+        ack.assign_thread_from(context.message)
         await responder.send_reply(ack)

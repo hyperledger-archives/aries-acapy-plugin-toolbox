@@ -7,8 +7,8 @@ function die {
 }
 
 # If not in docs directory, fail
-[[ "$(basename $PWD)" == "docs" ]] || die "Must be run from docs"
+[[ "$(basename "${PWD}")" == "docs" ]] || die "Must be run from docs"
 
 for README in **/**/README.md; do
-    ./generate_from_readme.awk "$README"
+    ./generate_from_readme.awk "${README}"
 done
