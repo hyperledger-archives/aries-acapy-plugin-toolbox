@@ -1,2 +1,4 @@
 aries-cloudagent
 marshmallow
+flake8
+python-dateutil
