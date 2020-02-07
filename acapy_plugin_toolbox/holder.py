@@ -8,7 +8,7 @@ from marshmallow import fields
 from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
 from aries_cloudagent.protocols.issue_credential.v1_0.routes import (
     V10CredentialExchangeListResultSchema,
-    V10CredentialProposalRequestSchema
+    V10CredentialProposalRequestMandSchema
 )
 from aries_cloudagent.protocols.issue_credential.v1_0.models.credential_exchange import (
     V10CredentialExchange,
@@ -67,7 +67,7 @@ SendCredProposal, SendCredProposalSchema = generate_model_schema(
     name='SendCredProposal',
     handler='acapy_plugin_toolbox.holder.SendCredProposalHandler',
     msg_type=SEND_CRED_PROPOSAL,
-    schema=V10CredentialProposalRequestSchema
+    schema=V10CredentialProposalRequestMandSchema
 )
 
 CredExchange, CredExchangeSchema = generate_model_schema(
