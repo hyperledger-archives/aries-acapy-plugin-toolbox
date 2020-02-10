@@ -28,7 +28,7 @@ def timestamp_utc_iso(timespec: str = 'seconds') -> str:
         timespec (str): One of auto, hours, minutes, seconds, milliseconds,
             microseconds. Specifies the precision of the output timestamp.
     """
-    return datetime.now().replace(tzinfo=timezone.utc).isoformat(
+    return datetime.utcnow().replace(tzinfo=timezone.utc).isoformat(
         timespec=timespec
     ).replace('+00:00', 'Z')
 
