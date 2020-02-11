@@ -8,6 +8,8 @@ from uuid import uuid4
 
 from marshmallow import fields
 
+from aries_cloudagent.config.injection_context import InjectionContext
+from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
 from aries_cloudagent.messaging.decorators.attach_decorator import AttachDecorator
 from aries_cloudagent.messaging.credential_definitions.util import CRED_DEF_TAGS
@@ -67,6 +69,15 @@ MESSAGE_TYPES = {
     PRESENTATIONS_LIST:
         'acapy_plugin_toolbox.issuer.PresList',
 }
+
+
+async def setup(context: InjectionContext):
+    """Setup the issuer plugin."""
+    protocol_registry = await context.inject(ProtocolRegistry)
+    protocol_registry.register_message_types(
+        MESSAGE_TYPES
+    )
+
 
 SendCred, SendCredSchema = generate_model_schema(
     name='SendCred',

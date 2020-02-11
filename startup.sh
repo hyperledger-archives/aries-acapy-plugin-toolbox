@@ -1,7 +1,7 @@
 aca-py start \
-    -it acapy_plugin_toolbox.http_ws 0.0.0.0 $PORT \
+    -it acapy_plugin_toolbox.http_ws 0.0.0.0 "$PORT" \
     -ot http \
-    -e $ENDPOINT "${ENDPOINT/http/ws}" \
+    -e "$ENDPOINT" "${ENDPOINT/http/ws}" \
     --label "$AGENT_NAME" \
     --auto-accept-requests --auto-ping-connection \
     --auto-respond-credential-proposal --auto-respond-credential-offer --auto-respond-credential-request --auto-store-credential \
@@ -13,4 +13,5 @@ aca-py start \
     --debug-connections \
     --debug-credentials \
     --debug-presentations \
-    $@
+    --enable-undelivered-queue \
+    "$@"
