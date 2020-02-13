@@ -13,7 +13,7 @@ from aries_cloudagent.messaging.decorators.attach_decorator import AttachDecorat
 from aries_cloudagent.messaging.credential_definitions.util import CRED_DEF_TAGS
 from aries_cloudagent.protocols.issue_credential.v1_0.routes import (
     V10CredentialExchangeListResultSchema,
-    V10CredentialProposalRequestSchema
+    V10CredentialProposalRequestMandSchema
 )
 from aries_cloudagent.protocols.issue_credential.v1_0.models.credential_exchange import (
     V10CredentialExchange,
@@ -72,7 +72,7 @@ SendCred, SendCredSchema = generate_model_schema(
     name='SendCred',
     handler='acapy_plugin_toolbox.issuer.SendCredHandler',
     msg_type=SEND_CREDENTIAL,
-    schema=V10CredentialProposalRequestSchema
+    schema=V10CredentialProposalRequestMandSchema
 )
 IssuerCredExchange, IssuerCredExchangeSchema = generate_model_schema(
     name='IssuerCredExchange',
