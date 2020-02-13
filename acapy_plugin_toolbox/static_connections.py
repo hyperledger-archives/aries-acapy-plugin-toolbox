@@ -5,6 +5,8 @@
 
 from marshmallow import fields, validate
 
+from aries_cloudagent.config.injection_context import InjectionContext
+from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.wallet.base import BaseWallet
 from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
 from aries_cloudagent.protocols.connections.manager import ConnectionManager
@@ -40,6 +42,15 @@ MESSAGE_TYPES = {
         'acapy_plugin_toolbox.static_connections'
         '.StaticConnectionList',
 }
+
+
+async def setup(context: InjectionContext):
+    """Setup the basicmessage plugin."""
+    protocol_registry = await context.inject(ProtocolRegistry)
+    protocol_registry.register_message_types(
+        MESSAGE_TYPES
+    )
+
 
 # Models and Schemas
 CreateStaticConnection, CreateStaticConnectionSchema = generate_model_schema(

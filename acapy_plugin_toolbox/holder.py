@@ -5,6 +5,8 @@
 
 from marshmallow import fields
 
+from aries_cloudagent.config.injection_context import InjectionContext
+from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
 from aries_cloudagent.protocols.issue_credential.v1_0.routes import (
     V10CredentialExchangeListResultSchema,
@@ -62,6 +64,15 @@ MESSAGE_TYPES = {
     PRESENTATIONS_LIST:
         'acapy_plugin_toolbox.holder.PresList',
 }
+
+
+async def setup(context: InjectionContext):
+    """Setup the holder plugin."""
+    protocol_registry = await context.inject(ProtocolRegistry)
+    protocol_registry.register_message_types(
+        MESSAGE_TYPES
+    )
+
 
 SendCredProposal, SendCredProposalSchema = generate_model_schema(
     name='SendCredProposal',

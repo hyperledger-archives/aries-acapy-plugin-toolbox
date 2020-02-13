@@ -14,7 +14,7 @@ if __name__ == '__main__':
         LONG_DESCRIPTION = fh.read()
 
     setup(
-        name='aca-plugin-toolbox',
+        name='aries-acapy-plugin-toolbox',
         version='0.1.0',
         author='Daniel Bluhm <daniel.bluhm@sovrin.org>, '
                'Sam Curren <sam@sovrin.org>, '
