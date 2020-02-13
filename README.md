@@ -46,11 +46,47 @@ Install this plugin into the virtual environment:
 $ pip install git+https://github.com/hyperledger/aries-acapy-plugin-toolbox.git@master#egg=acapy-plugin-toolbox
 ```
 
+### Plugin Loading
 Start up ACA-Py with the plugin parameter:
 ```sh
-$ aca-py start -it localhost 3000 -ot http -e http://localhost:3000 --plugin acapy_plugin_toolbox
+$ aca-py start -it http localhost 3000 -ot http -e http://localhost:3000 --plugin acapy_plugin_toolbox
 ```
 
+Passing the whole package `acapy_plugin_toolbox` will load all protocol
+handlers. Individual modules and groups are also separately loadable.
+
+Available modules include:
+- `connections`: Handlers for the `admin-connections` protocol.
+- `static_connections`: Handlers for the `admin-static-connections` protocol.
+- `schema`: Handlers for the `admin-schemas` protocol.
+- `credential_definitions`: Handlers for the `admin-credential-definitions`
+  protocol.
+- `dids`: Handlers for the `admin-dids` protocol.
+- `holder`: Handlers for the `admin-holder` protocol.
+- `issuer`: Handlers for the `admin-issuer` protocol.
+- `basicmessage`: Handlers for the `admin_basicmessage` protocol.
+
+> **Note:** Links to documentation for each of the above protocols will be added
+> when they become available.
+
+Available groups include:
+- `all`: The default group loaded by the package, loading all handlers.
+- `connections`: Handlers from `connections` and `static_connections`.
+- `holder`: Handlers from `credential_definitions` and `holder`.
+- `issuance`: Handlers from  `schema`, `credential_definitions`, `did`, and
+  `issuer`.
+
+#### Example
+To load the "connections" group and the "basicmessage" module:
+```sh
+$ aca-py start \
+	-it localhost 3000 \
+	-ot http -e http://localhost:3000 \
+	--plugin acapy_plugin_toolbox.group.connections
+	--plugin acapy_plugin_toolbox.basicmessage
+```
+
+### Indy Startup Example
 To use all the features of the toolbox, you'll need the `indy` feature installed
 and a start up command similar to the following (with environment variables
 replaced with your appropriate values or available in the environment):
@@ -68,3 +104,20 @@ $ aca-py start \
     --wallet-type indy \
     --plugin acapy_plugin_toolbox
 ```
+
+### Combined HTTP+WS Transport
+This plugin also includes a side-loadable combined HTTP and WebSocket transport
+that enables accepting both HTTP and WebSocket connections on the same port.
+This is useful for running the agent behind a tunneling service such as ngrok
+that generally provides only one port-to-port tunnel at a time.
+
+To use the HTTP+WS transport:
+```sh
+$ aca-py start \
+	-it acapy_plugin_toolbox.http_ws localhost 3000 \
+	-ot http \
+	-e http://localhost:3000 ws://localhost:3000
+```
+
+Note that you do not need to load any other plugins for this transport but you
+can by specifying `--plugin` as shown in the examples above.
