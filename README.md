@@ -157,6 +157,18 @@ $ aca-py start \
 The invitation will be printed to the screen after the agent has started up and
 can then be pasted into the toolbox.
 
+#### Connection Roles
+
+This plugin takes advantage of the concept of "roles" as built in to Aries Cloud
+Agent - Python. Currently, this is a simple string stored along with other
+connection details. In order to access the "admin" protocols, the originating
+connection of the message must have a role of "admin." In the example above and
+in the docker demos, `--invite` is used to generate an invitation at startup and
+`--invite-role admin` causes the connection resulting from that invitation to
+have the role of `admin`. Using the toolbox, you can create more invitations
+with the "admin" role and use these invitations on other devices or given to
+others with administrative privileges on your agent.
+
 ### Indy Startup Example
 To use all the features of the toolbox, you'll need the `indy` feature installed
 and a start up command similar to the following (with environment variables
@@ -192,15 +204,3 @@ $ aca-py start \
 
 Note that you do not need to load any other plugins for this transport but you
 can by specifying `--plugin` as shown in the examples above.
-
-### Connection Roles
-
-This plugin takes advantage of the concept of "roles" as built in to Aries Cloud
-Agent - Python. Currently, this is a simple string stored along with other
-connection details. In order to access the "admin" protocols, the originating
-connection of the message must have a role of "admin." In the examples above and
-in the docker demos, `--invite` is used to generate an invitation at startup and
-`--invite-role admin` causes the connection resulting from that invitation to
-have the role of `admin`. Using the toolbox, you can create more invitations
-with the "admin" role and use these invitations on other devices or given to
-others with administrative privileges on your agent.
