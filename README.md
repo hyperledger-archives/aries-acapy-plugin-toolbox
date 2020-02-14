@@ -1,8 +1,56 @@
 Aries Cloud Agent - Python Plugin for Aries Toolbox
 ===================================================
 
-Quickstart Guide
-----------------
+Quickstart Guide - Docker demo
+------------------------------
+
+Included in this repository are two Docker Compose files that can be used to
+quickly experiment with the ACA-Py toolbox plugin and the Aries Toolbox. One
+provides a single agent and the other two agents. In both cases, the resulting
+agents are fully prepared to interact with other agents and the Sovrin Staging
+Net for Verifiable Credentials exchange.
+
+Requirements:
+- Docker
+- Docker Compose
+
+### Disclaimer regarding the use of ngrok
+Both compose setups use the ngrok tunneling service to make your agent available
+to the outside world. One caveat of this, however, is that connections made from
+your docker agent will expire within 8 hours as a limitation of the ngrok
+free-tier. Therefore, **these setups are intended for demonstration purposes
+only** and should not be relied upon as is for production environments.
+
+### One Agent demo
+To start the single agent demo:
+
+```sh
+$ docker-compose -f docker-compose.yml up --build
+```
+
+This will start two containers, one for the ngrok tunnel and one for the agent.
+The agent container will wait until the ngrok endpoint is available before
+starting up. The agent container will emit a fair amount of logs, including
+`Node is not a validator` errors that can be safely ignored. At the end
+of starting up it will print an invitation to the screen that can then be pasted
+into the toolbox to connect to and remotely administer your docker agent.
+
+### Two Agent demo
+To start up an Alice and Bob demo:
+
+```sh
+$ docker-compose -f docker-compose_alice_bob.yml up --build
+```
+
+This will start four containers, two ngrok tunnels and two agent containers. Two
+invitations will be printed to the screen corresponding to Alice and Bob.
+Pasting these invitations into the toolbox will result in "Alice (Admin)" and
+"Bob (Admin)" connections. Using the toolbox, you can then cause these two
+agents to interact with each other in various ways.
+
+
+Quickstart Guide - Running locally
+----------------------------------
 
 Requirements:
 - Python 3.6 or higher
@@ -49,7 +97,11 @@ $ pip install git+https://github.com/hyperledger/aries-acapy-plugin-toolbox.git@
 ### Plugin Loading
 Start up ACA-Py with the plugin parameter:
 ```sh
-$ aca-py start -it http localhost 3000 -ot http -e http://localhost:3000 --plugin acapy_plugin_toolbox
+$ aca-py start \
+	-it http localhost 3000 \
+	-ot http \
+	-e http://localhost:3000 \
+	--plugin acapy_plugin_toolbox
 ```
 
 Passing the whole package `acapy_plugin_toolbox` will load all protocol
@@ -80,11 +132,30 @@ Available groups include:
 To load the "connections" group and the "basicmessage" module:
 ```sh
 $ aca-py start \
-	-it localhost 3000 \
+	-it http localhost 3000 \
 	-ot http -e http://localhost:3000 \
 	--plugin acapy_plugin_toolbox.group.connections
 	--plugin acapy_plugin_toolbox.basicmessage
 ```
+
+### Generating an invitation for use with the Toolbox
+By default, ACA-Py has no preexisting connections. To have our agent interact
+with other agents, we use the Aries Toolbox which is itself a simplified kind of
+agent. We need ACA-Py to emit an invitation for the toolbox to begin the
+connection process and bootstrap other interactions. To create an invitation that
+can then be loaded into the Aries Toolbox:
+
+```sh
+$ aca-py start \
+	-it http localhost 3000 \
+	-ot http \
+	-e http://localhost:3000 \
+	--plugin acapy_plugin_toolbox \
+	--invite --invite-label "My agent admin connection" --invite-role admin
+```
+
+The invitation will be printed to the screen after the agent has started up and
+can then be pasted into the toolbox.
 
 ### Indy Startup Example
 To use all the features of the toolbox, you'll need the `indy` feature installed
