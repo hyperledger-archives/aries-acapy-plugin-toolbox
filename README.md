@@ -192,3 +192,14 @@ $ aca-py start \
 
 Note that you do not need to load any other plugins for this transport but you
 can by specifying `--plugin` as shown in the examples above.
+
+### Connection Roles
+
+This plugin takes advantage of the concept of "roles" as built in to Aries Cloud
+Agent - Python. Currently, this is a simple string stored along with other
+connection details. In order to access the "admin" protocols, the originating
+connection of the message must have a role of "admin." In the examples above and
+in the docker demos, `--invite-role admin` is used to generate an invitation
+with this role at agent startup. Using the toolbox, you can create more
+invitations with the "admin" role and use these invitations on other devices or
+given to others with administrative privileges on your agent.
