@@ -98,9 +98,9 @@ $ pip install git+https://github.com/hyperledger/aries-acapy-plugin-toolbox.git@
 Start up ACA-Py with the plugin parameter:
 ```sh
 $ aca-py start \
-	-it http localhost 3000 \
+	-it http localhost 3000 -it ws localhost 3001 \
 	-ot http \
-	-e http://localhost:3000 \
+	-e http://localhost:3000 ws://localhost:3001 \
 	--plugin acapy_plugin_toolbox
 ```
 
@@ -132,8 +132,9 @@ Available groups include:
 To load the "connections" group and the "basicmessage" module:
 ```sh
 $ aca-py start \
-	-it http localhost 3000 \
-	-ot http -e http://localhost:3000 \
+	-it http localhost 3000 -it ws localhost 3001 \
+	-ot http \
+	-e http://localhost:3000 ws://localhost:3001 \
 	--plugin acapy_plugin_toolbox.group.connections
 	--plugin acapy_plugin_toolbox.basicmessage
 ```
@@ -147,9 +148,9 @@ can then be loaded into the Aries Toolbox:
 
 ```sh
 $ aca-py start \
-	-it http localhost 3000 \
+	-it http localhost 3000 -it ws localhost 3001 \
 	-ot http \
-	-e http://localhost:3000 \
+	-e http://localhost:3000 ws://localhost:3001 \
 	--plugin acapy_plugin_toolbox \
 	--invite --invite-label "My agent admin connection" --invite-role admin
 ```
@@ -175,9 +176,9 @@ and a start up command similar to the following (with environment variables
 replaced with your appropriate values or available in the environment):
 ```sh
 $ aca-py start \
-    -it http 0.0.0.0 3000 \
-    -ot http \
-    -e $ENDPOINT \
+	-it http localhost 3000 -it ws localhost 3001 \
+	-ot http \
+    -e $ENDPOINT ${ENDPOINT/http/ws} \
     --label $AGENT_NAME \
     --auto-accept-requests --auto-ping-connection \
     --auto-respond-credential-proposal --auto-respond-credential-offer --auto-respond-credential-request --auto-store-credential \
