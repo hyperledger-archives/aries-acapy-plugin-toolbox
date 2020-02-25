@@ -1,4 +1,4 @@
-aries-cloudagent==0.4.2
+aries-cloudagent
 marshmallow
 flake8
 python-dateutil
