@@ -112,7 +112,7 @@ Accept, AcceptSchema = generate_model_schema(
     }
 )
 
-Accepted, AcceptSchema = generate_model_schema(
+Accepted, AcceptedSchema = generate_model_schema(
     name='Accepted',
     handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=ACCEPTED,
