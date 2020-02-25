@@ -14,17 +14,21 @@ from .util import (
     generate_model_schema, admin_only
 )
 
-PROTOCOL_URI = "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin_taa/0.1"
+PROTOCOL_URI = "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-taa/0.1"
 GET = f"{PROTOCOL_URI}/get"
 TAA = f"{PROTOCOL_URI}/taa"
 ACCEPT = f"{PROTOCOL_URI}/accept"
 ACCEPTED = f"{PROTOCOL_URI}/accepted"
+GET_ACCEPTANCE = f"{PROTOCOL_URI}/get-acceptance"
+ACCEPTANCE = f"{PROTOCOL_URI}/acceptance"
 
 MESSAGE_TYPES = {
     GET: 'acapy_plugin_toolbox.taa.Get',
     TAA: 'acapy_plugin_toolbox.taa.Taa',
     ACCEPT: 'acapy_plugin_toolbox.taa.Accept',
-    ACCEPTED: 'acapy_plugin_toolbox.taa.Accepted'
+    ACCEPTED: 'acapy_plugin_toolbox.taa.Accepted',
+    GET_ACCEPTANCE: 'acapy_plugin_toolbox.taa.GetAcceptance',
+    ACCEPTANCE: 'acapy_plugin_toolbox.taa.Acceptance'
 }
 
 
@@ -57,9 +61,9 @@ Taa, TaaSchema = generate_model_schema(
             required=True,
             description="Transaction Author Agreement text"
         ),
-        'accepted': fields.Bool(
+        'needed': fields.Bool(
             required=True,
-            description="A record of acceptance of this version of the TAA exists."
+            description="Acceptance is needed before making ledger writes."
         )
     }
 )
@@ -82,10 +86,19 @@ class GetHandler(BaseHandler):
             return
 
         taa_info = await ledger.get_txn_author_agreement()
+        acceptance = await ledger.get_latest_txn_author_acceptance()
+
+        if taa_info['taa_required'] and not acceptance:
+            needed = True
+        elif acceptance and acceptance['digest'] != taa_info['taa_record']['digest']:
+            needed = True
+        else:
+            needed = False
+
         result = Taa(
             version=taa_info['taa_record']['version'],
             text=taa_info['taa_record']['text'],
-            accepted=(not taa_info['taa_required'])
+            needed=needed
         )
         result.assign_thread_from(context.message)
         await responder.send_reply(result)
@@ -104,7 +117,7 @@ Accept, AcceptSchema = generate_model_schema(
             required=True,
             description='Text of accepted TAA.'
         ),
-        'acceptance_mechanism': fields.Str(
+        'mechanism': fields.Str(
             required=False,
             description='The mechanism used to accept the TAA.',
             missing='wallet_agreement',
@@ -146,7 +159,7 @@ class AcceptHandler(BaseHandler):
         try:
             await ledger.accept_txn_author_agreement(
                 taa_record,
-                context.message.acceptance_mechanism
+                context.message.mechanism
             )
         except Exception as err:
             report = ProblemReport(
@@ -161,5 +174,74 @@ class AcceptHandler(BaseHandler):
             return
 
         result = Accepted()
+        result.assign_thread_from(context.message)
+        await responder.send_reply(result)
+
+
+GetAcceptance, GetAcceptanceSchema = generate_model_schema(
+    name='GetAcceptance',
+    handler='acapy_plugin_toolbox.taa.GetAcceptanceHandler',
+    msg_type=GET_ACCEPTANCE,
+    schema={}
+)
+
+
+Acceptance, AcceptanceSchema = generate_model_schema(
+    name='Acceptance',
+    handler='acapy_plugin_toolbox.util.PassHandler',
+    msg_type=ACCEPTANCE,
+    schema={
+        'needed': fields.Bool(
+            required=True,
+            description='Acceptance needed.'
+        ),
+        'version': fields.Str(
+            required=False,
+            description='Version of accepted TAA.'
+        ),
+        'time': fields.Str(
+            required=False,
+            description='Time of acceptance.'
+        ),
+        'mechanism': fields.Str(
+            required=False,
+            description='The mechanism used to accept the TAA.',
+        )
+    }
+)
+
+
+class GetAcceptanceHandler(BaseHandler):
+    """Handler for received get acceptance request."""
+
+    @admin_only
+    async def handle(self, context: RequestContext, responder: BaseResponder):
+        """Handle received get acceptance request."""
+        ledger: BaseLedger = await context.inject(BaseLedger, required=False)
+        if not ledger or ledger.LEDGER_TYPE != 'indy':
+            report = ProblemReport(
+                explain_ltxt='Invalid ledger.',
+                who_retries='none'
+            )
+            report.assign_thread_from(context.message)
+            await responder.send_reply(report)
+            return
+
+        taa_info = await ledger.get_txn_author_agreement()
+        acceptance = await ledger.get_latest_txn_author_acceptance()
+
+        if taa_info['taa_required'] and not acceptance:
+            needed = True
+        elif acceptance and acceptance['digest'] != taa_info['taa_record']['digest']:
+            needed = True
+        else:
+            needed = False
+
+        result = Acceptance(
+            needed=needed,
+            version=acceptance.get('version'),
+            time=acceptance.get('time'),
+            mechanism=acceptance.get('mechanism'),
+        )
         result.assign_thread_from(context.message)
         await responder.send_reply(result)
