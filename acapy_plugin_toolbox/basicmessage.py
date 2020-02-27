@@ -221,10 +221,24 @@ class BasicMessageHandler(BaseHandler):
             state=BasicMessageRecord.STATE_RECV
         )
         await msg.save(context, reason='New message received.')
+
+        await responder.send_webhook(
+            "basicmessages",
+            {
+                "connection_id": context.connection_record.connection_id,
+                "message_id": context.message._id,
+                "content": context.message.content,
+                "state": "received",
+            },
+        )
+
         connection_mgr = ConnectionManager(context)
         admins = await ConnectionRecord.query(
             context, post_filter={'their_role': 'admin'}
         )
+        if not admins:
+            return
+
         admin_verkeys = [
             target.recipient_keys[0]
             for admin in admins
