@@ -11,6 +11,7 @@ from ..static_connections import MESSAGE_TYPES as STATIC_CONN_MESSAGES
 from ..holder import MESSAGE_TYPES as HOLDER_MESSAGES
 from ..issuer import MESSAGE_TYPES as ISSUER_MESSAGES
 from ..basicmessage import MESSAGE_TYPES as BASIC_MESSAGE_MESSAGES
+from ..taa import MESSAGE_TYPES as TAA_MESSAGES
 from ..invitations import MESSAGE_TYPES as INVITATION_MESSAGES
 
 async def setup(context: InjectionContext):
@@ -25,5 +26,6 @@ async def setup(context: InjectionContext):
         STATIC_CONN_MESSAGES,
         HOLDER_MESSAGES,
         ISSUER_MESSAGES,
-        BASIC_MESSAGE_MESSAGES
+        BASIC_MESSAGE_MESSAGES,
+        TAA_MESSAGES
     )

@@ -1,5 +1,5 @@
-FROM bcgovimages/von-image:py36-1.11-1
-RUN pip3 install git+https://github.com/sovrin-foundation/aries-cloudagent-python.git@demo#egg=aries-cloudagent[indy]
+FROM bcgovimages/von-image:py36-1.14-0
+RUN pip3 install git+https://github.com/sovrin-foundation/aries-cloudagent-python.git@b1a3dfda#egg=aries-cloudagent[indy]
 
 ADD . .
 
