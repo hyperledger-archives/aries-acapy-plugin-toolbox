@@ -5,6 +5,7 @@ from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 
 from ..connections import MESSAGE_TYPES as CONNECTION_MESSAGES
 from ..static_connections import MESSAGE_TYPES as STATIC_CONN_MESSAGES
+from ..invitations import MESSAGE_TYPES as INVITATION_MESSAGES
 
 async def setup(context: InjectionContext):
     """Setup Toolbox Plugin."""
@@ -12,4 +13,5 @@ async def setup(context: InjectionContext):
     protocol_registry.register_message_types(
         CONNECTION_MESSAGES,
         STATIC_CONN_MESSAGES,
+        INVITATION_MESSAGES,
     )

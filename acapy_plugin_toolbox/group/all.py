@@ -11,12 +11,14 @@ from ..static_connections import MESSAGE_TYPES as STATIC_CONN_MESSAGES
 from ..holder import MESSAGE_TYPES as HOLDER_MESSAGES
 from ..issuer import MESSAGE_TYPES as ISSUER_MESSAGES
 from ..basicmessage import MESSAGE_TYPES as BASIC_MESSAGE_MESSAGES
+from ..invitations import MESSAGE_TYPES as INVITATION_MESSAGES
 
 async def setup(context: InjectionContext):
     """Setup Toolbox Plugin."""
     protocol_registry = await context.inject(ProtocolRegistry)
     protocol_registry.register_message_types(
         CONNECTION_MESSAGES,
+        INVITATION_MESSAGES,
         CRED_DEF_MESSAGES,
         SCHEMA_MESSAGES,
         DID_MESSAGES,
