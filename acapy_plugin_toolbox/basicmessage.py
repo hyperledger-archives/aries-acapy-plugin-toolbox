@@ -236,9 +236,11 @@ class BasicMessageHandler(BaseHandler):
         admins = await ConnectionRecord.query(
             context, post_filter={'their_role': 'admin'}
         )
+
         if not admins:
             return
 
+        admins = filter(lambda admin: admin.state == 'active', admins)
         admin_verkeys = [
             target.recipient_keys[0]
             for admin in admins
@@ -246,6 +248,7 @@ class BasicMessageHandler(BaseHandler):
                 connection=admin
             )
         ]
+
         notification = New(
             connection_id=context.connection_record.connection_id,
             message=msg
