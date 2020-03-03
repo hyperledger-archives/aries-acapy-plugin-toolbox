@@ -24,9 +24,9 @@ from .util import generate_model_schema, admin_only
 PROTOCOL = 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1'
 
 # Message Types
-INVITATION_GET_LIST = '{}/invitation-get-list'.format(PROTOCOL)
-INVITATION_LIST = '{}/invitation-list'.format(PROTOCOL)
-CREATE_INVITATION = '{}/create-invitation'.format(PROTOCOL)
+INVITATION_GET_LIST = '{}/get-list'.format(PROTOCOL)
+INVITATION_LIST = '{}/list'.format(PROTOCOL)
+CREATE_INVITATION = '{}/create'.format(PROTOCOL)
 INVITATION = '{}/invitation'.format(PROTOCOL)
 
 # Message Type string to Message Class map
@@ -88,15 +88,6 @@ Invitation, InvitationSchema = generate_model_schema(
         'created_date': fields.Str(
             required=False, description="Time of record creation", **INDY_ISO8601_DATETIME
         ),
-    }
-)
-
-Connection, ConnectionSchema = generate_model_schema(
-    name='Connection',
-    handler='acapy_plugin_toolbox.util.PassHandler',
-    msg_type="/connection", #message not used, so this doesn't matter
-    schema={
-        'connection': fields.Nested(ConnectionRecordSchema, required=True),
     }
 )
 
