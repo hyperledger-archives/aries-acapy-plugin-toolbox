@@ -55,7 +55,7 @@ async def setup(context: InjectionContext):
         MESSAGE_TYPES
     )
 
-ConnectionSchema = Schema.from_dict({
+BaseConnectionSchema = Schema.from_dict({
     'label': fields.Str(required=True),
     'my_did': fields.Str(required=True),
     'connection_id': fields.Str(required=True),
@@ -72,18 +72,18 @@ ConnectionSchema = Schema.from_dict({
     'raw_repr': fields.Dict(required=False)
 })
 
-Connection, ConnectionMessageSchema = generate_model_schema(
+Connection, ConnectionSchema = generate_model_schema(
     name='Connection',
     handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=CONNECTION,
-    schema=ConnectionSchema
+    schema=BaseConnectionSchema
 )
 
 
 def conn_record_to_message_repr(conn: ConnectionRecord) -> Dict[str, Any]:
     """Map ConnectionRecord onto Connection."""
     def _state_map(state: str) -> str:
-        if state == 'active':
+        if state in ('active', 'response'):
             return 'active'
         if state == 'error':
             return 'error'
@@ -126,7 +126,7 @@ List, ListSchema = generate_model_schema(
     msg_type=LIST,
     schema={
         'connections': fields.List(
-            fields.Nested(ConnectionSchema),
+            fields.Nested(BaseConnectionSchema),
             required=True
         )
     }
