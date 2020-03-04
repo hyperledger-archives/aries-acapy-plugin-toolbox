@@ -3,7 +3,9 @@
 # pylint: disable=invalid-name
 # pylint: disable=too-few-public-methods
 
-from marshmallow import fields, validate
+from typing import Dict, Any
+
+from marshmallow import Schema, fields, validate
 
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
@@ -25,35 +27,40 @@ PROTOCOL = 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-
 # Message Types
 GET_LIST = '{}/get-list'.format(PROTOCOL)
 LIST = '{}/list'.format(PROTOCOL)
-GET = '{}/get'.format(PROTOCOL)
-CONNECTION = '{}/connection'.format(PROTOCOL)
+# GET = '{}/get'.format(PROTOCOL)
 UPDATE = '{}/update'.format(PROTOCOL)
+CONNECTION = '{}/connection'.format(PROTOCOL)
 DELETE = '{}/delete'.format(PROTOCOL)
 DELETED = '{}/deleted'.format(PROTOCOL)
+RECEIVE_INVITATION = '{}/receive-invitation'.format(PROTOCOL)
+# ACCEPT_INVITATION = '{}/accept-invitation'.format(PROTOCOL)
 
 # Message Type string to Message Class map
 MESSAGE_TYPES = {
     GET_LIST:
-        'acapy_plugin_toolbox.connections'
+        'acapy_plugin_toolbox.connections_new'
         '.GetList',
     LIST:
-        'acapy_plugin_toolbox.connections'
+        'acapy_plugin_toolbox.connections_new'
         '.List',
     # GET:
-    #     'acapy_plugin_toolbox.connections'
+    #     'acapy_plugin_toolbox.connections_new'
     #     '.Get',
     UPDATE:
-        'acapy_plugin_toolbox.connections'
+        'acapy_plugin_toolbox.connections_new'
         '.Update',
     CONNECTION:
-        'acapy_plugin_toolbox.connections'
+        'acapy_plugin_toolbox.connections_new'
         '.Connnection',
     DELETE:
-        'acapy_plugin_toolbox.connections'
+        'acapy_plugin_toolbox.connections_new'
         '.Delete',
     DELETED:
-        'acapy_plugin_toolbox.connections'
+        'acapy_plugin_toolbox.connections_new'
         '.Deleted',
+    RECEIVE_INVITATION:
+        'acapy_plugin_toolbox.connections'
+        '.ReceiveInvitation',
 }
 
 
@@ -64,42 +71,78 @@ async def setup(context: InjectionContext):
         MESSAGE_TYPES
     )
 
+ConnectionSchema = Schema.from_dict({
+    'label': fields.Str(required=True),
+    'my_did': fields.Str(required=True),
+    'connection_id': fields.Str(required=True),
+    'state': fields.Str(
+        validate=validate.OneOf([
+            'pending',
+            'active',
+            'error'
+        ]),
+        required=True
+    ),
+    'their_did': fields.Str(required=False), # May be missing if pending
+    'role': fields.Str(required=False),
+    'raw_repr': fields.Dict(required=False)
+})
+
+Connection, ConnectionMessageSchema = generate_model_schema(
+    name='Connection',
+    handler='acapy_plugin_toolbox.util.PassHandler',
+    msg_type=CONNECTION,
+    schema=ConnectionSchema
+)
+
+
+def conn_record_to_message_repr(conn: ConnectionRecord) -> Dict[str, Any]:
+    """Map ConnectionRecord onto Connection."""
+    def _state_map(state: str) -> str:
+        if state == 'active':
+            return 'active'
+        if state == 'error':
+            return 'error'
+        return 'pending'
+
+    return {
+        'label': conn.their_label,
+        'my_did': conn.my_did,
+        'their_did': conn.their_did,
+        'state': _state_map(conn.state),
+        'role': conn.their_role,
+        'connection_id': conn.connection_id,
+        'raw_repr': conn.serialize()
+    }
+
 
 GetList, GetListSchema = generate_model_schema(
     name='GetList',
-    handler='acapy_plugin_toolbox.connections.GetListHandler',
+    handler='acapy_plugin_toolbox.connections_new.GetListHandler',
     msg_type=GET_LIST,
     schema={
-        'initiator': fields.Str(
-            validate=validate.OneOf(['self', 'external']),
-            required=False,
-        ),
-        'invitation_key': fields.Str(required=False),
         'my_did': fields.Str(required=False),
         'state': fields.Str(
             validate=validate.OneOf([
-                'init',
-                'invitation',
-                'request',
-                'response',
+                'pending',
                 'active',
                 'error',
-                'inactive'
             ]),
             required=False
         ),
         'their_did': fields.Str(required=False),
-        'their_role': fields.Str(required=False)
+        'role': fields.Str(required=False)
     }
 )
+
 
 List, ListSchema = generate_model_schema(
     name='List',
     handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=LIST,
     schema={
-        'results': fields.List(
-            fields.Nested(ConnectionRecordSchema),
+        'connections': fields.List(
+            fields.Nested(ConnectionSchema),
             required=True
         )
     }
@@ -113,16 +156,6 @@ class GetListHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle get connection list request."""
 
-        def connection_sort_key(conn):
-            """Get the sorting key for a particular connection."""
-            if conn["state"] == ConnectionRecord.STATE_INACTIVE:
-                pfx = "2"
-            elif conn["state"] == ConnectionRecord.STATE_INVITATION:
-                pfx = "1"
-            else:
-                pfx = "0"
-            return pfx + conn["created_at"]
-
         tag_filter = dict(
             filter(lambda item: item[1] is not None, {
                 'my_did': context.message.my_did,
@@ -132,45 +165,35 @@ class GetListHandler(BaseHandler):
         post_filter = dict(filter(
             lambda item: item[1] is not None,
             {
-                'initiator': context.message.initiator,
-                'state': context.message.state,
-                'their_role': context.message.their_role
+                'their_role': context.message.role
             }.items()
         ))
+        # TODO: Filter on state (needs mapping back to ACA-Py connection states)
         records = await ConnectionRecord.query(context, tag_filter, post_filter)
-        results = [record.serialize() for record in records]
-        results.sort(key=connection_sort_key)
-        connection_list = List(results=results)
+        results = [Connection(**conn_record_to_message_repr(record)) for record in records]
+        connection_list = List(connections=results)
         connection_list.assign_thread_from(context.message)
         await responder.send_reply(connection_list)
 
 
 # Get, GetSchema = generate_model_schema(
 #     name='Get',
-#     handler='acapy_plugin_toolbox.connections.GetHandler',
+#     handler='acapy_plugin_toolbox.connections_new.GetHandler',
 #     msg_type=GET,
 #     schema={
 #         'connection_id': fields.Str(required=True)
 #     }
 # )
 
+
 Update, UpdateSchema = generate_model_schema(
     name='Update',
-    handler='acapy_plugin_toolbox.connections.UpdateHandler',
+    handler='acapy_plugin_toolbox.connections_new.UpdateHandler',
     msg_type=UPDATE,
     schema={
         'connection_id': fields.Str(required=True),
         'label': fields.Str(required=False),
         'role': fields.Str(required=False)
-    }
-)
-
-Connection, ConnectionSchema = generate_model_schema(
-    name='Connection',
-    handler='acapy_plugin_toolbox.util.PassHandler',
-    msg_type=CONNECTION,
-    schema={
-        'connection': fields.Nested(ConnectionRecordSchema, required=True),
     }
 )
 
@@ -199,14 +222,16 @@ class UpdateHandler(BaseHandler):
         new_role = context.message.role or connection.their_role
         connection.their_role = new_role
         await connection.save(context, reason="Update request received.")
-        conn_response = Connection(connection=connection)
+        conn_response = Connection(
+            **conn_record_to_message_repr(connection)
+        )
         conn_response.assign_thread_from(context.message)
         await responder.send_reply(conn_response)
 
 
 Delete, DeleteSchema = generate_model_schema(
     name='Delete',
-    handler='acapy_plugin_toolbox.connections.DeleteHandler',
+    handler='acapy_plugin_toolbox.connections_new.DeleteHandler',
     msg_type=DELETE,
     schema={
         'connection_id': fields.Str(required=True),
@@ -256,3 +281,32 @@ class DeleteHandler(BaseHandler):
         deleted = Deleted()
         deleted.assign_thread_from(context.message)
         await responder.send_reply(deleted)
+
+
+ReceiveInvitation, ReceiveInvitationSchema = generate_model_schema(
+    name='ReceiveInvitation',
+    handler='acapy_plugin_toolbox.connections_new.ReceiveInvitationHandler',
+    msg_type=RECEIVE_INVITATION,
+    schema={
+        'invitation': fields.Str(required=True),
+        'accept': fields.Str(
+            validate=validate.OneOf(['none', 'auto']),
+            missing=False
+        )
+    }
+)
+
+
+class ReceiveInvitationHandler(BaseHandler):
+    """Handler for receive invitation request."""
+
+    @admin_only
+    async def handle(self, context: RequestContext, responder: BaseResponder):
+        """Handle recieve invitation request."""
+        connection_mgr = ConnectionManager(context)
+        invitation = ConnectionInvitation.from_url(context.message.invitation)
+        connection = await connection_mgr.receive_invitation(
+            invitation, accept=context.message.accept
+        )
+        connection_resp = Connection(**conn_record_to_message_repr(connection))
+        await responder.send_reply(connection_resp)
