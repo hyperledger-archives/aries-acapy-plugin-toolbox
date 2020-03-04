@@ -4,6 +4,7 @@ from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 
 from ..connections import MESSAGE_TYPES as CONNECTION_MESSAGES
+from ..connections_new import MESSAGE_TYPES as NEW_CONNECTION_MESSAGES
 from ..credential_definitions import MESSAGE_TYPES as CRED_DEF_MESSAGES
 from ..schemas import MESSAGE_TYPES as SCHEMA_MESSAGES
 from ..dids import MESSAGE_TYPES as DID_MESSAGES
@@ -18,6 +19,7 @@ async def setup(context: InjectionContext):
     protocol_registry = await context.inject(ProtocolRegistry)
     protocol_registry.register_message_types(
         CONNECTION_MESSAGES,
+        NEW_CONNECTION_MESSAGES,
         CRED_DEF_MESSAGES,
         SCHEMA_MESSAGES,
         DID_MESSAGES,
