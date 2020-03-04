@@ -12,7 +12,7 @@ from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
 from aries_cloudagent.protocols.connections.manager import ConnectionManager
 from aries_cloudagent.connections.models.connection_record import (
-    ConnectionRecord, ConnectionRecordSchema
+    ConnectionRecord
 )
 from aries_cloudagent.protocols.connections.messages.connection_invitation import (
     ConnectionInvitation,
@@ -22,45 +22,29 @@ from aries_cloudagent.storage.error import StorageNotFoundError
 
 from .util import generate_model_schema, admin_only
 
-PROTOCOL = 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1'
+PROTOCOL = (
+    'https://github.com/hyperledger/aries-toolbox/'
+    'tree/master/docs/admin-connections/0.1'
+)
 
 # Message Types
 GET_LIST = '{}/get-list'.format(PROTOCOL)
 LIST = '{}/list'.format(PROTOCOL)
-# GET = '{}/get'.format(PROTOCOL)
 UPDATE = '{}/update'.format(PROTOCOL)
 CONNECTION = '{}/connection'.format(PROTOCOL)
 DELETE = '{}/delete'.format(PROTOCOL)
 DELETED = '{}/deleted'.format(PROTOCOL)
 RECEIVE_INVITATION = '{}/receive-invitation'.format(PROTOCOL)
-# ACCEPT_INVITATION = '{}/accept-invitation'.format(PROTOCOL)
 
 # Message Type string to Message Class map
 MESSAGE_TYPES = {
-    GET_LIST:
-        'acapy_plugin_toolbox.connections_new'
-        '.GetList',
-    LIST:
-        'acapy_plugin_toolbox.connections_new'
-        '.List',
-    # GET:
-    #     'acapy_plugin_toolbox.connections_new'
-    #     '.Get',
-    UPDATE:
-        'acapy_plugin_toolbox.connections_new'
-        '.Update',
-    CONNECTION:
-        'acapy_plugin_toolbox.connections_new'
-        '.Connnection',
-    DELETE:
-        'acapy_plugin_toolbox.connections_new'
-        '.Delete',
-    DELETED:
-        'acapy_plugin_toolbox.connections_new'
-        '.Deleted',
-    RECEIVE_INVITATION:
-        'acapy_plugin_toolbox.connections'
-        '.ReceiveInvitation',
+    GET_LIST: 'acapy_plugin_toolbox.connections_new.GetList',
+    LIST: 'acapy_plugin_toolbox.connections_new.List',
+    UPDATE: 'acapy_plugin_toolbox.connections_new.Update',
+    CONNECTION: 'acapy_plugin_toolbox.connections_new.Connnection',
+    DELETE: 'acapy_plugin_toolbox.connections_new.Delete',
+    DELETED: 'acapy_plugin_toolbox.connections_new.Deleted',
+    RECEIVE_INVITATION: 'acapy_plugin_toolbox.connections.ReceiveInvitation',
 }
 
 
@@ -83,7 +67,7 @@ ConnectionSchema = Schema.from_dict({
         ]),
         required=True
     ),
-    'their_did': fields.Str(required=False), # May be missing if pending
+    'their_did': fields.Str(required=False),  # May be missing if pending
     'role': fields.Str(required=False),
     'raw_repr': fields.Dict(required=False)
 })
@@ -169,21 +153,16 @@ class GetListHandler(BaseHandler):
             }.items()
         ))
         # TODO: Filter on state (needs mapping back to ACA-Py connection states)
-        records = await ConnectionRecord.query(context, tag_filter, post_filter)
-        results = [Connection(**conn_record_to_message_repr(record)) for record in records]
+        records = await ConnectionRecord.query(
+            context, tag_filter, post_filter
+        )
+        results = [
+            Connection(**conn_record_to_message_repr(record))
+            for record in records
+        ]
         connection_list = List(connections=results)
         connection_list.assign_thread_from(context.message)
         await responder.send_reply(connection_list)
-
-
-# Get, GetSchema = generate_model_schema(
-#     name='Get',
-#     handler='acapy_plugin_toolbox.connections_new.GetHandler',
-#     msg_type=GET,
-#     schema={
-#         'connection_id': fields.Str(required=True)
-#     }
-# )
 
 
 Update, UpdateSchema = generate_model_schema(
