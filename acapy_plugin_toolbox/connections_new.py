@@ -44,7 +44,8 @@ MESSAGE_TYPES = {
     CONNECTION: 'acapy_plugin_toolbox.connections_new.Connnection',
     DELETE: 'acapy_plugin_toolbox.connections_new.Delete',
     DELETED: 'acapy_plugin_toolbox.connections_new.Deleted',
-    RECEIVE_INVITATION: 'acapy_plugin_toolbox.connections.ReceiveInvitation',
+    RECEIVE_INVITATION: 'acapy_plugin_toolbox.connections_new.'
+                        'ReceiveInvitation',
 }
 
 
