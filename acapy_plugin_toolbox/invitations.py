@@ -3,7 +3,7 @@
 # pylint: disable=invalid-name
 # pylint: disable=too-few-public-methods
 
-from marshmallow import fields, validate
+from marshmallow import Schema, fields
 
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
@@ -73,22 +73,25 @@ CreateInvitation, CreateInvitationSchema = generate_model_schema(
     }
 )
 
+BaseInvitationSchema = Schema.from_dict({
+    'id': fields.Str(required=True),
+    'label': fields.Str(required=False),
+    'alias': fields.Str(required=False),  # default?
+    'role': fields.Str(required=False),
+    'auto_accept': fields.Boolean(missing=False),
+    'multi_use': fields.Boolean(missing=False),
+    'invitation_url': fields.Str(required=True),
+    'created_date': fields.Str(
+        required=False, description="Time of record creation",
+        **INDY_ISO8601_DATETIME
+    ),
+})
+
 Invitation, InvitationSchema = generate_model_schema(
     name='Invitation',
     handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=INVITATION,
-    schema={
-        'id': fields.Str(required=True),
-        'label': fields.Str(required=False),
-        'alias': fields.Str(required=False), #default?
-        'role': fields.Str(required=False),
-        'auto_accept': fields.Boolean(missing=False),
-        'multi_use': fields.Boolean(missing=False),
-        'invitation_url': fields.Str(required=True),
-        'created_date': fields.Str(
-            required=False, description="Time of record creation", **INDY_ISO8601_DATETIME
-        ),
-    }
+    schema=BaseInvitationSchema
 )
 
 InvitationList, InvitationListSchema = generate_model_schema(
@@ -96,9 +99,10 @@ InvitationList, InvitationListSchema = generate_model_schema(
     handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=INVITATION_LIST,
     schema={
-        'results': fields.List(fields.Nested(InvitationSchema))
+        'results': fields.List(fields.Nested(BaseInvitationSchema))
     }
 )
+
 
 class CreateInvitationHandler(BaseHandler):
     """Handler for create invitation request."""
