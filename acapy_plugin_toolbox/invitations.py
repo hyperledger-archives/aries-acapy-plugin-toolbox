@@ -88,6 +88,7 @@ BaseInvitationSchema = Schema.from_dict({
         required=False, description="Time of record creation",
         **INDY_ISO8601_DATETIME
     ),
+    'raw_repr': fields.Dict(required=False),
 })
 
 Invitation, InvitationSchema = generate_model_schema(
@@ -134,6 +135,7 @@ class CreateInvitationHandler(BaseHandler):
             ),
             invitation_url=invitation.to_url(),
             created_date=connection.created_at,
+            raw_repr=connection.serialize()
         )
         invite_response.assign_thread_from(context.message)
         await responder.send_reply(invite_response)
@@ -169,19 +171,22 @@ class InvitationGetListHandler(BaseHandler):
             except StorageNotFoundError:
                 continue
 
-            invite = Invitation(
-                id=connection.connection_id,
-                label=invitation.label,
-                alias=connection.alias,
-                role=connection.their_role,
-                auto_accept=connection.accept == ConnectionRecord.ACCEPT_AUTO,
-                multi_use=(
+            invite = {
+                'id': connection.connection_id,
+                'label': invitation.label,
+                'alias': connection.alias,
+                'role': connection.their_role,
+                'auto_accept': (
+                    connection.accept == ConnectionRecord.ACCEPT_AUTO
+                ),
+                'multi_use': (
                     connection.invitation_mode ==
                     ConnectionRecord.INVITATION_MODE_MULTI
                 ),
-                invitation_url=invitation.to_url(),
-                created_date=connection.created_at,
-            )
+                'invitation_url': invitation.to_url(),
+                'created_date': connection.created_at,
+                'raw_repr': connection.serialize()
+            }
 
             results.append(invite)
 
