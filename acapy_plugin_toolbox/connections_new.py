@@ -222,7 +222,9 @@ Deleted, DeletedSchema = generate_model_schema(
     name='Deleted',
     handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=DELETED,
-    schema={}
+    schema={
+        'connection_id': fields.Str(required=True),
+    }
 )
 
 
@@ -258,7 +260,7 @@ class DeleteHandler(BaseHandler):
             return
 
         await connection.delete_record(context)
-        deleted = Deleted()
+        deleted = Deleted(connection_id=connection.connection_id)
         deleted.assign_thread_from(context.message)
         await responder.send_reply(deleted)
 
@@ -269,8 +271,7 @@ ReceiveInvitation, ReceiveInvitationSchema = generate_model_schema(
     msg_type=RECEIVE_INVITATION,
     schema={
         'invitation': fields.Str(required=True),
-        'accept': fields.Str(
-            validate=validate.OneOf(['none', 'auto']),
+        'auto_accept': fields.Bool(
             missing=False
         )
     }
@@ -286,7 +287,8 @@ class ReceiveInvitationHandler(BaseHandler):
         connection_mgr = ConnectionManager(context)
         invitation = ConnectionInvitation.from_url(context.message.invitation)
         connection = await connection_mgr.receive_invitation(
-            invitation, accept=context.message.accept
+            invitation,
+            accept=('auto' if context.message.auto_accept else 'none')
         )
         connection_resp = Connection(**conn_record_to_message_repr(connection))
         await responder.send_reply(connection_resp)
