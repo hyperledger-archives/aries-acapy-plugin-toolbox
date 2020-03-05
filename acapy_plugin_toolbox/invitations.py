@@ -135,7 +135,10 @@ class CreateInvitationHandler(BaseHandler):
             ),
             invitation_url=invitation.to_url(),
             created_date=connection.created_at,
-            raw_repr=connection.serialize()
+            raw_repr={
+                'connection': connection.serialize(),
+                'invitation': invitation.serialize(),
+            }
         )
         invite_response.assign_thread_from(context.message)
         await responder.send_reply(invite_response)
@@ -185,7 +188,10 @@ class InvitationGetListHandler(BaseHandler):
                 ),
                 'invitation_url': invitation.to_url(),
                 'created_date': connection.created_at,
-                'raw_repr': connection.serialize()
+                'raw_repr': {
+                    'connection': connection.serialize(),
+                    'invitation': invitation.serialize(),
+                }
             }
 
             results.append(invite)
