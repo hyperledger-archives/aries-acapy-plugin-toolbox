@@ -7,21 +7,24 @@ from marshmallow import Schema, fields
 
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
-from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
+from aries_cloudagent.messaging.base_handler import (
+    BaseHandler, BaseResponder, RequestContext
+)
 from aries_cloudagent.protocols.connections.manager import ConnectionManager
 from aries_cloudagent.connections.models.connection_record import (
-    ConnectionRecord, ConnectionRecordSchema
+    ConnectionRecord
 )
-from aries_cloudagent.protocols.connections.messages.connection_invitation import (
-    ConnectionInvitation,
-)
-from aries_cloudagent.protocols.problem_report.message import ProblemReport
+# ProblemReport will probably be needed when a delete message is implemented
+# from aries_cloudagent.protocols.problem_report.message import ProblemReport
 from aries_cloudagent.storage.error import StorageNotFoundError
 from aries_cloudagent.messaging.valid import INDY_ISO8601_DATETIME
 
 from .util import generate_model_schema, admin_only
 
-PROTOCOL = 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1'
+PROTOCOL = (
+    'https://github.com/hyperledger/aries-toolbox/'
+    'tree/master/docs/admin-invitations/0.1'
+)
 
 # Message Types
 INVITATION_GET_LIST = '{}/get-list'.format(PROTOCOL)
@@ -66,7 +69,7 @@ CreateInvitation, CreateInvitationSchema = generate_model_schema(
     msg_type=CREATE_INVITATION,
     schema={
         'label': fields.Str(required=False),
-        'alias': fields.Str(required=False), #default?
+        'alias': fields.Str(required=False),  # default?
         'role': fields.Str(required=False),
         'auto_accept': fields.Boolean(missing=False),
         'multi_use': fields.Boolean(missing=False),
@@ -120,19 +123,20 @@ class CreateInvitationHandler(BaseHandler):
             alias=context.message.alias,
         )
         invite_response = Invitation(
-            id = connection.connection_id,
-            label = invitation.label,
-            alias = connection.alias,
-            role = connection.their_role,
-            auto_accept = connection.accept == ConnectionRecord.ACCEPT_AUTO,
-            multi_use = connection.invitation_mode == ConnectionRecord.INVITATION_MODE_MULTI,
+            id=connection.connection_id,
+            label=invitation.label,
+            alias=connection.alias,
+            role=connection.their_role,
+            auto_accept=connection.accept == ConnectionRecord.ACCEPT_AUTO,
+            multi_use=(
+                connection.invitation_mode ==
+                ConnectionRecord.INVITATION_MODE_MULTI
+            ),
             invitation_url=invitation.to_url(),
-            created_date = connection.created_at,
+            created_date=connection.created_at,
         )
         invite_response.assign_thread_from(context.message)
         await responder.send_reply(invite_response)
-
-
 
 
 class InvitationGetListHandler(BaseHandler):
@@ -150,12 +154,14 @@ class InvitationGetListHandler(BaseHandler):
         post_filter = dict(filter(
             lambda item: item[1] is not None,
             {
-                #'initiator': context.message.initiator,
                 'state': 'invitation',
-                #'their_role': context.message.their_role
+                # 'initiator': context.message.initiator,
+                # 'their_role': context.message.their_role
             }.items()
         ))
-        records = await ConnectionRecord.query(context, tag_filter, post_filter)
+        records = await ConnectionRecord.query(
+            context, tag_filter, post_filter
+        )
         results = []
         for connection in records:
             try:
@@ -169,7 +175,10 @@ class InvitationGetListHandler(BaseHandler):
                 alias=connection.alias,
                 role=connection.their_role,
                 auto_accept=connection.accept == ConnectionRecord.ACCEPT_AUTO,
-                multi_use=connection.invitation_mode == ConnectionRecord.INVITATION_MODE_MULTI,
+                multi_use=(
+                    connection.invitation_mode ==
+                    ConnectionRecord.INVITATION_MODE_MULTI
+                ),
                 invitation_url=invitation.to_url(),
                 created_date=connection.created_at,
             )
