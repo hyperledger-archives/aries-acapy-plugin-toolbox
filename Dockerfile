@@ -1,4 +1,10 @@
 FROM bcgovimages/von-image:py36-1.14-0
+
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 68DB5E88
+RUN add-apt-repository "deb https://repo.sovrin.org/sdk/deb xenial stable"
+RUN apt-get update
+RUN apt-get install -y libsovtoken
+
 RUN pip3 install git+https://github.com/sovrin-foundation/aries-cloudagent-python.git@8ba3f23#egg=aries-cloudagent[indy]
 
 ADD . .
