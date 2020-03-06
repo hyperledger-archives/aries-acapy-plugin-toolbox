@@ -21,7 +21,17 @@ PROTOCOL_URI = (
 
 GET_ADDRESS_LIST = f'{PROTOCOL_URI}/get-address-list'
 ADDRESS_LIST = f'{PROTOCOL_URI}/address-list'
+CREATE_ADDRESS = f'{PROTOCOL_URI}/create-address'
+ADDRESS = f'{PROTOCOL_URI}/address'
+TRANSFER_UTX = f'{PROTOCOL_URI}/transfer-utx'
+UTX = f'{PROTOCOL_URI}/utx'
 MESSAGE_TYPES = {
+    GET_ADDRESS_LIST: 'acapy_plugin_toolbox.payments.GetAddressList'
+    ADDRESS_LIST: 'acapy_plugin_toolbox.payments.ADDRESS_LIST'
+    CREATE_ADDRESS: 'acapy_plugin_toolbox.payments.CREATE_ADDRESS'
+    ADDRESS: 'acapy_plugin_toolbox.payments.ADDRESS' 
+    TRANSFER_UTX: 'acapy_plugin_toolbox.payments.TRANSFER_UTX'
+    UTX: 'acapy_plugin_toolbox.payments.UTX' 
 
 }
 
