@@ -3,9 +3,12 @@ from ctypes import cdll
 import json
 import os
 import platform
+from functools import reduce
+from typing import Dict
 
 from marshmallow import Schema, fields
-from indy import ledger, payment
+from indy import payment
+from indy import ledger as indy_ledger
 
 from aries_cloudagent.ledger.base import BaseLedger
 from aries_cloudagent.config.injection_context import InjectionContext
@@ -19,6 +22,7 @@ from .util import generate_model_schema
 
 # TODO: Find a better way to find the library
 LIBRARY = os.environ.get('LIBSOVTOKEN', 'libsovtoken.so')
+SOV_METHOD = 'sov'
 # LIBRARY = 'libsovtoken'
 EXTENSION = {
     "darwin": ".dylib",
@@ -37,6 +41,8 @@ GET_ADDRESS_LIST = f'{PROTOCOL_URI}/get-address-list'
 ADDRESS_LIST = f'{PROTOCOL_URI}/address-list'
 CREATE_ADDRESS = f'{PROTOCOL_URI}/create-address'
 ADDRESS = f'{PROTOCOL_URI}/address'
+GET_FEES = f'{PROTOCOL_URI}/get-fees'
+FEES = f'{PROTOCOL_URI}/fees'
 TRANSFER = f'{PROTOCOL_URI}/transfer'
 TRANSFER_COMPLETE = f'{PROTOCOL_URI}/transfer-complete'
 
@@ -115,15 +121,34 @@ Address, AddressSchema = generate_model_schema(
     schema=BasePaymentAddressSchema
 )
 
+GetFees, GetFeesSchema = generate_model_schema(
+    name='GetFees',
+    handler='acapy_plugin_toolbox.payments.GetFeesHandler',
+    msg_type=GET_FEES,
+    schema={
+        'method': fields.Str(required=True),
+        'amount': fields.Float(required=False)
+    }
+)
+
+Fees, FeesSchema = generate_model_schema(
+    name='Fees',
+    handler='acapy_plugin_toolbox.util.PassHandler',
+    msg_type=FEES,
+    schema={
+        'total': fields.Float(required=True)
+    }
+)
+
 Transfer, TransferSchema = generate_model_schema(
     name='Transfer',
-    handler='acapy_plugin_toolbox.payments.TransferHandler'
+    handler='acapy_plugin_toolbox.payments.TransferHandler',
     msg_type=TRANSFER,
     schema={
-        'from_address': fields.List(fields.Nested(BasePaymentAddressSchema)),
-        'to_address': fields.List(fields.Nested(BasePaymentAddressSchema)),
+        'method': fields.Str(required=True),
+        'from_address': fields.Str(required=True),
+        'to_address': fields.Str(required=True),
         'amount': fields.Float(required=True)
-        'raw_repr': fields.Str(required=False)
     }
 )
 
@@ -139,11 +164,46 @@ TransferComplete, TransferCompleteSchema = generate_model_schema(
     handler='acapy_plugin_toolbox.payments.TransferCompleteHandler',
     msg_type=TRANSFER_COMPLETE,
     schema={
-        'receipt': fields.List(
-            fields.Nested(BaseReceiptSchema),
-            required=True
-        )
+        'from_address': fields.Str(required=True),
+        'to_address': fields.Str(required=True),
+        'amount': fields.Float(required=True),
+        'raw_repr': fields.Dict(required=False)
     }
+)
+
+
+async def get_sources(ledger: BaseLedger, payment_address: str):
+    """Retrieve sources for this payment address and asynchrounsly generate."""
+    # We need to use ledger._submit
+    # pylint: disable=protected-access
+    next_seqno = -1
+    while True:
+        get_sources_json, method = \
+            await payment.build_get_payment_sources_with_from_request(
+                ledger.wallet.handle,
+                None,
+                payment_address,
+                next_seqno
+            )
+
+        resp = await ledger._submit(get_sources_json, sign=False)
+        source_list, next_seqno = \
+            await payment.parse_get_payment_sources_with_from_response(
+                method, resp
+            )
+        sources = json.loads(source_list)
+        for source in sources:
+            yield source
+        if next_seqno == -1:
+            break
+
+
+async def get_balance(ledger: BaseLedger, payment_address: str):
+    """Return the balance of a payment address."""
+    sources = [source async for source in get_sources(ledger, payment_address)]
+
+    return reduce(lambda acc, source: acc + source['amount'], sources, 0)
+
 
 class CreateAddressHandler(BaseHandler):
     """Handler for received create address requests."""
@@ -151,11 +211,12 @@ class CreateAddressHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received create address requests."""
         wallet: BaseWallet = await context.inject(BaseWallet)
-        if context.message.method != 'sov':
+        ledger: BaseLedger = await context.inject(BaseLedger)
+        if context.message.method != SOV_METHOD:
             report = ProblemReport(
                 explain_ltxt=(
-                    'Method {} is not supported.'
-                    .format(context.message.method),
+                    'Method "{}" is not supported.'
+                    .format(context.message.method)
                 ),
                 who_retries='none'
             )
@@ -165,114 +226,206 @@ class CreateAddressHandler(BaseHandler):
 
         address_str = await payment.create_payment_address(
             wallet.handle,
-            'sov',
+            SOV_METHOD,
             json.dumps({
                 'seed': context.message.seed
             })
         )
 
+        async with ledger:
+            balance = await get_balance(ledger, address_str)
+
         address = Address(
             address=address_str,
-            method='sov',
-            balance=0,
+            method=SOV_METHOD,
+            balance=balance,
         )
         address.assign_thread_from(context.message)
         await responder.send_reply(address)
         return
 
-class TransferHandler(BaseHandler):
-    """Handler for payment"""
+
+async def prepare_extra(ledger: BaseLedger, extra: Dict):
+    """Prepare extras field for submission of payment request."""
+    extra_json = json.dumps(extra)
+    print(extra_json)
+    acceptance = await ledger.get_latest_txn_author_acceptance()
+    if acceptance:
+        extra_json = await (
+            indy_ledger.append_txn_author_agreement_acceptance_to_request(
+                extra_json,
+                acceptance["text"],
+                acceptance["version"],
+                acceptance["digest"],
+                acceptance["mechanism"],
+                acceptance["time"],
+            )
+        )
+    print(extra_json)
+    return extra_json
+
+
+async def fetch_transfer_auth(ledger: BaseLedger):
+    """Retrieve token transfer fee."""
+    # We need to use ledger._submit
+    # pylint: disable=protected-access
+    xfer_fee_resp = await ledger._submit(await payment.build_get_txn_fees_req(
+        ledger.wallet.handle,
+        None,
+        SOV_METHOD
+    ), sign=False)
+    parse_xfer_fee = await payment.parse_get_txn_fees_response(
+        SOV_METHOD, xfer_fee_resp
+    )
+
+    auth_rule_resp = await ledger._submit(
+        await indy_ledger.build_get_auth_rule_request(
+            None, "10001", "ADD", "*", None, "*"
+        ),
+        sign=False
+    )
+    xfer_auth_fee = json.loads(
+        await payment.get_request_info(
+            auth_rule_resp,
+            json.dumps({'sig_count': 1}),
+            parse_xfer_fee
+        )
+    )
+    if ledger.cache:
+        await ledger.cache.set(
+            ['admin-payments::xfer_auth'],
+            xfer_auth_fee,
+            ledger.cache_duration,
+        )
+    return xfer_auth_fee
+
+
+async def get_transfer_auth(ledger: BaseLedger):
+    """Retrieve token transfer fee."""
+    if ledger.cache:
+        result = await ledger.cache.get(f"admin-payments::xfer_auth")
+        if result:
+            return result
+
+    return await fetch_transfer_auth(ledger)
+
+
+class GetFeesHandler(BaseHandler):
+    """Handler for get fees."""
 
     async def handle(self, context: RequestContext, responder: BaseResponder):
-        """Handle payment"""
-        wallet BaseWallet = await context.inject(BaseWallet)
+        """Handle get fees."""
         ledger: BaseLedger = await context.inject(BaseLedger)
-        if context.message.method != 'sov':
+        if context.message.method != SOV_METHOD:
             report = ProblemReport(
                 explain_ltxt=(
-                    'Method {} is not supported.'
-                    .format(context.message.method),
+                    'Method "{}" is not supported.'
+                    .format(context.message.method)
                 ),
                 who_retries='none'
             )
             report.assign_thread_from(context.message)
             await responder.send_reply(report)
             return
-        # get fees from ledger
-        xfer_fee = 0
-        xfer_fee_req = await payment.build_get_txn_fees_req(wallet.handle, None, 'sov')
-        xfer_fee_resp = await ledger.sign_and_submit_request(pool_handle, steward_wallet_handle, steward_did, xfer_fee_req)
-        parse_xfer_fee = await payment.parse_get_txn_fees_response(PAYMENT_METHOD, xfer_fee_resp)
-        #parse_xfer_fee_json = json.loads(parse_xfer_fee)
-        auth_rule_req = await ledger.build_get_auth_rule_request(steward_did, "10001", "ADD", "*", None, "*")
-        auth_rule_resp = await ledger.sign_and_submit_request(pool_handle, steward_wallet_handle, steward_did, auth_rule_req)
-        #auth_rule_resp_json = json.loads(auth_rule_resp)
-        xfer_auth_fee_resp = await payment.get_request_info(auth_rule_resp, '{ "sig_count" : 1 }', parse_xfer_fee) # { "sig_count" : 1 }
-        xfer_auth_fee_resp_json = json.loads(xfer_auth_fee_resp)
-        xfer_fee = xfer_auth_fee_resp_json["price"]
-        try:
-            async with ledger:
-                credential_definition_id = await shield(
-                    ledger.(
-                        context.message.schema_id,
-                        tag='{}_{}'.format(
-                            schema_record.schema_name,
-                            schema_record.schema_version
-                        )
-                    )
-                )
-        except Exception as err:
+
+        async with ledger:
+            xfer_auth = await get_transfer_auth(ledger)
+
+        fees = Fees(total=xfer_auth['price'])
+        fees.assign_thread_from(context.message)
+        await responder.send_reply(fees)
+
+
+class TransferHandler(BaseHandler):
+    """Handler for payment"""
+
+    async def handle(self, context: RequestContext, responder: BaseResponder):
+        """Handle payment"""
+        # We need to use ledger._submit
+        # pylint: disable=protected-access
+        wallet: BaseWallet = await context.inject(BaseWallet)
+        ledger: BaseLedger = await context.inject(BaseLedger)
+        if context.message.method != SOV_METHOD:
             report = ProblemReport(
-                explain_ltxt='Failed to send to ledger; Error: {}'.format(err),
+                explain_ltxt=(
+                    'Method "{}" is not supported.'
+                    .format(context.message.method)
+                ),
                 who_retries='none'
             )
+            report.assign_thread_from(context.message)
             await responder.send_reply(report)
             return
 
-    # get payment address's sources
-    # build outputs
-    # Build TAA for extras
-        ''' 
-        param outputs_json: The list of outputs as json array:
-        [{
-            recipient: <str>, // payment address of recipient
-            amount: <int>, // amount
-        }]
-        '''
-     xfer_fee):
-    utctimestamp = int(datetime.datetime.utcnow().timestamp())
-    logger.debug("Before getting all token sources")
-    token_sources = await getTokenSources(pool_handle, wallet_handle, steward_did, source_payment_address)
-    logging.debug(token_sources)
-    if len(token_sources) == 0:
-        logging.debug("Gothere4")
-        err = Exception("No token sources found for source payment address %s" % source_payment_address)
-        err.status_code = 400
-        logging.error(err)
-        raise err
-    target_tokens_amount = target_tokens_amount or DEFAULT_TOKENS_AMOUNT
-    token_sources, remaining_tokens_amount = getSufficientTokenSources(token_sources, target_tokens_amount, xfer_fee)
-    inputs = token_sources
-    outputs = [
-        {"recipient": target_payment_address, "amount": target_tokens_amount},
-        {"recipient": source_payment_address, "amount": remaining_tokens_amount}
-    ]
+        # get fees from ledger
+        async with ledger:
+            try:
+                fee = (await get_transfer_auth(ledger))['price']
+            except Exception as err:
+                report = ProblemReport(
+                    explain_ltxt=(
+                        'Failed to retrieve fees from the ledger'
+                        '; Error: {}'.format(err)
+                    ),
+                    who_retries='none'
+                )
+                await responder.send_reply(report)
+                return
 
-    taa_req = await ledger.build_get_txn_author_agreement_request(steward_did, None)
-    taa_resp_json = await ledger.sign_and_submit_request(pool_handle, wallet_handle, steward_did, taa_req)
-    taa_resp=json.loads(taa_resp_json)
+        # Sources look like:
+        #     [{
+        #       source: <str>, // source input
+        #       paymentAddress: <str>, //payment address for this source
+        #       amount: <int>, // amount
+        #       extra: <str>, // optional data from payment transaction
+        #     }]
+        # inputs: ["source_str1", "source_str2", ...]
+        # param outputs_json: The list of outputs as json array:
+        #    [{
+        #        recipient: <str>, // payment address of recipient
+        #        amount: <int>, // amount
+        #    }]
 
-    if taa_resp["result"]["data"]:
-        extras = await payment.prepare_payment_extra_with_acceptance_data(None, taa_resp["result"]["data"]["text"], taa_resp["result"]["data"]["version"], None, 'service_agreement', utctimestamp)
-    else:
-        extras = None
+        accumulated = 0
+        inputs = []
+        async for source in get_sources(ledger, context.message.from_address):
+            inputs.append(source['source'])
+            accumulated += source['amount']
+            if accumulated >= context.message.amount + fee:
+                break
 
-    inputs = 
-    payment_req, payment_method = await payment.build_payment_req(
-        wallet.handle, 
-        None,
-        json.dumps(inputs),
-        json.dumps(outputs),
-        extras)
-    #payment_resp = await ledger.sign_and_submit_request(pool_handle, wallet_handle, steward_did, payment_req)
-    receipts = await payment.parse_payment_response(payment_method, payment_resp)did
+        outputs = [
+            {
+                'recipient': context.message.to_address,
+                'amount': int(context.message.amount)
+            },
+            {
+                'recipient': context.message.from_address,
+                'amount': accumulated - fee - int(context.message.amount)
+            }
+        ]
+
+        extras = await prepare_extra(ledger, {})
+
+        payment_req, payment_method = await payment.build_payment_req(
+            wallet.handle,
+            None,
+            json.dumps(inputs),
+            json.dumps(outputs),
+            extras
+        )
+        payment_resp = await ledger._submit(
+            payment_req, sign=False
+        )
+        receipts = await payment.parse_payment_response(
+            payment_method, payment_resp
+        )
+
+        completed = TransferComplete(
+            from_address=context.message.from_address,
+            to_address=context.message.to_address,
+            amount=context.message.amount,
+            raw_repr=json.loads(receipts)
+        )
+        completed.assign_thread_from(context.message)
+        await responder.send_reply(completed)
