@@ -1,4 +1,6 @@
 """Payment plugin."""
+# pylint: disable=invalid-name
+
 from ctypes import cdll
 import json
 import os
@@ -78,98 +80,14 @@ async def setup(
     )
 
 
-GetAddressList, GetAddressListSchema = generate_model_schema(
-    name='GetAddressList',
-    handler='acapy_plugin_toolbox.payments.GetAddressListHandler',
-    msg_type=GET_ADDRESS_LIST,
-    schema={}
-)
+def sovatoms_to_token(sovatoms: int) -> float:
+    """Convert sovatoms to tokens."""
+    return sovatoms / 100000000
 
-BasePaymentAddressSchema = Schema.from_dict({
-    'address': fields.Str(required=True),
-    'method': fields.Str(required=True),
-    'balance': fields.Float(required=True),
-    'raw_repr': fields.Dict(required=False)
-})
 
-AddressList, AddressListSchema = generate_model_schema(
-    name='AddressList',
-    handler='acapy_plugin_toolbox.util.PassHandler',
-    msg_type=ADDRESS_LIST,
-    schema={
-        'address': fields.List(
-            fields.Nested(BasePaymentAddressSchema),
-            required=True
-        )
-    }
-)
-
-CreateAddress, CreateAddressSchema = generate_model_schema(
-    name='CreateAddress',
-    handler='acapy_plugin_toolbox.payments.CreateAddressHandler',
-    msg_type=CREATE_ADDRESS,
-    schema={
-        'seed': fields.Str(required=False),
-        'method': fields.Str(required=True)
-    }
-)
-
-Address, AddressSchema = generate_model_schema(
-    name='Address',
-    handler='acapy_plugin_toolbox.util.PassHandler',
-    msg_type=ADDRESS,
-    schema=BasePaymentAddressSchema
-)
-
-GetFees, GetFeesSchema = generate_model_schema(
-    name='GetFees',
-    handler='acapy_plugin_toolbox.payments.GetFeesHandler',
-    msg_type=GET_FEES,
-    schema={
-        'method': fields.Str(required=True),
-        'amount': fields.Float(required=False)
-    }
-)
-
-Fees, FeesSchema = generate_model_schema(
-    name='Fees',
-    handler='acapy_plugin_toolbox.util.PassHandler',
-    msg_type=FEES,
-    schema={
-        'total': fields.Float(required=True)
-    }
-)
-
-Transfer, TransferSchema = generate_model_schema(
-    name='Transfer',
-    handler='acapy_plugin_toolbox.payments.TransferHandler',
-    msg_type=TRANSFER,
-    schema={
-        'method': fields.Str(required=True),
-        'from_address': fields.Str(required=True),
-        'to_address': fields.Str(required=True),
-        'amount': fields.Float(required=True)
-    }
-)
-
-BaseReceiptSchema = Schema.from_dict({
-    'receipt': fields.Str(required=True), # receipt that can be used for payment referencing and verification
-    'recipient': fields.Str(required=True), # payment address of recipient
-    'amount': fields.Float(required=True),
-    'extra': fields.Str(required=False) # optional data from payment transaction
-})
-
-TransferComplete, TransferCompleteSchema = generate_model_schema(
-    name='TransferComplete',
-    handler='acapy_plugin_toolbox.payments.TransferCompleteHandler',
-    msg_type=TRANSFER_COMPLETE,
-    schema={
-        'from_address': fields.Str(required=True),
-        'to_address': fields.Str(required=True),
-        'amount': fields.Float(required=True),
-        'raw_repr': fields.Dict(required=False)
-    }
-)
+def tokens_to_sovatoms(tokens: float) -> int:
+    """Convert tokens to sovatoms."""
+    return int(tokens * 100000000)
 
 
 async def get_sources(ledger: BaseLedger, payment_address: str):
@@ -205,6 +123,97 @@ async def get_balance(ledger: BaseLedger, payment_address: str):
     return reduce(lambda acc, source: acc + source['amount'], sources, 0)
 
 
+BasePaymentAddressSchema = Schema.from_dict({
+    'address': fields.Str(required=True),
+    'method': fields.Str(required=True),
+    'balance': fields.Float(required=True),
+    'raw_repr': fields.Dict(required=False)
+})
+
+GetAddressList, GetAddressListSchema = generate_model_schema(
+    name='GetAddressList',
+    handler='acapy_plugin_toolbox.payments.GetAddressListHandler',
+    msg_type=GET_ADDRESS_LIST,
+    schema={
+        'method': fields.Str(required=False)
+    }
+)
+
+AddressList, AddressListSchema = generate_model_schema(
+    name='AddressList',
+    handler='acapy_plugin_toolbox.util.PassHandler',
+    msg_type=ADDRESS_LIST,
+    schema={
+        'addresses': fields.List(
+            fields.Nested(BasePaymentAddressSchema),
+            required=True
+        )
+    }
+)
+
+
+class GetAddressListHandler(BaseHandler):
+    """Handler for received address list requests."""
+
+    async def handle(self, context: RequestContext, responder: BaseResponder):
+        """Handle received address list requests."""
+        if context.message.method and context.message.method != SOV_METHOD:
+            report = ProblemReport(
+                explain_ltxt=(
+                    'Method "{}" is not supported.'
+                    .format(context.message.method)
+                ),
+                who_retries='none'
+            )
+            report.assign_thread_from(context.message)
+            await responder.send_reply(report)
+            return
+
+        ledger: BaseLedger = await context.inject(BaseLedger)
+        addresses = json.loads(
+            await payment.list_payment_addresses(ledger.wallet.handle)
+        )
+
+        async with ledger:
+            address_results = []
+            for address in addresses:
+                balance = 0
+                sources = []
+                async for source in get_sources(ledger, address):
+                    balance += source['amount']
+                    sources.append(source)
+                address_results.append({
+                    'address': address,
+                    'method': SOV_METHOD,
+                    'balance': sovatoms_to_token(balance),
+                    'raw_repr': {
+                        'sources': sources
+                    }
+                })
+
+        result = AddressList(addresses=address_results)
+        result.assign_thread_from(context.message)
+        await responder.send_reply(result)
+
+
+CreateAddress, CreateAddressSchema = generate_model_schema(
+    name='CreateAddress',
+    handler='acapy_plugin_toolbox.payments.CreateAddressHandler',
+    msg_type=CREATE_ADDRESS,
+    schema={
+        'seed': fields.Str(required=False),
+        'method': fields.Str(required=True)
+    }
+)
+
+Address, AddressSchema = generate_model_schema(
+    name='Address',
+    handler='acapy_plugin_toolbox.util.PassHandler',
+    msg_type=ADDRESS,
+    schema=BasePaymentAddressSchema
+)
+
+
 class CreateAddressHandler(BaseHandler):
     """Handler for received create address requests."""
 
@@ -233,36 +242,40 @@ class CreateAddressHandler(BaseHandler):
         )
 
         async with ledger:
-            balance = await get_balance(ledger, address_str)
+            balance = 0
+            sources = []
+            async for source in get_sources(ledger, address_str):
+                balance += source['amount']
+                sources.append(source)
 
         address = Address(
             address=address_str,
             method=SOV_METHOD,
-            balance=balance,
+            balance=sovatoms_to_token(balance),
         )
         address.assign_thread_from(context.message)
         await responder.send_reply(address)
         return
 
 
-async def prepare_extra(ledger: BaseLedger, extra: Dict):
-    """Prepare extras field for submission of payment request."""
-    extra_json = json.dumps(extra)
-    print(extra_json)
-    acceptance = await ledger.get_latest_txn_author_acceptance()
-    if acceptance:
-        extra_json = await (
-            indy_ledger.append_txn_author_agreement_acceptance_to_request(
-                extra_json,
-                acceptance["text"],
-                acceptance["version"],
-                acceptance["digest"],
-                acceptance["mechanism"],
-                acceptance["time"],
-            )
-        )
-    print(extra_json)
-    return extra_json
+GetFees, GetFeesSchema = generate_model_schema(
+    name='GetFees',
+    handler='acapy_plugin_toolbox.payments.GetFeesHandler',
+    msg_type=GET_FEES,
+    schema={
+        'method': fields.Str(required=True),
+        'amount': fields.Float(required=False)
+    }
+)
+
+Fees, FeesSchema = generate_model_schema(
+    name='Fees',
+    handler='acapy_plugin_toolbox.util.PassHandler',
+    msg_type=FEES,
+    schema={
+        'total': fields.Float(required=True)
+    }
+)
 
 
 async def fetch_transfer_auth(ledger: BaseLedger):
@@ -336,6 +349,58 @@ class GetFeesHandler(BaseHandler):
         await responder.send_reply(fees)
 
 
+Transfer, TransferSchema = generate_model_schema(
+    name='Transfer',
+    handler='acapy_plugin_toolbox.payments.TransferHandler',
+    msg_type=TRANSFER,
+    schema={
+        'method': fields.Str(required=True),
+        'from_address': fields.Str(required=True),
+        'to_address': fields.Str(required=True),
+        'amount': fields.Float(required=True)
+    }
+)
+
+BaseReceiptSchema = Schema.from_dict({
+    'receipt': fields.Str(required=True), # receipt that can be used for payment referencing and verification
+    'recipient': fields.Str(required=True), # payment address of recipient
+    'amount': fields.Float(required=True),
+    'extra': fields.Str(required=False) # optional data from payment transaction
+})
+
+TransferComplete, TransferCompleteSchema = generate_model_schema(
+    name='TransferComplete',
+    handler='acapy_plugin_toolbox.payments.TransferCompleteHandler',
+    msg_type=TRANSFER_COMPLETE,
+    schema={
+        'from_address': fields.Str(required=True),
+        'to_address': fields.Str(required=True),
+        'amount': fields.Float(required=True),
+        'raw_repr': fields.Dict(required=False)
+    }
+)
+
+
+async def prepare_extra(ledger: BaseLedger, extra: Dict):
+    """Prepare extras field for submission of payment request."""
+    extra_json = json.dumps(extra)
+    print(extra_json)
+    acceptance = await ledger.get_latest_txn_author_acceptance()
+    if acceptance:
+        extra_json = await (
+            indy_ledger.append_txn_author_agreement_acceptance_to_request(
+                extra_json,
+                acceptance["text"],
+                acceptance["version"],
+                acceptance["digest"],
+                acceptance["mechanism"],
+                acceptance["time"],
+            )
+        )
+    print(extra_json)
+    return extra_json
+
+
 class TransferHandler(BaseHandler):
     """Handler for payment"""
 
@@ -343,7 +408,6 @@ class TransferHandler(BaseHandler):
         """Handle payment"""
         # We need to use ledger._submit
         # pylint: disable=protected-access
-        wallet: BaseWallet = await context.inject(BaseWallet)
         ledger: BaseLedger = await context.inject(BaseLedger)
         if context.message.method != SOV_METHOD:
             report = ProblemReport(
@@ -372,20 +436,6 @@ class TransferHandler(BaseHandler):
                 await responder.send_reply(report)
                 return
 
-        # Sources look like:
-        #     [{
-        #       source: <str>, // source input
-        #       paymentAddress: <str>, //payment address for this source
-        #       amount: <int>, // amount
-        #       extra: <str>, // optional data from payment transaction
-        #     }]
-        # inputs: ["source_str1", "source_str2", ...]
-        # param outputs_json: The list of outputs as json array:
-        #    [{
-        #        recipient: <str>, // payment address of recipient
-        #        amount: <int>, // amount
-        #    }]
-
         accumulated = 0
         inputs = []
         async for source in get_sources(ledger, context.message.from_address):
@@ -397,18 +447,22 @@ class TransferHandler(BaseHandler):
         outputs = [
             {
                 'recipient': context.message.to_address,
-                'amount': int(context.message.amount)
+                'amount': tokens_to_sovatoms(context.message.amount)
             },
             {
                 'recipient': context.message.from_address,
-                'amount': accumulated - fee - int(context.message.amount)
+                'amount': (
+                    accumulated -
+                    fee -
+                    tokens_to_sovatoms(context.message.amount)
+                )
             }
         ]
 
         extras = await prepare_extra(ledger, {})
 
         payment_req, payment_method = await payment.build_payment_req(
-            wallet.handle,
+            ledger.wallet.handle,
             None,
             json.dumps(inputs),
             json.dumps(outputs),
