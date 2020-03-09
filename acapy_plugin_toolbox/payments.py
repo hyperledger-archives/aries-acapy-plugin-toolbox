@@ -56,13 +56,17 @@ def file_ext():
     return EXTENSION[your_platform] if (your_platform in EXTENSION) else '.so'
 
 
-async def setup(context: InjectionContext):
+async def setup(
+        context: InjectionContext,
+        protocol_registry: ProblemReport = None
+):
     """Load plugin."""
 
     # Load in libsovtoken
     cdll.LoadLibrary(LIBRARY).sovtoken_init()
 
-    protocol_registry = await context.inject(ProtocolRegistry)
+    if not protocol_registry:
+        protocol_registry = await context.inject(ProtocolRegistry)
     protocol_registry.register_message_types(
         MESSAGE_TYPES
     )
