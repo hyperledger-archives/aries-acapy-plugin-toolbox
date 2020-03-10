@@ -52,6 +52,7 @@ MESSAGE_TYPES = {
     GET_ADDRESS_LIST: 'acapy_plugin_toolbox.payments.GetAddressList',
     ADDRESS_LIST: 'acapy_plugin_toolbox.payments.AddressList',
     CREATE_ADDRESS: 'acapy_plugin_toolbox.payments.CreateAddress',
+    GET_FEES: 'acapy_plugin_toolbox.payments.GetFees',
     ADDRESS: 'acapy_plugin_toolbox.payments.Address',
     TRANSFER: 'acapy_plugin_toolbox.payments.Transfer',
     TRANSFER_COMPLETE: 'acapy_plugin_toolbox.payments.TransferComplete',
@@ -80,7 +81,7 @@ async def setup(
     )
 
 
-def sovatoms_to_token(sovatoms: int) -> float:
+def sovatoms_to_tokens(sovatoms: int) -> float:
     """Convert sovatoms to tokens."""
     return sovatoms / 100000000
 
@@ -185,7 +186,7 @@ class GetAddressListHandler(BaseHandler):
                 address_results.append({
                     'address': address,
                     'method': SOV_METHOD,
-                    'balance': sovatoms_to_token(balance),
+                    'balance': sovatoms_to_tokens(balance),
                     'raw_repr': {
                         'sources': sources
                     }
@@ -251,7 +252,7 @@ class CreateAddressHandler(BaseHandler):
         address = Address(
             address=address_str,
             method=SOV_METHOD,
-            balance=sovatoms_to_token(balance),
+            balance=sovatoms_to_tokens(balance),
         )
         address.assign_thread_from(context.message)
         await responder.send_reply(address)
@@ -344,7 +345,7 @@ class GetFeesHandler(BaseHandler):
         async with ledger:
             xfer_auth = await get_transfer_auth(ledger)
 
-        fees = Fees(total=xfer_auth['price'])
+        fees = Fees(total=sovatoms_to_tokens(xfer_auth['price']))
         fees.assign_thread_from(context.message)
         await responder.send_reply(fees)
 
@@ -376,6 +377,8 @@ TransferComplete, TransferCompleteSchema = generate_model_schema(
         'from_address': fields.Str(required=True),
         'to_address': fields.Str(required=True),
         'amount': fields.Float(required=True),
+        'method': fields.Str(required=False),
+        'fees': fields.Float(required=False),
         'raw_repr': fields.Dict(required=False)
     }
 )
@@ -384,7 +387,6 @@ TransferComplete, TransferCompleteSchema = generate_model_schema(
 async def prepare_extra(ledger: BaseLedger, extra: Dict):
     """Prepare extras field for submission of payment request."""
     extra_json = json.dumps(extra)
-    print(extra_json)
     acceptance = await ledger.get_latest_txn_author_acceptance()
     if acceptance:
         extra_json = await (
@@ -397,7 +399,6 @@ async def prepare_extra(ledger: BaseLedger, extra: Dict):
                 acceptance["time"],
             )
         )
-    print(extra_json)
     return extra_json
 
 
@@ -436,28 +437,28 @@ class TransferHandler(BaseHandler):
                 await responder.send_reply(report)
                 return
 
+        amount = tokens_to_sovatoms(context.message.amount)
         accumulated = 0
         inputs = []
         async for source in get_sources(ledger, context.message.from_address):
             inputs.append(source['source'])
             accumulated += source['amount']
-            if accumulated >= context.message.amount + fee:
+            if accumulated >= amount + fee:
                 break
 
-        outputs = [
-            {
-                'recipient': context.message.to_address,
-                'amount': tokens_to_sovatoms(context.message.amount)
-            },
-            {
-                'recipient': context.message.from_address,
-                'amount': (
-                    accumulated -
-                    fee -
-                    tokens_to_sovatoms(context.message.amount)
-                )
-            }
-        ]
+        outputs = list(filter(
+            lambda output: output['amount'] > 0,
+            [
+                {
+                    'recipient': context.message.to_address,
+                    'amount': amount
+                },
+                {
+                    'recipient': context.message.from_address,
+                    'amount': (accumulated - fee - amount)
+                }
+            ]
+        ))
 
         extras = await prepare_extra(ledger, {})
 
@@ -479,6 +480,8 @@ class TransferHandler(BaseHandler):
             from_address=context.message.from_address,
             to_address=context.message.to_address,
             amount=context.message.amount,
+            fees=sovatoms_to_tokens(fee),
+            method=SOV_METHOD,
             raw_repr=json.loads(receipts)
         )
         completed.assign_thread_from(context.message)
