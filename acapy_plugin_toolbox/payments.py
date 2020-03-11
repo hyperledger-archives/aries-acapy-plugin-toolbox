@@ -6,13 +6,16 @@ import json
 import os
 import platform
 from functools import reduce
-from typing import Dict
+from typing import Dict, Sequence, Tuple, Type
 
 from marshmallow import Schema, fields
 from indy import payment
 from indy import ledger as indy_ledger
+from indy.error import IndyError
 
 from aries_cloudagent.ledger.base import BaseLedger
+from aries_cloudagent.ledger.error import LedgerError
+from aries_cloudagent.ledger.indy import IndyErrorHandler
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.base_handler import (
@@ -81,6 +84,10 @@ async def setup(
     )
 
 
+class PaymentError(Exception):
+    """When an error occurs during payment"""
+
+
 def sovatoms_to_tokens(sovatoms: int) -> float:
     """Convert sovatoms to tokens."""
     return sovatoms / 100000000
@@ -95,26 +102,27 @@ async def get_sources(ledger: BaseLedger, payment_address: str):
     """Retrieve sources for this payment address and asynchrounsly generate."""
     # We need to use ledger._submit
     # pylint: disable=protected-access
-    next_seqno = -1
-    while True:
-        get_sources_json, method = \
-            await payment.build_get_payment_sources_with_from_request(
-                ledger.wallet.handle,
-                None,
-                payment_address,
-                next_seqno
-            )
+    with IndyErrorHandler('Failed to retrieve payment address sources'):
+        next_seqno = -1
+        while True:
+            get_sources_json, method = \
+                await payment.build_get_payment_sources_with_from_request(
+                    ledger.wallet.handle,
+                    None,
+                    payment_address,
+                    next_seqno
+                )
 
-        resp = await ledger._submit(get_sources_json, sign=False)
-        source_list, next_seqno = \
-            await payment.parse_get_payment_sources_with_from_response(
-                method, resp
-            )
-        sources = json.loads(source_list)
-        for source in sources:
-            yield source
-        if next_seqno == -1:
-            break
+            resp = await ledger._submit(get_sources_json, sign=False)
+            source_list, next_seqno = \
+                await payment.parse_get_payment_sources_with_from_response(
+                    method, resp
+                )
+            sources = json.loads(source_list)
+            for source in sources:
+                yield source
+            if next_seqno == -1:
+                break
 
 
 async def get_balance(ledger: BaseLedger, payment_address: str):
@@ -283,28 +291,28 @@ async def fetch_transfer_auth(ledger: BaseLedger):
     """Retrieve token transfer fee."""
     # We need to use ledger._submit
     # pylint: disable=protected-access
-    xfer_fee_resp = await ledger._submit(await payment.build_get_txn_fees_req(
-        ledger.wallet.handle,
-        None,
-        SOV_METHOD
-    ), sign=False)
-    parse_xfer_fee = await payment.parse_get_txn_fees_response(
-        SOV_METHOD, xfer_fee_resp
-    )
-
-    auth_rule_resp = await ledger._submit(
-        await indy_ledger.build_get_auth_rule_request(
-            None, "10001", "ADD", "*", None, "*"
-        ),
-        sign=False
-    )
-    xfer_auth_fee = json.loads(
-        await payment.get_request_info(
-            auth_rule_resp,
-            json.dumps({'sig_count': 1}),
-            parse_xfer_fee
+    with IndyErrorHandler('Failed to retrieve transfer auth'):
+        req = await payment.build_get_txn_fees_req(
+            ledger.wallet.handle,
+            None,
+            SOV_METHOD
         )
-    )
+        xfer_fee_resp = await ledger._submit(req, sign=False)
+        parse_xfer_fee = await payment.parse_get_txn_fees_response(
+            SOV_METHOD, xfer_fee_resp
+        )
+        req = await indy_ledger.build_get_auth_rule_request(
+            None, "10001", "ADD", "*", None, "*"
+        )
+        auth_rule_resp = await ledger._submit(req, sign=False)
+
+        xfer_auth_fee = json.loads(
+            await payment.get_request_info(
+                auth_rule_resp,
+                json.dumps({'sig_count': 1}),
+                parse_xfer_fee
+            )
+        )
     if ledger.cache:
         await ledger.cache.set(
             ['admin-payments::xfer_auth'],
@@ -363,10 +371,10 @@ Transfer, TransferSchema = generate_model_schema(
 )
 
 BaseReceiptSchema = Schema.from_dict({
-    'receipt': fields.Str(required=True), # receipt that can be used for payment referencing and verification
-    'recipient': fields.Str(required=True), # payment address of recipient
+    'receipt': fields.Str(required=True),
+    'recipient': fields.Str(required=True),
     'amount': fields.Float(required=True),
-    'extra': fields.Str(required=False) # optional data from payment transaction
+    'extra': fields.Str(required=False)
 })
 
 TransferComplete, TransferCompleteSchema = generate_model_schema(
@@ -384,83 +392,109 @@ TransferComplete, TransferCompleteSchema = generate_model_schema(
 )
 
 
-async def prepare_extra(ledger: BaseLedger, extra: Dict):
+async def prepare_extra(ledger: BaseLedger, extra: Dict = None):
     """Prepare extras field for submission of payment request."""
-    extra_json = json.dumps(extra)
+    extra_json = json.dumps(extra or {})
     acceptance = await ledger.get_latest_txn_author_acceptance()
     if acceptance:
-        extra_json = await (
-            indy_ledger.append_txn_author_agreement_acceptance_to_request(
-                extra_json,
-                acceptance["text"],
-                acceptance["version"],
-                acceptance["digest"],
-                acceptance["mechanism"],
-                acceptance["time"],
+        with IndyErrorHandler(
+                'Failed to append txn author acceptance to extras'
+        ):
+            extra_json = await (
+                indy_ledger.append_txn_author_agreement_acceptance_to_request(
+                    extra_json,
+                    acceptance["text"],
+                    acceptance["version"],
+                    acceptance["digest"],
+                    acceptance["mechanism"],
+                    acceptance["time"],
+                )
             )
-        )
     return extra_json
 
 
-class TransferHandler(BaseHandler):
-    """Handler for payment"""
+async def prepare_payment(
+        ledger: BaseLedger,
+        from_address: str,
+        to_address: str,
+        amount: int,
+        fee: int
+) -> Tuple[Sequence[str], Sequence[Dict]]:
+    """Prepare inputs and outputs for a payment.
+    """
+    if from_address == to_address:
+        raise PaymentError('Source and destination addresses are the same')
 
-    async def handle(self, context: RequestContext, responder: BaseResponder):
-        """Handle payment"""
-        # We need to use ledger._submit
-        # pylint: disable=protected-access
-        ledger: BaseLedger = await context.inject(BaseLedger)
-        if context.message.method != SOV_METHOD:
-            report = ProblemReport(
-                explain_ltxt=(
-                    'Method "{}" is not supported.'
-                    .format(context.message.method)
-                ),
-                who_retries='none'
+    if amount <= 0:
+        raise PaymentError('Payment amount must be greater than 0')
+
+    accumulated = 0
+    inputs = []
+    async for source in get_sources(ledger, from_address):
+        inputs.append(source['source'])
+        accumulated += source['amount']
+        if accumulated >= amount + fee:
+            break
+
+    if accumulated < (amount + fee):
+        raise PaymentError(
+            'Insufficient funds; {} available, {} required'.format(
+                accumulated, amount + fee
             )
-            report.assign_thread_from(context.message)
-            await responder.send_reply(report)
-            return
+        )
 
-        # get fees from ledger
-        async with ledger:
-            try:
-                fee = (await get_transfer_auth(ledger))['price']
-            except Exception as err:
-                report = ProblemReport(
-                    explain_ltxt=(
-                        'Failed to retrieve fees from the ledger'
-                        '; Error: {}'.format(err)
-                    ),
-                    who_retries='none'
-                )
-                await responder.send_reply(report)
-                return
+    outputs = list(filter(
+        lambda output: output['amount'] > 0,
+        [
+            {
+                'recipient': to_address,
+                'amount': amount
+            },
+            {
+                'recipient': from_address,
+                'amount': (accumulated - fee - amount)
+            }
+        ]
+    ))
+    return inputs, outputs
 
-        amount = tokens_to_sovatoms(context.message.amount)
-        accumulated = 0
-        inputs = []
-        async for source in get_sources(ledger, context.message.from_address):
-            inputs.append(source['source'])
-            accumulated += source['amount']
-            if accumulated >= amount + fee:
-                break
 
-        outputs = list(filter(
-            lambda output: output['amount'] > 0,
+
+async def make_payment(
+        ledger: BaseLedger,
+        inputs: Sequence[str],
+        outputs: Sequence[Dict],
+        extra: Dict = None
+) -> Dict:
+    """Make a payment.
+
+    Arguments:
+
+        inputs (Sequence[str]): Input sources for the payment i.e.
+            ["txo:sov:12345...", "txo:sov:abcde..."]
+            Use prepare_payment to construct this based off a desired amount to
+            transfer, source, and destintation address.
+
+        outputs (Sequence[Dict]): Output objects for the payment i.e.
             [
                 {
-                    'recipient': context.message.to_address,
-                    'amount': amount
+                    "recipient": "pay:sov:1234abcd...",
+                    "amount": 100000
                 },
                 {
-                    'recipient': context.message.from_address,
-                    'amount': (accumulated - fee - amount)
-                }
+                    "recipient": "pay:sov:abcd1234...",
+                    "amount": 200000
+                },
             ]
-        ))
+            Use prepare_payment to construct this based off a desired amount to
+            transfer, source, and destintation address.
 
-        extras = await prepare_extra(ledger, {})
+        extra (Dict): Optional extra information for the payment transaction.
+    """
+    # We need to use ledger._submit
+    # pylint: disable=protected-access
+    with IndyErrorHandler('Payment failed'):
+        extras = await prepare_extra(ledger, extra)
 
         payment_req, payment_method = await payment.build_payment_req(
             ledger.wallet.handle,
@@ -475,6 +509,59 @@ class TransferHandler(BaseHandler):
         receipts = await payment.parse_payment_response(
             payment_method, payment_resp
         )
+    return json.loads(receipts)
+
+
+class TransferHandler(BaseHandler):
+    """Handler for payment"""
+
+    async def handle(self, context: RequestContext, responder: BaseResponder):
+        """Handle payment"""
+        ledger: BaseLedger = await context.inject(BaseLedger)
+        if context.message.method != SOV_METHOD:
+            report = ProblemReport(
+                explain_ltxt=(
+                    'Method "{}" is not supported.'
+                    .format(context.message.method)
+                ),
+                who_retries='none'
+            )
+            report.assign_thread_from(context.message)
+            await responder.send_reply(report)
+            return
+
+        async with ledger:
+            try:
+                fee = (await get_transfer_auth(ledger))['price']
+                inputs, outputs = await prepare_payment(
+                    ledger,
+                    context.message.from_address,
+                    context.message.to_address,
+                    tokens_to_sovatoms(context.message.amount),
+                    fee
+                )
+                receipts = await make_payment(
+                    ledger, inputs, outputs
+                )
+            except (LedgerError, PaymentError) as err:
+                report = ProblemReport(
+                    explain_ltxt=(err),
+                    who_retries='none'
+                )
+                await responder.send_reply(report)
+                return
+            except IndyError as err:
+                # TODO: Remove when IndyErrorHandler bug is fixed.
+                # Likely to be next ACA-Py release.
+                message = 'Unexpected IndyError while making payment'
+                if hasattr(err, 'message'):
+                    message += ': {}'.format(err.message)
+                report = ProblemReport(
+                    explain_ltxt=(message),
+                    who_retries='none'
+                )
+                await responder.send_reply(report)
+                return
 
         completed = TransferComplete(
             from_address=context.message.from_address,
@@ -482,7 +569,7 @@ class TransferHandler(BaseHandler):
             amount=context.message.amount,
             fees=sovatoms_to_tokens(fee),
             method=SOV_METHOD,
-            raw_repr=json.loads(receipts)
+            raw_repr=receipts
         )
         completed.assign_thread_from(context.message)
         await responder.send_reply(completed)
