@@ -179,26 +179,46 @@ class GetAddressListHandler(BaseHandler):
             return
 
         ledger: BaseLedger = await context.inject(BaseLedger)
-        addresses = json.loads(
-            await payment.list_payment_addresses(ledger.wallet.handle)
-        )
+        try:
+            addresses = json.loads(
+                await payment.list_payment_addresses(ledger.wallet.handle)
+            )
 
-        async with ledger:
-            address_results = []
-            for address in addresses:
-                balance = 0
-                sources = []
-                async for source in get_sources(ledger, address):
-                    balance += source['amount']
-                    sources.append(source)
-                address_results.append({
-                    'address': address,
-                    'method': SOV_METHOD,
-                    'balance': sovatoms_to_tokens(balance),
-                    'raw_repr': {
-                        'sources': sources
-                    }
-                })
+            async with ledger:
+                address_results = []
+                for address in addresses:
+                    balance = 0
+                    sources = []
+                    async for source in get_sources(ledger, address):
+                        balance += source['amount']
+                        sources.append(source)
+                    address_results.append({
+                        'address': address,
+                        'method': SOV_METHOD,
+                        'balance': sovatoms_to_tokens(balance),
+                        'raw_repr': {
+                            'sources': sources
+                        }
+                    })
+        except (LedgerError, PaymentError) as err:
+            report = ProblemReport(
+                explain_ltxt=(err),
+                who_retries='none'
+            )
+            await responder.send_reply(report)
+            return
+        except IndyError as err:
+            # TODO: Remove when IndyErrorHandler bug is fixed.
+            # Likely to be next ACA-Py release.
+            message = 'Unexpected IndyError while retrieving addresses'
+            if hasattr(err, 'message'):
+                message += ': {}'.format(err.message)
+            report = ProblemReport(
+                explain_ltxt=(message),
+                who_retries='none'
+            )
+            await responder.send_reply(report)
+            return
 
         result = AddressList(addresses=address_results)
         result.assign_thread_from(context.message)
@@ -242,20 +262,64 @@ class CreateAddressHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
-        address_str = await payment.create_payment_address(
-            wallet.handle,
-            SOV_METHOD,
-            json.dumps({
-                'seed': context.message.seed
-            })
-        )
+        if context.message.seed and len(context.message.seed) < 32:
+            report = ProblemReport(
+                explain_ltxt=(
+                    'Seed must be 32 characters in length'
+                ),
+                who_retries='none'
+            )
+            report.assign_thread_from(context.message)
+            await responder.send_reply(report)
+            return
 
-        async with ledger:
-            balance = 0
-            sources = []
-            async for source in get_sources(ledger, address_str):
-                balance += source['amount']
-                sources.append(source)
+
+        try:
+            address_str = await payment.create_payment_address(
+                wallet.handle,
+                SOV_METHOD,
+                json.dumps({
+                    'seed': context.message.seed
+                })
+            )
+        except IndyError as err:
+            message = 'Failed to create payment address'
+            if hasattr(err, 'message'):
+                message += ': {}'.format(err.message)
+            report = ProblemReport(
+                explain_ltxt=(message),
+                who_retries='none'
+            )
+            await responder.send_reply(report)
+            return
+
+
+        try:
+            async with ledger:
+                balance = 0
+                sources = []
+                async for source in get_sources(ledger, address_str):
+                    balance += source['amount']
+                    sources.append(source)
+        except (LedgerError, PaymentError) as err:
+            report = ProblemReport(
+                explain_ltxt=(err),
+                who_retries='none'
+            )
+            await responder.send_reply(report)
+            return
+        except IndyError as err:
+            # TODO: Remove when IndyErrorHandler bug is fixed.
+            # Likely to be next ACA-Py release.
+            message = 'Unexpected IndyError while retrieving address balances'
+            if hasattr(err, 'message'):
+                message += ': {}'.format(err.message)
+            report = ProblemReport(
+                explain_ltxt=(message),
+                who_retries='none'
+            )
+            await responder.send_reply(report)
+            return
 
         address = Address(
             address=address_str,
@@ -350,8 +414,28 @@ class GetFeesHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
-        async with ledger:
-            xfer_auth = await get_transfer_auth(ledger)
+        try:
+            async with ledger:
+                xfer_auth = await get_transfer_auth(ledger)
+        except (LedgerError, PaymentError) as err:
+            report = ProblemReport(
+                explain_ltxt=(err),
+                who_retries='none'
+            )
+            await responder.send_reply(report)
+            return
+        except IndyError as err:
+            # TODO: Remove when IndyErrorHandler bug is fixed.
+            # Likely to be next ACA-Py release.
+            message = 'Unexpected IndyError while retrieving transfer fee'
+            if hasattr(err, 'message'):
+                message += ': {}'.format(err.message)
+            report = ProblemReport(
+                explain_ltxt=(message),
+                who_retries='none'
+            )
+            await responder.send_reply(report)
+            return
 
         fees = Fees(total=sovatoms_to_tokens(xfer_auth['price']))
         fees.assign_thread_from(context.message)
