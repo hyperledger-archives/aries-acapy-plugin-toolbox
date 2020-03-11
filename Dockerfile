@@ -49,6 +49,5 @@ COPY ngrok-wait.sh wait.sh
 RUN chmod +x ./wait.sh
 
 USER $user
-RUN pip3 install git+https://github.com/sovrin-foundation/aries-cloudagent-python.git@8ba3f23#egg=aries-cloudagent[indy]
 
 CMD ./wait.sh ./startup.sh
