@@ -60,6 +60,8 @@ Requirements:
 > ACA-Py. Once a release including the new plugin interface is published to
 > PyPI, these instructions will be updated accordingly.
 
+> TODO: Add instructions for payment plugin loading
+
 ### Setup Aries Cloud Agent - Python
 
 If you already have an existing installation of ACA-Py, you can skip these steps

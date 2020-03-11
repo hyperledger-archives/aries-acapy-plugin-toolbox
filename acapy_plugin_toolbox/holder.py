@@ -66,9 +66,13 @@ MESSAGE_TYPES = {
 }
 
 
-async def setup(context: InjectionContext):
+async def setup(
+        context: InjectionContext,
+        protocol_registry: ProblemReport = None
+):
     """Setup the holder plugin."""
-    protocol_registry = await context.inject(ProtocolRegistry)
+    if not protocol_registry:
+        protocol_registry = await context.inject(ProtocolRegistry)
     protocol_registry.register_message_types(
         MESSAGE_TYPES
     )
