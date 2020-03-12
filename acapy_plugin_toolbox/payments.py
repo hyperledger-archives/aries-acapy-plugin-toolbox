@@ -6,7 +6,7 @@ import json
 import os
 import platform
 from functools import reduce
-from typing import Dict, Sequence, Tuple, Type
+from typing import Dict, Sequence, Tuple
 
 from marshmallow import Schema, fields
 from indy import payment
@@ -23,7 +23,7 @@ from aries_cloudagent.messaging.base_handler import (
 )
 from aries_cloudagent.protocols.problem_report.message import ProblemReport
 from aries_cloudagent.wallet.base import BaseWallet
-from .util import generate_model_schema
+from .util import generate_model_schema, admin_only
 
 # TODO: Find a better way to find the library
 LIBRARY = os.environ.get('LIBSOVTOKEN', 'libsovtoken.so')
@@ -164,6 +164,7 @@ AddressList, AddressListSchema = generate_model_schema(
 class GetAddressListHandler(BaseHandler):
     """Handler for received address list requests."""
 
+    @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received address list requests."""
         if context.message.method and context.message.method != SOV_METHOD:
@@ -246,6 +247,7 @@ Address, AddressSchema = generate_model_schema(
 class CreateAddressHandler(BaseHandler):
     """Handler for received create address requests."""
 
+    @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received create address requests."""
         wallet: BaseWallet = await context.inject(BaseWallet)
@@ -399,6 +401,7 @@ async def get_transfer_auth(ledger: BaseLedger):
 class GetFeesHandler(BaseHandler):
     """Handler for get fees."""
 
+    @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle get fees."""
         ledger: BaseLedger = await context.inject(BaseLedger)
@@ -599,6 +602,7 @@ async def make_payment(
 class TransferHandler(BaseHandler):
     """Handler for payment"""
 
+    @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle payment"""
         ledger: BaseLedger = await context.inject(BaseLedger)
