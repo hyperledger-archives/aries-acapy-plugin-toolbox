@@ -3,29 +3,29 @@
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 
-from ..connections import MESSAGE_TYPES as CONNECTION_MESSAGES
-from ..credential_definitions import MESSAGE_TYPES as CRED_DEF_MESSAGES
-from ..schemas import MESSAGE_TYPES as SCHEMA_MESSAGES
-from ..dids import MESSAGE_TYPES as DID_MESSAGES
-from ..static_connections import MESSAGE_TYPES as STATIC_CONN_MESSAGES
-from ..holder import MESSAGE_TYPES as HOLDER_MESSAGES
-from ..issuer import MESSAGE_TYPES as ISSUER_MESSAGES
-from ..basicmessage import MESSAGE_TYPES as BASIC_MESSAGE_MESSAGES
-from ..taa import MESSAGE_TYPES as TAA_MESSAGES
-from ..invitations import MESSAGE_TYPES as INVITATION_MESSAGES
+from ..connections import setup as connection_setup
+from ..credential_definitions import setup as cred_def_setup
+from ..schemas import setup as schema_setup
+from ..dids import setup as did_setup
+from ..static_connections import setup as static_conn_setup
+from ..holder import setup as holder_setup
+from ..issuer import setup as issuer_setup
+from ..basicmessage import setup as basic_message_setup
+from ..taa import setup as taa_setup
+from ..payments import setup as payment_setup
+from ..invitations import setup as invitations_setup
 
 async def setup(context: InjectionContext):
     """Setup Toolbox Plugin."""
     protocol_registry = await context.inject(ProtocolRegistry)
-    protocol_registry.register_message_types(
-        CONNECTION_MESSAGES,
-        INVITATION_MESSAGES,
-        CRED_DEF_MESSAGES,
-        SCHEMA_MESSAGES,
-        DID_MESSAGES,
-        STATIC_CONN_MESSAGES,
-        HOLDER_MESSAGES,
-        ISSUER_MESSAGES,
-        BASIC_MESSAGE_MESSAGES,
-        TAA_MESSAGES
-    )
+    await connection_setup(context, protocol_registry)
+    await cred_def_setup(context, protocol_registry)
+    await schema_setup(context, protocol_registry)
+    await did_setup(context, protocol_registry)
+    await static_conn_setup(context, protocol_registry)
+    await holder_setup(context, protocol_registry)
+    await issuer_setup(context, protocol_registry)
+    await basic_message_setup(context, protocol_registry)
+    await taa_setup(context, protocol_registry)
+    await payment_setup(context, protocol_registry)
+    await invitations_setup(context, protocol_registry)

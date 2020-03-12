@@ -3,13 +3,12 @@
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 
-from ..credential_definitions import MESSAGE_TYPES as CRED_DEF_MESSAGES
-from ..holder import MESSAGE_TYPES as HOLDER_MESSAGES
+from ..credential_definitions import setup as cred_def_setup
+from ..holder import setup as holder_setup
+
 
 async def setup(context: InjectionContext):
     """Setup Toolbox Plugin."""
     protocol_registry = await context.inject(ProtocolRegistry)
-    protocol_registry.register_message_types(
-        CRED_DEF_MESSAGES,
-        HOLDER_MESSAGES,
-    )
+    await cred_def_setup(context, protocol_registry)
+    await holder_setup(context, protocol_registry)

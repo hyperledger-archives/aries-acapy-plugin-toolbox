@@ -3,15 +3,13 @@
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 
-from ..connections import MESSAGE_TYPES as CONNECTION_MESSAGES
-from ..static_connections import MESSAGE_TYPES as STATIC_CONN_MESSAGES
-from ..invitations import MESSAGE_TYPES as INVITATION_MESSAGES
+from ..connections import setup as connection_setup
+from ..static_connections import setup as static_conn_setup
+from ..invitations import setup as invitations_setup
 
 async def setup(context: InjectionContext):
     """Setup Toolbox Plugin."""
     protocol_registry = await context.inject(ProtocolRegistry)
-    protocol_registry.register_message_types(
-        CONNECTION_MESSAGES,
-        STATIC_CONN_MESSAGES,
-        INVITATION_MESSAGES,
-    )
+    await connection_setup(context, protocol_registry)
+    await static_conn_setup(context, protocol_registry)
+    await invitations_setup(context, protocol_registry)
