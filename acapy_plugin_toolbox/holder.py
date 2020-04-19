@@ -8,12 +8,16 @@ from marshmallow import fields
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
+from aries_cloudagent.holder.base import BaseHolder
+
 from aries_cloudagent.protocols.issue_credential.v1_0.routes import (
     V10CredentialExchangeListResultSchema,
     V10CredentialProposalRequestMandSchema
 )
+from aries_cloudagent.protocols.credentials.routes import (
+    CredentialListSchema
+)
 from aries_cloudagent.protocols.issue_credential.v1_0.models.credential_exchange import (
-    V10CredentialExchange,
     V10CredentialExchangeSchema
 )
 from aries_cloudagent.protocols.issue_credential.v1_0.messages.credential_proposal import (
@@ -236,10 +240,7 @@ CredList, CredListSchema = generate_model_schema(
     name='CredList',
     handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=CREDENTIALS_LIST,
-    schema=V10CredentialExchangeListResultSchema
-    # schema={
-    #     'results': fields.List(fields.Dict())
-    # }
+    schema=CredentialListSchema
 )
 
 
@@ -250,23 +251,23 @@ class CredGetListHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received get cred list request."""
 
-        # holder: BaseHolder = await context.inject(BaseHolder)
-        # credentials = await holder.get_credentials(0, 100, {})
-        # cred_list = CredList(results=credentials)
-        # await responder.send_reply(cred_list)
-
-        post_filter = dict(
-            filter(lambda item: item[1] is not None, {
-                # 'state': V10CredentialExchange.STATE_CREDENTIAL_RECEIVED,
-                'role': V10CredentialExchange.ROLE_HOLDER,
-                'connection_id': context.message.connection_id,
-                'credential_definition_id': context.message.credential_definition_id,
-                'schema_id': context.message.schema_id
-            }.items())
-        )
-        records = await V10CredentialExchange.query(context, {}, post_filter)
-        cred_list = CredList(results=records)
+        holder: BaseHolder = await context.inject(BaseHolder)
+        credentials = await holder.get_credentials(0, 100, {})
+        cred_list = CredList(results=credentials)
         await responder.send_reply(cred_list)
+
+        # post_filter = dict(
+        #     filter(lambda item: item[1] is not None, {
+        #         # 'state': V10CredentialExchange.STATE_CREDENTIAL_RECEIVED,
+        #         'role': V10CredentialExchange.ROLE_HOLDER,
+        #         'connection_id': context.message.connection_id,
+        #         'credential_definition_id': context.message.credential_definition_id,
+        #         'schema_id': context.message.schema_id
+        #     }.items())
+        # )
+        # records = await V10CredentialExchange.query(context, {}, post_filter)
+        # cred_list = CredList(results=records)
+        # await responder.send_reply(cred_list)
 
 
 PresGetList, PresGetListSchema = generate_model_schema(

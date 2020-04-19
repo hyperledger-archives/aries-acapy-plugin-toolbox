@@ -3,6 +3,11 @@
 # pylint: disable=invalid-name
 # pylint: disable=too-few-public-methods
 
+import os
+from aiohttp import (
+    ClientSession,
+)
+
 from typing import Dict
 from marshmallow import fields
 
@@ -237,6 +242,27 @@ class CreateDidHandler(BaseHandler):
         result = get_reply_did(did_info)
         result.assign_thread_from(context.message)
         await responder.send_reply(result)
+
+
+class RegisterDidHandler(BaseHandler):
+    """Handler for registering DIDs in ledger"""
+
+    @admin_only
+    async def handle(self, context: RequestContext, responder: BaseResponder):
+        GENESIS_URL = os.getenv("GENESIS_URL")
+        LEDGER_URL = GENESIS_URL.replace('/genesis', '')
+        did = context.message.did if context.message.did else None
+        verkey = context.message.verkey if context.message.verkey else None
+        alias = context.message.alias if context.message.alias else None
+
+        client_session: ClientSession = ClientSession()
+        data = {"did": did, "verkey": verkey, "alias": alias, "role": "ENDORSER"}
+        async with client_session.post(
+            LEDGER_URL + "/register", json=data
+        ) as resp:
+            if resp.status != 200:
+                raise Exception(f"Error registering DID, response code {resp.status}")
+        await client_session.close()
 
 
 class ListDidHandler(BaseHandler):
