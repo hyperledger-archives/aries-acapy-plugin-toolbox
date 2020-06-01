@@ -28,30 +28,32 @@ PROTOCOL_URI = (
 )
 
 # Message Types
-INVITATION_GET_LIST = "{}/get-list".format(PROTOCOL_URI)
-INVITATION_LIST = "{}/list".format(PROTOCOL_URI)
-CREATE_INVITATION = "{}/create".format(PROTOCOL_URI)
-INVITATION = "{}/invitation".format(PROTOCOL_URI)
+INVITATIONS_INVITATION_GET_LIST = "{}/get-list".format(PROTOCOL_URI)
+INVITATIONS_INVITATION_LIST = "{}/list".format(PROTOCOL_URI)
+INVITATIONS_CREATE_INVITATION = "{}/create".format(PROTOCOL_URI)
+INVITATIONS_INVITATION = "{}/invitation".format(PROTOCOL_URI)
 
 # Message Type string to Message Class map
 MESSAGE_TYPES = {
-    CREATE_INVITATION: "acapy_plugin_toolbox.invitations" ".CreateInvitation",
-    INVITATION_GET_LIST: "acapy_plugin_toolbox.invitations" ".InvitationGetList",
-    INVITATION: "acapy_plugin_toolbox.invitations" ".Invitation",
+    INVITATIONS_CREATE_INVITATION: "acapy_plugin_toolbox.invitations"
+    ".CreateInvitation",
+    INVITATIONS_INVITATION_GET_LIST: "acapy_plugin_toolbox.invitations"
+    ".InvitationGetList",
+    INVITATIONS_INVITATION: "acapy_plugin_toolbox.invitations" ".Invitation",
 }
 
 
 InvitationGetList, InvitationGetListSchema = generate_model_schema(
     name="InvitationGetList",
     handler="acapy_plugin_toolbox.invitations.InvitationGetListHandler",
-    msg_type=INVITATION_GET_LIST,
+    msg_type=INVITATIONS_INVITATION_GET_LIST,
     schema={},
 )
 
 CreateInvitation, CreateInvitationSchema = generate_model_schema(
     name="CreateInvitation",
     handler="acapy_plugin_toolbox.invitations.CreateInvitationHandler",
-    msg_type=CREATE_INVITATION,
+    msg_type=INVITATIONS_CREATE_INVITATION,
     schema={
         "label": fields.Str(required=False),
         "alias": fields.Str(required=False),  # default?
@@ -82,14 +84,14 @@ BaseInvitationSchema = Schema.from_dict(
 Invitation, InvitationSchema = generate_model_schema(
     name="Invitation",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=INVITATION,
+    msg_type=INVITATIONS_INVITATION,
     schema=BaseInvitationSchema,
 )
 
 InvitationList, InvitationListSchema = generate_model_schema(
     name="InvitationList",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=INVITATION_LIST,
+    msg_type=INVITATIONS_INVITATION_LIST,
     schema={"results": fields.List(fields.Nested(BaseInvitationSchema))},
 )
 

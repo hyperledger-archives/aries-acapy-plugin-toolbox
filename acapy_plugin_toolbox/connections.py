@@ -64,7 +64,7 @@ MESSAGE_TYPES = {
 ConnectionGetList, ConnectionGetListSchema = generate_model_schema(
     name="ConnectionGetList",
     handler="acapy_plugin_toolbox.connections.ConnectionGetListHandler",
-    msg_type=CONNECTION_GET_LIST,
+    msg_type=CONNECTIONS_CONNECTION_GET_LIST,
     schema={
         "initiator": fields.Str(
             validate=validate.OneOf(["self", "external"]), required=False,
@@ -93,7 +93,7 @@ ConnectionGetList, ConnectionGetListSchema = generate_model_schema(
 ConnectionList, ConnectionListSchema = generate_model_schema(
     name="ConnectionList",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=CONNECTION_LIST,
+    msg_type=CONNECTIONS_CONNECTION_LIST,
     schema={
         "results": fields.List(fields.Nested(ConnectionRecordSchema), required=True)
     },
@@ -102,21 +102,21 @@ ConnectionList, ConnectionListSchema = generate_model_schema(
 ConnectionGet, ConnectionGetSchema = generate_model_schema(
     name="ConnectionGet",
     handler="acapy_plugin_toolbox.connections.ConnectionGetHandler",
-    msg_type=CONNECTION_GET,
+    msg_type=CONNECTIONS_CONNECTION_GET,
     schema={"connection_id": fields.Str(required=True)},
 )
 
 Connection, ConnectionSchema = generate_model_schema(
     name="Connection",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=CONNECTION,
+    msg_type=CONNECTIONS_CONNECTION,
     schema={"connection": fields.Nested(ConnectionRecordSchema, required=True),},
 )
 
 InvitationGetList, InvitationGetListSchema = generate_model_schema(
     name="InvitationGetList",
     handler="acapy_plugin_toolbox.connections.InvitationGetListHandler",
-    msg_type=INVITATION_GET_LIST,
+    msg_type=CONNECTIONS_INVITATION_GET_LIST,
     schema={
         "initiator": fields.Str(
             validate=validate.OneOf(["self", "external"]), required=False,
@@ -131,7 +131,7 @@ InvitationGetList, InvitationGetListSchema = generate_model_schema(
 CreateInvitation, CreateInvitationSchema = generate_model_schema(
     name="CreateInvitation",
     handler="acapy_plugin_toolbox.connections.CreateInvitationHandler",
-    msg_type=CREATE_INVITATION,
+    msg_type=CONNECTIONS_CREATE_INVITATION,
     schema={
         "label": fields.Str(required=False),
         "role": fields.Str(required=False),
@@ -144,7 +144,7 @@ CreateInvitation, CreateInvitationSchema = generate_model_schema(
 Invitation, InvitationSchema = generate_model_schema(
     name="Invitation",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=INVITATION,
+    msg_type=CONNECTIONS_INVITATION,
     schema={
         "connection_id": fields.Str(required=True),
         "invitation": fields.Str(required=True),
@@ -155,7 +155,7 @@ Invitation, InvitationSchema = generate_model_schema(
 InvitationList, InvitationListSchema = generate_model_schema(
     name="InvitationList",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=INVITATION_LIST,
+    msg_type=CONNECTIONS_INVITATION_LIST,
     schema={
         "results": fields.List(
             fields.Dict(
@@ -193,7 +193,7 @@ class CreateInvitationHandler(BaseHandler):
 ReceiveInvitation, ReceiveInvitationSchema = generate_model_schema(
     name="ReceiveInvitation",
     handler="acapy_plugin_toolbox.connections.ReceiveInvitationHandler",
-    msg_type=RECEIVE_INVITATION,
+    msg_type=CONNECTIONS_RECEIVE_INVITATION,
     schema={
         "invitation": fields.Str(required=True),
         "accept": fields.Str(validate=validate.OneOf(["none", "auto"]), missing=False),
@@ -219,7 +219,7 @@ class ReceiveInvitationHandler(BaseHandler):
 AcceptInvitation, AcceptInvitationSchema = generate_model_schema(
     name="AcceptInvitation",
     handler="acapy_plugin_toolbox.connections.AcceptInvitationHandler",
-    msg_type=ACCEPT_INVITATION,
+    msg_type=CONNECTIONS_ACCEPT_INVITATION,
     schema={
         "connection_id": fields.Str(required=True),
         "my_endpoint": fields.Str(required=False),
@@ -230,7 +230,7 @@ AcceptInvitation, AcceptInvitationSchema = generate_model_schema(
 AcceptRequest, AcceptRequestSchema = generate_model_schema(
     name="AcceptRequest",
     handler="acapy_plugin_toolbox.connections.AcceptRequestHandler",
-    msg_type=ACCEPT_REQUEST,
+    msg_type=CONNECTIONS_ACCEPT_REQUEST,
     schema={
         "connection_id": fields.Str(required=True),
         "my_endpoint": fields.Str(required=False),
@@ -240,7 +240,7 @@ AcceptRequest, AcceptRequestSchema = generate_model_schema(
 EstablishInbound, EstablishInboundSchema = generate_model_schema(
     name="EstablishInbound",
     handler="acapy_plugin_toolbox.connections.EstablishInboundHandler",
-    msg_type=ESTABLISH_INBOUND,
+    msg_type=CONNECTIONS_ESTABLISH_INBOUND,
     schema={
         "connection_id": fields.Str(required=True),
         "ref_id": fields.Str(required=True),
@@ -250,21 +250,21 @@ EstablishInbound, EstablishInboundSchema = generate_model_schema(
 DeleteConnection, DeleteConnectionSchema = generate_model_schema(
     name="DeleteConnection",
     handler="acapy_plugin_toolbox.connections.DeleteConnectionHandler",
-    msg_type=DELETE_CONNECTION,
+    msg_type=CONNECTIONS_DELETE_CONNECTION,
     schema={"connection_id": fields.Str(required=True),},
 )
 
 ConnectionAck, ConnectionAckSchema = generate_model_schema(
     name="ConnectionAck",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=CONNECTION_ACK,
+    msg_type=CONNECTIONS_CONNECTION_ACK,
     schema={},
 )
 
 UpdateConnection, UpdateConnectionSchema = generate_model_schema(
     name="UpdateConnection",
     handler="acapy_plugin_toolbox.connections.UpdateConnectionHandler",
-    msg_type=UPDATE_CONNECTION,
+    msg_type=CONNECTIONS_UPDATE_CONNECTION,
     schema={
         "connection_id": fields.Str(required=True),
         "label": fields.Str(required=False),
