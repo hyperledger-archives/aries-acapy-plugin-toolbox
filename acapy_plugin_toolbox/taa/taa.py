@@ -1,5 +1,4 @@
 """Transaction Author Agreement acceptance plugin."""
-# pylint: disable=invalid-name, too-few-public-methods
 
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry

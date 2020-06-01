@@ -1,8 +1,5 @@
 """Define messages for connections admin protocol."""
 
-# pylint: disable=invalid-name
-# pylint: disable=too-few-public-methods
-
 from typing import Dict, Any
 
 from marshmallow import Schema, fields, validate
@@ -23,31 +20,15 @@ from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from aries_cloudagent.storage.error import StorageNotFoundError
 
 from .util import generate_model_schema, admin_only
-
-PROTOCOL_URI = (
-    "https://github.com/hyperledger/aries-toolbox/"
-    "tree/master/docs/admin-connections/0.1"
+from .message_types import (
+    GET_LIST,
+    LIST,
+    UPDATE,
+    CONNECTION,
+    DELETE,
+    DELETED,
+    RECEIVE_INVITATION,
 )
-
-# Message Types
-GET_LIST = "{}/get-list".format(PROTOCOL_URI)
-LIST = "{}/list".format(PROTOCOL_URI)
-UPDATE = "{}/update".format(PROTOCOL_URI)
-CONNECTION = "{}/connection".format(PROTOCOL_URI)
-DELETE = "{}/delete".format(PROTOCOL_URI)
-DELETED = "{}/deleted".format(PROTOCOL_URI)
-RECEIVE_INVITATION = "{}/receive-invitation".format(PROTOCOL_URI)
-
-# Message Type string to Message Class map
-MESSAGE_TYPES = {
-    GET_LIST: "acapy_plugin_toolbox.connections_new.GetList",
-    LIST: "acapy_plugin_toolbox.connections_new.List",
-    UPDATE: "acapy_plugin_toolbox.connections_new.Update",
-    CONNECTION: "acapy_plugin_toolbox.connections_new.Connnection",
-    DELETE: "acapy_plugin_toolbox.connections_new.Delete",
-    DELETED: "acapy_plugin_toolbox.connections_new.Deleted",
-    RECEIVE_INVITATION: "acapy_plugin_toolbox.connections_new." "ReceiveInvitation",
-}
 
 BaseConnectionSchema = Schema.from_dict(
     {
