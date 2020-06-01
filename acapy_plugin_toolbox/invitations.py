@@ -22,16 +22,16 @@ from aries_cloudagent.messaging.valid import INDY_ISO8601_DATETIME
 
 from .util import generate_model_schema, admin_only
 
-PROTOCOL = (
+PROTOCOL_URI = (
     "https://github.com/hyperledger/aries-toolbox/"
     "tree/master/docs/admin-invitations/0.1"
 )
 
 # Message Types
-INVITATION_GET_LIST = "{}/get-list".format(PROTOCOL)
-INVITATION_LIST = "{}/list".format(PROTOCOL)
-CREATE_INVITATION = "{}/create".format(PROTOCOL)
-INVITATION = "{}/invitation".format(PROTOCOL)
+INVITATION_GET_LIST = "{}/get-list".format(PROTOCOL_URI)
+INVITATION_LIST = "{}/list".format(PROTOCOL_URI)
+CREATE_INVITATION = "{}/create".format(PROTOCOL_URI)
+INVITATION = "{}/invitation".format(PROTOCOL_URI)
 
 # Message Type string to Message Class map
 MESSAGE_TYPES = {
@@ -39,14 +39,6 @@ MESSAGE_TYPES = {
     INVITATION_GET_LIST: "acapy_plugin_toolbox.invitations" ".InvitationGetList",
     INVITATION: "acapy_plugin_toolbox.invitations" ".Invitation",
 }
-
-
-async def setup(context: InjectionContext, protocol_registry: ProtocolRegistry = None):
-    """Setup the connections plugin."""
-    if not protocol_registry:
-        protocol_registry = await context.inject(ProtocolRegistry)
-
-    protocol_registry.register_message_types(MESSAGE_TYPES)
 
 
 InvitationGetList, InvitationGetListSchema = generate_model_schema(

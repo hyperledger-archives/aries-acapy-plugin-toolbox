@@ -1,7 +1,5 @@
 """Utility functions."""
 
-# pylint: disable=too-few-public-methods
-
 import sys
 import logging
 import functools

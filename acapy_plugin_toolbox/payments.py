@@ -1,5 +1,4 @@
 """Payment plugin."""
-# pylint: disable=invalid-name
 
 from ctypes import cdll
 import json

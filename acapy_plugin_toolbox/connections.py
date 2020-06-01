@@ -25,24 +25,24 @@ from aries_cloudagent.storage.error import StorageNotFoundError
 
 from .util import generate_model_schema, admin_only
 
-PROTOCOL = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1"
+PROTOCOL_URI = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1"
 
 # Message Types
-CONNECTION_GET_LIST = "{}/connection-get-list".format(PROTOCOL)
-CONNECTION_LIST = "{}/connection-list".format(PROTOCOL)
-CONNECTION_GET = "{}/connection-get".format(PROTOCOL)
-CONNECTION = "{}/connection".format(PROTOCOL)
-INVITATION_GET_LIST = "{}/invitation-get-list".format(PROTOCOL)
-INVITATION_LIST = "{}/invitation-list".format(PROTOCOL)
-CREATE_INVITATION = "{}/create-invitation".format(PROTOCOL)
-INVITATION = "{}/invitation".format(PROTOCOL)
-RECEIVE_INVITATION = "{}/receive-invitation".format(PROTOCOL)
-ACCEPT_INVITATION = "{}/accept-invitation".format(PROTOCOL)
-ACCEPT_REQUEST = "{}/accept-request".format(PROTOCOL)
-ESTABLISH_INBOUND = "{}/establish-inbound".format(PROTOCOL)
-DELETE_CONNECTION = "{}/delete".format(PROTOCOL)
-UPDATE_CONNECTION = "{}/update".format(PROTOCOL)
-CONNECTION_ACK = "{}/ack".format(PROTOCOL)
+CONNECTION_GET_LIST = "{}/connection-get-list".format(PROTOCOL_URI)
+CONNECTION_LIST = "{}/connection-list".format(PROTOCOL_URI)
+CONNECTION_GET = "{}/connection-get".format(PROTOCOL_URI)
+CONNECTION = "{}/connection".format(PROTOCOL_URI)
+INVITATION_GET_LIST = "{}/invitation-get-list".format(PROTOCOL_URI)
+INVITATION_LIST = "{}/invitation-list".format(PROTOCOL_URI)
+CREATE_INVITATION = "{}/create-invitation".format(PROTOCOL_URI)
+INVITATION = "{}/invitation".format(PROTOCOL_URI)
+RECEIVE_INVITATION = "{}/receive-invitation".format(PROTOCOL_URI)
+ACCEPT_INVITATION = "{}/accept-invitation".format(PROTOCOL_URI)
+ACCEPT_REQUEST = "{}/accept-request".format(PROTOCOL_URI)
+ESTABLISH_INBOUND = "{}/establish-inbound".format(PROTOCOL_URI)
+DELETE_CONNECTION = "{}/delete".format(PROTOCOL_URI)
+UPDATE_CONNECTION = "{}/update".format(PROTOCOL_URI)
+CONNECTION_ACK = "{}/ack".format(PROTOCOL_URI)
 
 # Message Type string to Message Class map
 MESSAGE_TYPES = {
@@ -61,13 +61,6 @@ MESSAGE_TYPES = {
     CONNECTION_ACK: "acapy_plugin_toolbox.connections" ".ConnectionAck",
     UPDATE_CONNECTION: "acapy_plugin_toolbox.connections" ".UpdateConnection",
 }
-
-
-async def setup(context: InjectionContext, protocol_registry: ProblemReport = None):
-    """Setup the connections plugin."""
-    if not protocol_registry:
-        protocol_registry = await context.inject(ProtocolRegistry)
-    protocol_registry.register_message_types(MESSAGE_TYPES)
 
 
 ConnectionGetList, ConnectionGetListSchema = generate_model_schema(

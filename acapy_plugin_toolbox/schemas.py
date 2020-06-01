@@ -1,8 +1,4 @@
 """Define messages for schemas admin protocols."""
-
-# pylint: disable=invalid-name
-# pylint: disable=too-few-public-methods
-
 from asyncio import shield
 
 from marshmallow import fields
@@ -21,14 +17,14 @@ from aries_cloudagent.config.injection_context import InjectionContext
 
 from .util import generate_model_schema, admin_only
 
-PROTOCOL = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1"
+PROTOCOL_URI = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1"
 
-SEND_SCHEMA = "{}/send-schema".format(PROTOCOL)
-SCHEMA_ID = "{}/schema-id".format(PROTOCOL)
-SCHEMA_GET = "{}/schema-get".format(PROTOCOL)
-SCHEMA = "{}/schema".format(PROTOCOL)
-SCHEMA_GET_LIST = "{}/schema-get-list".format(PROTOCOL)
-SCHEMA_LIST = "{}/schema-list".format(PROTOCOL)
+SEND_SCHEMA = "{}/send-schema".format(PROTOCOL_URI)
+SCHEMA_ID = "{}/schema-id".format(PROTOCOL_URI)
+SCHEMA_GET = "{}/schema-get".format(PROTOCOL_URI)
+SCHEMA = "{}/schema".format(PROTOCOL_URI)
+SCHEMA_GET_LIST = "{}/schema-get-list".format(PROTOCOL_URI)
+SCHEMA_LIST = "{}/schema-list".format(PROTOCOL_URI)
 
 MESSAGE_TYPES = {
     SEND_SCHEMA: "acapy_plugin_toolbox.schemas" ".SendSchema",

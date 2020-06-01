@@ -52,16 +52,16 @@ from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 
 from .util import generate_model_schema, admin_only
 
-PROTOCOL = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1"
+PROTOCOL_URI = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1"
 
-SEND_CRED_PROPOSAL = "{}/send-credential-proposal".format(PROTOCOL)
-CRED_EXCHANGE = "{}/credential-exchange".format(PROTOCOL)
-SEND_PRES_PROPOSAL = "{}/send-presentation-proposal".format(PROTOCOL)
-PRES_EXCHANGE = "{}/presentation-exchange".format(PROTOCOL)
-CREDENTIALS_GET_LIST = "{}/credentials-get-list".format(PROTOCOL)
-CREDENTIALS_LIST = "{}/credentials-list".format(PROTOCOL)
-PRESENTATIONS_GET_LIST = "{}/presentations-get-list".format(PROTOCOL)
-PRESENTATIONS_LIST = "{}/presentations-list".format(PROTOCOL)
+SEND_CRED_PROPOSAL = "{}/send-credential-proposal".format(PROTOCOL_URI)
+CRED_EXCHANGE = "{}/credential-exchange".format(PROTOCOL_URI)
+SEND_PRES_PROPOSAL = "{}/send-presentation-proposal".format(PROTOCOL_URI)
+PRES_EXCHANGE = "{}/presentation-exchange".format(PROTOCOL_URI)
+CREDENTIALS_GET_LIST = "{}/credentials-get-list".format(PROTOCOL_URI)
+CREDENTIALS_LIST = "{}/credentials-list".format(PROTOCOL_URI)
+PRESENTATIONS_GET_LIST = "{}/presentations-get-list".format(PROTOCOL_URI)
+PRESENTATIONS_LIST = "{}/presentations-list".format(PROTOCOL_URI)
 
 MESSAGE_TYPES = {
     SEND_CRED_PROPOSAL: "acapy_plugin_toolbox.holder.SendCredProposal",
@@ -71,13 +71,6 @@ MESSAGE_TYPES = {
     PRESENTATIONS_GET_LIST: "acapy_plugin_toolbox.holder.PresGetList",
     PRESENTATIONS_LIST: "acapy_plugin_toolbox.holder.PresList",
 }
-
-
-async def setup(context: InjectionContext, protocol_registry: ProblemReport = None):
-    """Setup the holder plugin."""
-    if not protocol_registry:
-        protocol_registry = await context.inject(ProtocolRegistry)
-    protocol_registry.register_message_types(MESSAGE_TYPES)
 
 
 SendCredProposal, SendCredProposalSchema = generate_model_schema(

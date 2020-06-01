@@ -24,14 +24,14 @@ from aries_cloudagent.messaging.util import canon
 from .util import generate_model_schema, admin_only
 from .schemas import SchemaRecord
 
-PROTOCOL = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1"
+PROTOCOL_URI = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1"
 
-SEND_CRED_DEF = "{}/send-credential-definition".format(PROTOCOL)
-CRED_DEF_ID = "{}/credential-definition-id".format(PROTOCOL)
-CRED_DEF_GET = "{}/credential-definition-get".format(PROTOCOL)
-CRED_DEF = "{}/credential-definition".format(PROTOCOL)
-CRED_DEF_GET_LIST = "{}/credential-definition-get-list".format(PROTOCOL)
-CRED_DEF_LIST = "{}/credential-definition-list".format(PROTOCOL)
+SEND_CRED_DEF = "{}/send-credential-definition".format(PROTOCOL_URI)
+CRED_DEF_ID = "{}/credential-definition-id".format(PROTOCOL_URI)
+CRED_DEF_GET = "{}/credential-definition-get".format(PROTOCOL_URI)
+CRED_DEF = "{}/credential-definition".format(PROTOCOL_URI)
+CRED_DEF_GET_LIST = "{}/credential-definition-get-list".format(PROTOCOL_URI)
+CRED_DEF_LIST = "{}/credential-definition-list".format(PROTOCOL_URI)
 
 MESSAGE_TYPES = {
     SEND_CRED_DEF: "acapy_plugin_toolbox.credential_definitions.SendCredDef",
@@ -41,13 +41,6 @@ MESSAGE_TYPES = {
     CRED_DEF_GET_LIST: "acapy_plugin_toolbox.credential_definitions.CredDefGetList",
     CRED_DEF_LIST: "acapy_plugin_toolbox.credential_definitions.CredDefList",
 }
-
-
-async def setup(context: InjectionContext, protocol_registry: ProblemReport = None):
-    """Setup the cred def plugin."""
-    if not protocol_registry:
-        protocol_registry = await context.inject(ProtocolRegistry)
-    protocol_registry.register_message_types(MESSAGE_TYPES)
 
 
 class CredDefRecord(BaseRecord):

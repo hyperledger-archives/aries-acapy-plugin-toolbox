@@ -24,19 +24,19 @@ from aries_cloudagent.storage.error import StorageNotFoundError
 
 from .util import generate_model_schema, admin_only
 
-PROTOCOL = (
+PROTOCOL_URI = (
     "https://github.com/hyperledger/aries-toolbox/"
     "tree/master/docs/admin-connections/0.1"
 )
 
 # Message Types
-GET_LIST = "{}/get-list".format(PROTOCOL)
-LIST = "{}/list".format(PROTOCOL)
-UPDATE = "{}/update".format(PROTOCOL)
-CONNECTION = "{}/connection".format(PROTOCOL)
-DELETE = "{}/delete".format(PROTOCOL)
-DELETED = "{}/deleted".format(PROTOCOL)
-RECEIVE_INVITATION = "{}/receive-invitation".format(PROTOCOL)
+GET_LIST = "{}/get-list".format(PROTOCOL_URI)
+LIST = "{}/list".format(PROTOCOL_URI)
+UPDATE = "{}/update".format(PROTOCOL_URI)
+CONNECTION = "{}/connection".format(PROTOCOL_URI)
+DELETE = "{}/delete".format(PROTOCOL_URI)
+DELETED = "{}/deleted".format(PROTOCOL_URI)
+RECEIVE_INVITATION = "{}/receive-invitation".format(PROTOCOL_URI)
 
 # Message Type string to Message Class map
 MESSAGE_TYPES = {
@@ -48,15 +48,6 @@ MESSAGE_TYPES = {
     DELETED: "acapy_plugin_toolbox.connections_new.Deleted",
     RECEIVE_INVITATION: "acapy_plugin_toolbox.connections_new." "ReceiveInvitation",
 }
-
-
-async def setup(context: InjectionContext, protocol_registry: ProtocolRegistry = None):
-    """Setup the connections plugin."""
-    if not protocol_registry:
-        protocol_registry = await context.inject(ProtocolRegistry)
-
-    protocol_registry.register_message_types(MESSAGE_TYPES)
-
 
 BaseConnectionSchema = Schema.from_dict(
     {

@@ -26,13 +26,13 @@ from aries_cloudagent.storage.error import StorageNotFoundError
 
 from .util import generate_model_schema, admin_only
 
-PROTOCOL = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/0.1"
+PROTOCOL_URI = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/0.1"
 
 # Message Types
-CREATE_STATIC_CONNECTION = "{}/create-static-connection".format(PROTOCOL)
-STATIC_CONNECTION_INFO = "{}/static-connection-info".format(PROTOCOL)
-STATIC_CONNECTION_GET_LIST = "{}/static-connection-get-list".format(PROTOCOL)
-STATIC_CONNECTION_LIST = "{}/static-connection-list".format(PROTOCOL)
+CREATE_STATIC_CONNECTION = "{}/create-static-connection".format(PROTOCOL_URI)
+STATIC_CONNECTION_INFO = "{}/static-connection-info".format(PROTOCOL_URI)
+STATIC_CONNECTION_GET_LIST = "{}/static-connection-get-list".format(PROTOCOL_URI)
+STATIC_CONNECTION_LIST = "{}/static-connection-list".format(PROTOCOL_URI)
 
 # Message Type to Message Class Map
 MESSAGE_TYPES = {
@@ -45,13 +45,6 @@ MESSAGE_TYPES = {
     STATIC_CONNECTION_LIST: "acapy_plugin_toolbox.static_connections"
     ".StaticConnectionList",
 }
-
-
-async def setup(context: InjectionContext, protocol_registry: ProblemReport = None):
-    """Setup the basicmessage plugin."""
-    if not protocol_registry:
-        protocol_registry = await context.inject(ProtocolRegistry)
-    protocol_registry.register_message_types(MESSAGE_TYPES)
 
 
 # Models and Schemas

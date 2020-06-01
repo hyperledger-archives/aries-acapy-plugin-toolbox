@@ -22,18 +22,18 @@ from aries_cloudagent.wallet.error import WalletNotFoundError
 
 from .util import generate_model_schema, admin_only
 
-PROTOCOL = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1"
+PROTOCOL_URI = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1"
 
-GET_LIST_DIDS = "{}/get-list-dids".format(PROTOCOL)
-LIST_DIDS = "{}/list-dids".format(PROTOCOL)
-CREATE_DID = "{}/create-did".format(PROTOCOL)
-SET_DID_METADATA = "{}/set-did-metadata".format(PROTOCOL)
-DID = "{}/did".format(PROTOCOL)
-GET_PUBLIC_DID = "{}/get-public-did".format(PROTOCOL)
-SET_PUBLIC_DID = "{}/set-public-did".format(PROTOCOL)
-REGISTER_DID = "{}/register-did".format(PROTOCOL)
-GET_DID_VERKEY = "{}/get-did-verky".format(PROTOCOL)
-GET_DID_ENDPOINT = "{}/get-did-endpoint".format(PROTOCOL)
+GET_LIST_DIDS = "{}/get-list-dids".format(PROTOCOL_URI)
+LIST_DIDS = "{}/list-dids".format(PROTOCOL_URI)
+CREATE_DID = "{}/create-did".format(PROTOCOL_URI)
+SET_DID_METADATA = "{}/set-did-metadata".format(PROTOCOL_URI)
+DID = "{}/did".format(PROTOCOL_URI)
+GET_PUBLIC_DID = "{}/get-public-did".format(PROTOCOL_URI)
+SET_PUBLIC_DID = "{}/set-public-did".format(PROTOCOL_URI)
+REGISTER_DID = "{}/register-did".format(PROTOCOL_URI)
+GET_DID_VERKEY = "{}/get-did-verky".format(PROTOCOL_URI)
+GET_DID_ENDPOINT = "{}/get-did-endpoint".format(PROTOCOL_URI)
 
 MESSAGE_TYPES = {
     GET_LIST_DIDS: "acapy_plugin_toolbox.dids" ".GetListDids",
@@ -47,13 +47,6 @@ MESSAGE_TYPES = {
     GET_DID_VERKEY: "acapy_plugin_toolbox.dids" ".GetDidVerkey",
     GET_DID_ENDPOINT: "acapy_plugin_toolbox.dids" ".GetDidEndpoint",
 }
-
-
-async def setup(context: InjectionContext, protocol_registry: ProtocolRegistry = None):
-    """Setup the dids plugin."""
-    if not protocol_registry:
-        protocol_registry = await context.inject(ProtocolRegistry)
-    protocol_registry.register_message_types(MESSAGE_TYPES)
 
 
 class DidRecord(BaseRecord):

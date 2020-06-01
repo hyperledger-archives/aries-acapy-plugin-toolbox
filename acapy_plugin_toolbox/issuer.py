@@ -48,16 +48,16 @@ from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 
 from .util import generate_model_schema, admin_only
 
-PROTOCOL = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1"
+PROTOCOL_URI = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1"
 
-SEND_CREDENTIAL = "{}/send-credential".format(PROTOCOL)
-REQUEST_PRESENTATION = "{}/request-presentation".format(PROTOCOL)
-ISSUER_CRED_EXCHANGE = "{}/credential-exchange".format(PROTOCOL)
-ISSUER_PRES_EXCHANGE = "{}/presentation-exchange".format(PROTOCOL)
-CREDENTIALS_GET_LIST = "{}/credentials-get-list".format(PROTOCOL)
-CREDENTIALS_LIST = "{}/credentials-list".format(PROTOCOL)
-PRESENTATIONS_GET_LIST = "{}/presentations-get-list".format(PROTOCOL)
-PRESENTATIONS_LIST = "{}/presentations-list".format(PROTOCOL)
+SEND_CREDENTIAL = "{}/send-credential".format(PROTOCOL_URI)
+REQUEST_PRESENTATION = "{}/request-presentation".format(PROTOCOL_URI)
+ISSUER_CRED_EXCHANGE = "{}/credential-exchange".format(PROTOCOL_URI)
+ISSUER_PRES_EXCHANGE = "{}/presentation-exchange".format(PROTOCOL_URI)
+CREDENTIALS_GET_LIST = "{}/credentials-get-list".format(PROTOCOL_URI)
+CREDENTIALS_LIST = "{}/credentials-list".format(PROTOCOL_URI)
+PRESENTATIONS_GET_LIST = "{}/presentations-get-list".format(PROTOCOL_URI)
+PRESENTATIONS_LIST = "{}/presentations-list".format(PROTOCOL_URI)
 
 MESSAGE_TYPES = {
     SEND_CREDENTIAL: "acapy_plugin_toolbox.issuer.SendCred",
