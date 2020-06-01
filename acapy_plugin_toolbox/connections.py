@@ -27,39 +27,37 @@ from .util import generate_model_schema, admin_only
 
 PROTOCOL_URI = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-connections/0.1"
 
-# Message Types
-CONNECTION_GET_LIST = "{}/connection-get-list".format(PROTOCOL_URI)
-CONNECTION_LIST = "{}/connection-list".format(PROTOCOL_URI)
-CONNECTION_GET = "{}/connection-get".format(PROTOCOL_URI)
-CONNECTION = "{}/connection".format(PROTOCOL_URI)
-INVITATION_GET_LIST = "{}/invitation-get-list".format(PROTOCOL_URI)
-INVITATION_LIST = "{}/invitation-list".format(PROTOCOL_URI)
-CREATE_INVITATION = "{}/create-invitation".format(PROTOCOL_URI)
-INVITATION = "{}/invitation".format(PROTOCOL_URI)
-RECEIVE_INVITATION = "{}/receive-invitation".format(PROTOCOL_URI)
-ACCEPT_INVITATION = "{}/accept-invitation".format(PROTOCOL_URI)
-ACCEPT_REQUEST = "{}/accept-request".format(PROTOCOL_URI)
-ESTABLISH_INBOUND = "{}/establish-inbound".format(PROTOCOL_URI)
-DELETE_CONNECTION = "{}/delete".format(PROTOCOL_URI)
-UPDATE_CONNECTION = "{}/update".format(PROTOCOL_URI)
-CONNECTION_ACK = "{}/ack".format(PROTOCOL_URI)
+CONNECTIONS_CONNECTION_GET_LIST = "{}/connection-get-list".format(PROTOCOL_URI)
+CONNECTIONS_CONNECTION_LIST = "{}/connection-list".format(PROTOCOL_URI)
+CONNECTIONS_CONNECTION_GET = "{}/connection-get".format(PROTOCOL_URI)
+CONNECTIONS_CONNECTION = "{}/connection".format(PROTOCOL_URI)
+CONNECTIONS_INVITATION_GET_LIST = "{}/invitation-get-list".format(PROTOCOL_URI)
+CONNECTIONS_INVITATION_LIST = "{}/invitation-list".format(PROTOCOL_URI)
+CONNECTIONS_CREATE_INVITATION = "{}/create-invitation".format(PROTOCOL_URI)
+CONNECTIONS_INVITATION = "{}/invitation".format(PROTOCOL_URI)
+CONNECTIONS_RECEIVE_INVITATION = "{}/receive-invitation".format(PROTOCOL_URI)
+CONNECTIONS_ACCEPT_INVITATION = "{}/accept-invitation".format(PROTOCOL_URI)
+CONNECTIONS_ACCEPT_REQUEST = "{}/accept-request".format(PROTOCOL_URI)
+CONNECTIONS_ESTABLISH_INBOUND = "{}/establish-inbound".format(PROTOCOL_URI)
+CONNECTIONS_DELETE_CONNECTION = "{}/delete".format(PROTOCOL_URI)
+CONNECTIONS_UPDATE_CONNECTION = "{}/update".format(PROTOCOL_URI)
+CONNECTIONS_CONNECTION_ACK = "{}/ack".format(PROTOCOL_URI)
 
-# Message Type string to Message Class map
 MESSAGE_TYPES = {
-    CONNECTION_GET_LIST: "acapy_plugin_toolbox.connections" ".ConnectionGetList",
-    CONNECTION_LIST: "acapy_plugin_toolbox.connections" ".ConnectionList",
-    CONNECTION_GET: "acapy_plugin_toolbox.connections" ".ConnectionGet",
-    CONNECTION: "acapy_plugin_toolbox.connections" ".Connnection",
-    CREATE_INVITATION: "acapy_plugin_toolbox.connections" ".CreateInvitation",
-    INVITATION_GET_LIST: "acapy_plugin_toolbox.connections" ".InvitationGetList",
-    INVITATION: "acapy_plugin_toolbox.connections" ".Invitation",
-    RECEIVE_INVITATION: "acapy_plugin_toolbox.connections" ".ReceiveInvitation",
-    ACCEPT_INVITATION: "acapy_plugin_toolbox.connections" ".AcceptInvitation",
-    ACCEPT_REQUEST: "acapy_plugin_toolbox.connections" ".AcceptRequest",
-    ESTABLISH_INBOUND: "acapy_plugin_toolbox.connections" ".EstablishInbound",
-    DELETE_CONNECTION: "acapy_plugin_toolbox.connections" ".DeleteConnection",
-    CONNECTION_ACK: "acapy_plugin_toolbox.connections" ".ConnectionAck",
-    UPDATE_CONNECTION: "acapy_plugin_toolbox.connections" ".UpdateConnection",
+    CONNECTIONS_CONNECTION_GET_LIST: "acapy_plugin_toolbox.connections.ConnectionGetList",
+    CONNECTIONS_CONNECTION_LIST: "acapy_plugin_toolbox.connections.ConnectionList",
+    CONNECTIONS_CONNECTION_GET: "acapy_plugin_toolbox.connections.ConnectionGet",
+    CONNECTIONS_CONNECTION: "acapy_plugin_toolbox.connections.Connnection",
+    CONNECTIONS_CREATE_INVITATION: "acapy_plugin_toolbox.connections.CreateInvitation",
+    CONNECTIONS_INVITATION_GET_LIST: "acapy_plugin_toolbox.connections.InvitationGetList",
+    CONNECTIONS_INVITATION: "acapy_plugin_toolbox.connections.Invitation",
+    CONNECTIONS_RECEIVE_INVITATION: "acapy_plugin_toolbox.connections.ReceiveInvitation",
+    CONNECTIONS_ACCEPT_INVITATION: "acapy_plugin_toolbox.connections.AcceptInvitation",
+    CONNECTIONS_ACCEPT_REQUEST: "acapy_plugin_toolbox.connections.AcceptRequest",
+    CONNECTIONS_ESTABLISH_INBOUND: "acapy_plugin_toolbox.connections.EstablishInbound",
+    CONNECTIONS_DELETE_CONNECTION: "acapy_plugin_toolbox.connections.DeleteConnection",
+    CONNECTIONS_CONNECTION_ACK: "acapy_plugin_toolbox.connections.ConnectionAck",
+    CONNECTIONS_UPDATE_CONNECTION: "acapy_plugin_toolbox.connections.UpdateConnection",
 }
 
 

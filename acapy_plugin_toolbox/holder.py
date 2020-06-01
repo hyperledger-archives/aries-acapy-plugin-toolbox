@@ -54,36 +54,36 @@ from .util import generate_model_schema, admin_only
 
 PROTOCOL_URI = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1"
 
-SEND_CRED_PROPOSAL = "{}/send-credential-proposal".format(PROTOCOL_URI)
-CRED_EXCHANGE = "{}/credential-exchange".format(PROTOCOL_URI)
-SEND_PRES_PROPOSAL = "{}/send-presentation-proposal".format(PROTOCOL_URI)
-PRES_EXCHANGE = "{}/presentation-exchange".format(PROTOCOL_URI)
-CREDENTIALS_GET_LIST = "{}/credentials-get-list".format(PROTOCOL_URI)
-CREDENTIALS_LIST = "{}/credentials-list".format(PROTOCOL_URI)
-PRESENTATIONS_GET_LIST = "{}/presentations-get-list".format(PROTOCOL_URI)
-PRESENTATIONS_LIST = "{}/presentations-list".format(PROTOCOL_URI)
+HOLDER_SEND_CRED_PROPOSAL = "{}/send-credential-proposal".format(PROTOCOL_URI)
+HOLDER_CRED_EXCHANGE = "{}/credential-exchange".format(PROTOCOL_URI)
+HOLDER_SEND_PRES_PROPOSAL = "{}/send-presentation-proposal".format(PROTOCOL_URI)
+HOLDER_PRES_EXCHANGE = "{}/presentation-exchange".format(PROTOCOL_URI)
+HOLDER_CREDENTIALS_GET_LIST = "{}/credentials-get-list".format(PROTOCOL_URI)
+HOLDER_CREDENTIALS_LIST = "{}/credentials-list".format(PROTOCOL_URI)
+HOLDER_PRESENTATIONS_GET_LIST = "{}/presentations-get-list".format(PROTOCOL_URI)
+HOLDER_PRESENTATIONS_LIST = "{}/presentations-list".format(PROTOCOL_URI)
 
 MESSAGE_TYPES = {
-    SEND_CRED_PROPOSAL: "acapy_plugin_toolbox.holder.SendCredProposal",
-    SEND_PRES_PROPOSAL: "acapy_plugin_toolbox.holder.SendPresProposal",
-    CREDENTIALS_GET_LIST: "acapy_plugin_toolbox.holder.CredGetList",
-    CREDENTIALS_LIST: "acapy_plugin_toolbox.holder.CredList",
-    PRESENTATIONS_GET_LIST: "acapy_plugin_toolbox.holder.PresGetList",
-    PRESENTATIONS_LIST: "acapy_plugin_toolbox.holder.PresList",
+    HOLDER_SEND_CRED_PROPOSAL: "acapy_plugin_toolbox.holder.SendCredProposal",
+    HOLDER_SEND_PRES_PROPOSAL: "acapy_plugin_toolbox.holder.SendPresProposal",
+    HOLDER_CREDENTIALS_GET_LIST: "acapy_plugin_toolbox.holder.CredGetList",
+    HOLDER_CREDENTIALS_LIST: "acapy_plugin_toolbox.holder.CredList",
+    HOLDER_PRESENTATIONS_GET_LIST: "acapy_plugin_toolbox.holder.PresGetList",
+    HOLDER_PRESENTATIONS_LIST: "acapy_plugin_toolbox.holder.PresList",
 }
 
 
 SendCredProposal, SendCredProposalSchema = generate_model_schema(
     name="SendCredProposal",
     handler="acapy_plugin_toolbox.holder.SendCredProposalHandler",
-    msg_type=SEND_CRED_PROPOSAL,
+    msg_type=HOLDER_SEND_CRED_PROPOSAL,
     schema=V10CredentialProposalRequestMandSchema,
 )
 
 CredExchange, CredExchangeSchema = generate_model_schema(
     name="CredExchange",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=CRED_EXCHANGE,
+    msg_type=HOLDER_CRED_EXCHANGE,
     schema=V10CredentialExchangeSchema,
 )
 
@@ -143,14 +143,14 @@ class SendCredProposalHandler(BaseHandler):
 SendPresProposal, SendPresProposalSchema = generate_model_schema(
     name="SendPresProposal",
     handler="acapy_plugin_toolbox.holder.SendPresProposalHandler",
-    msg_type=SEND_PRES_PROPOSAL,
+    msg_type=HOLDER_SEND_PRES_PROPOSAL,
     schema=V10PresentationProposalRequestSchema,
 )
 
 PresExchange, PresExchangeSchema = generate_model_schema(
     name="PresExchange",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=PRES_EXCHANGE,
+    msg_type=HOLDER_PRES_EXCHANGE,
     schema=V10PresentationExchangeSchema,
 )
 
@@ -209,7 +209,7 @@ class SendPresProposalHandler(BaseHandler):
 CredGetList, CredGetListSchema = generate_model_schema(
     name="CredGetList",
     handler="acapy_plugin_toolbox.holder.CredGetListHandler",
-    msg_type=CREDENTIALS_GET_LIST,
+    msg_type=HOLDER_CREDENTIALS_GET_LIST,
     schema={
         "connection_id": fields.Str(required=False),
         "credential_definition_id": fields.Str(required=False),
@@ -242,7 +242,7 @@ class CredentialListSchema(Schema):
 CredList, CredListSchema = generate_model_schema(
     name="CredList",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=CREDENTIALS_LIST,
+    msg_type=HOLDER_CREDENTIALS_LIST,
     schema=CredentialListSchema,
 )
 
@@ -276,7 +276,7 @@ class CredGetListHandler(BaseHandler):
 PresGetList, PresGetListSchema = generate_model_schema(
     name="PresGetList",
     handler="acapy_plugin_toolbox.holder.PresGetListHandler",
-    msg_type=PRESENTATIONS_GET_LIST,
+    msg_type=HOLDER_PRESENTATIONS_GET_LIST,
     schema={
         "connection_id": fields.Str(required=False),
         "verified": fields.Str(required=False),
@@ -286,7 +286,7 @@ PresGetList, PresGetListSchema = generate_model_schema(
 PresList, PresListSchema = generate_model_schema(
     name="PresList",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=PRESENTATIONS_LIST,
+    msg_type=HOLDER_PRESENTATIONS_LIST,
     schema=V10PresentationExchangeListSchema
     # schema={
     #     'results': fields.List(fields.Dict())

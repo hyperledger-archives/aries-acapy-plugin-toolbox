@@ -1,5 +1,8 @@
 """Define messages for connections admin protocol."""
 
+# pylint: disable=invalid-name
+# pylint: disable=too-few-public-methods
+
 from typing import Dict, Any
 
 from marshmallow import Schema, fields, validate
@@ -20,15 +23,29 @@ from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from aries_cloudagent.storage.error import StorageNotFoundError
 
 from .util import generate_model_schema, admin_only
-from .message_types import (
-    GET_LIST,
-    LIST,
-    UPDATE,
-    CONNECTION,
-    DELETE,
-    DELETED,
-    RECEIVE_INVITATION,
+
+PROTOCOL_URI = (
+    "https://github.com/hyperledger/aries-toolbox/"
+    "tree/master/docs/admin-connections/0.1"
 )
+
+CONNECTIONS_NEW_GET_LIST = "{}/get-list".format(PROTOCOL_URI)
+CONNECTIONS_NEW_LIST = "{}/list".format(PROTOCOL_URI)
+CONNECTIONS_NEW_UPDATE = "{}/update".format(PROTOCOL_URI)
+CONNECTIONS_NEW_CONNECTION = "{}/connection".format(PROTOCOL_URI)
+CONNECTIONS_NEW_DELETE = "{}/delete".format(PROTOCOL_URI)
+CONNECTIONS_NEW_DELETED = "{}/deleted".format(PROTOCOL_URI)
+CONNECTIONS_NEW_RECEIVE_INVITATION = "{}/receive-invitation".format(PROTOCOL_URI)
+
+MESSAGE_TYPES = {
+    CONNECTIONS_NEW_GET_LIST: "acapy_plugin_toolbox.connections_new.GetList",
+    CONNECTIONS_NEW_LIST: "acapy_plugin_toolbox.connections_new.List",
+    CONNECTIONS_NEW_UPDATE: "acapy_plugin_toolbox.connections_new.Update",
+    CONNECTIONS_NEW_CONNECTION: "acapy_plugin_toolbox.connections_new.Connnection",
+    CONNECTIONS_NEW_DELETE: "acapy_plugin_toolbox.connections_new.Delete",
+    CONNECTIONS_NEW_DELETED: "acapy_plugin_toolbox.connections_new.Deleted",
+    CONNECTIONS_NEW_RECEIVE_INVITATION: "acapy_plugin_toolbox.connections_new.ReceiveInvitation",
+}
 
 BaseConnectionSchema = Schema.from_dict(
     {
@@ -47,7 +64,7 @@ BaseConnectionSchema = Schema.from_dict(
 Connection, ConnectionSchema = generate_model_schema(
     name="Connection",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=CONNECTION,
+    msg_type=CONNECTIONS_NEW_CONNECTION,
     schema=BaseConnectionSchema,
 )
 
@@ -76,7 +93,7 @@ def conn_record_to_message_repr(conn: ConnectionRecord) -> Dict[str, Any]:
 GetList, GetListSchema = generate_model_schema(
     name="GetList",
     handler="acapy_plugin_toolbox.connections_new.GetListHandler",
-    msg_type=GET_LIST,
+    msg_type=CONNECTIONS_NEW_GET_LIST,
     schema={
         "my_did": fields.Str(required=False),
         "state": fields.Str(
@@ -91,7 +108,7 @@ GetList, GetListSchema = generate_model_schema(
 List, ListSchema = generate_model_schema(
     name="List",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=LIST,
+    msg_type=CONNECTIONS_NEW_LIST,
     schema={
         "connections": fields.List(fields.Nested(BaseConnectionSchema), required=True)
     },
@@ -133,7 +150,7 @@ class GetListHandler(BaseHandler):
 Update, UpdateSchema = generate_model_schema(
     name="Update",
     handler="acapy_plugin_toolbox.connections_new.UpdateHandler",
-    msg_type=UPDATE,
+    msg_type=CONNECTIONS_NEW_UPDATE,
     schema={
         "connection_id": fields.Str(required=True),
         "label": fields.Str(required=False),
@@ -172,14 +189,14 @@ class UpdateHandler(BaseHandler):
 Delete, DeleteSchema = generate_model_schema(
     name="Delete",
     handler="acapy_plugin_toolbox.connections_new.DeleteHandler",
-    msg_type=DELETE,
+    msg_type=CONNECTIONS_NEW_DELETE,
     schema={"connection_id": fields.Str(required=True),},
 )
 
 Deleted, DeletedSchema = generate_model_schema(
     name="Deleted",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=DELETED,
+    msg_type=CONNECTIONS_NEW_DELETED,
     schema={"connection_id": fields.Str(required=True),},
 )
 
@@ -220,7 +237,7 @@ class DeleteHandler(BaseHandler):
 ReceiveInvitation, ReceiveInvitationSchema = generate_model_schema(
     name="ReceiveInvitation",
     handler="acapy_plugin_toolbox.connections_new.ReceiveInvitationHandler",
-    msg_type=RECEIVE_INVITATION,
+    msg_type=CONNECTIONS_NEW_RECEIVE_INVITATION,
     schema={
         "invitation": fields.Str(required=True),
         "auto_accept": fields.Bool(missing=False),

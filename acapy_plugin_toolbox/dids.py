@@ -24,28 +24,28 @@ from .util import generate_model_schema, admin_only
 
 PROTOCOL_URI = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1"
 
-GET_LIST_DIDS = "{}/get-list-dids".format(PROTOCOL_URI)
-LIST_DIDS = "{}/list-dids".format(PROTOCOL_URI)
-CREATE_DID = "{}/create-did".format(PROTOCOL_URI)
-SET_DID_METADATA = "{}/set-did-metadata".format(PROTOCOL_URI)
-DID = "{}/did".format(PROTOCOL_URI)
-GET_PUBLIC_DID = "{}/get-public-did".format(PROTOCOL_URI)
-SET_PUBLIC_DID = "{}/set-public-did".format(PROTOCOL_URI)
-REGISTER_DID = "{}/register-did".format(PROTOCOL_URI)
-GET_DID_VERKEY = "{}/get-did-verky".format(PROTOCOL_URI)
-GET_DID_ENDPOINT = "{}/get-did-endpoint".format(PROTOCOL_URI)
+DIDS_GET_LIST_DIDS = "{}/get-list-dids".format(PROTOCOL_URI)
+DIDS_LIST_DIDS = "{}/list-dids".format(PROTOCOL_URI)
+DIDS_CREATE_DID = "{}/create-did".format(PROTOCOL_URI)
+DIDS_SET_DID_METADATA = "{}/set-did-metadata".format(PROTOCOL_URI)
+DIDS_DID = "{}/did".format(PROTOCOL_URI)
+DIDS_GET_PUBLIC_DID = "{}/get-public-did".format(PROTOCOL_URI)
+DIDS_SET_PUBLIC_DID = "{}/set-public-did".format(PROTOCOL_URI)
+DIDS_REGISTER_DID = "{}/register-did".format(PROTOCOL_URI)
+DIDS_GET_DID_VERKEY = "{}/get-did-verky".format(PROTOCOL_URI)
+DIDS_GET_DID_ENDPOINT = "{}/get-did-endpoint".format(PROTOCOL_URI)
 
 MESSAGE_TYPES = {
-    GET_LIST_DIDS: "acapy_plugin_toolbox.dids" ".GetListDids",
-    LIST_DIDS: "acapy_plugin_toolbox.dids" ".ListDids",
-    CREATE_DID: "acapy_plugin_toolbox.dids" ".CreateDid",
-    SET_DID_METADATA: "acapy_plugin_toolbox.dids" ".SetDidMetadata",
-    DID: "acapy_plugin_toolbox.did" ".Did",
-    GET_PUBLIC_DID: "acapy_plugin_toolbox.dids" ".GetPublicDid",
-    SET_PUBLIC_DID: "acapy_plugin_toolbox.dids" ".SetPublicDid",
-    REGISTER_DID: "acapy_plugin_toolbox.dids" ".RegisterDid",
-    GET_DID_VERKEY: "acapy_plugin_toolbox.dids" ".GetDidVerkey",
-    GET_DID_ENDPOINT: "acapy_plugin_toolbox.dids" ".GetDidEndpoint",
+    DIDS_GET_LIST_DIDS: "acapy_plugin_toolbox.dids" ".GetListDids",
+    DIDS_LIST_DIDS: "acapy_plugin_toolbox.dids" ".ListDids",
+    DIDS_CREATE_DID: "acapy_plugin_toolbox.dids" ".CreateDid",
+    DIDS_SET_DID_METADATA: "acapy_plugin_toolbox.dids" ".SetDidMetadata",
+    DIDS_DID: "acapy_plugin_toolbox.did" ".Did",
+    DIDS_GET_PUBLIC_DID: "acapy_plugin_toolbox.dids" ".GetPublicDid",
+    DIDS_SET_PUBLIC_DID: "acapy_plugin_toolbox.dids" ".SetPublicDid",
+    DIDS_REGISTER_DID: "acapy_plugin_toolbox.dids" ".RegisterDid",
+    DIDS_GET_DID_VERKEY: "acapy_plugin_toolbox.dids" ".GetDidVerkey",
+    DIDS_GET_DID_ENDPOINT: "acapy_plugin_toolbox.dids" ".GetDidEndpoint",
 }
 
 
@@ -91,7 +91,7 @@ class DidRecordSchema(BaseRecordSchema):
 GetListDids, GetListDidsSchema = generate_model_schema(
     name="GetListDids",
     handler="acapy_plugin_toolbox.dids.ListDidHandler",
-    msg_type=GET_LIST_DIDS,
+    msg_type=DIDS_GET_LIST_DIDS,
     schema={"did": fields.Str(required=False), "verkey": fields.Str(required=False)},
 )
 
@@ -99,14 +99,14 @@ GetListDids, GetListDidsSchema = generate_model_schema(
 ListDids, ListDidsSchema = generate_model_schema(
     name="ListDids",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=LIST_DIDS,
+    msg_type=DIDS_LIST_DIDS,
     schema={"result": fields.List(fields.Nested(DidRecordSchema), required=True)},
 )
 
 CreateDid, CreateDidSchema = generate_model_schema(
     name="CreateDid",
     handler="acapy_plugin_toolbox.dids.CreateDidHandler",
-    msg_type=CREATE_DID,
+    msg_type=DIDS_CREATE_DID,
     schema={
         "seed": fields.Str(required=False),
         "did": fields.Str(required=False),
@@ -117,7 +117,7 @@ CreateDid, CreateDidSchema = generate_model_schema(
 SetDidMetadata, SetDidMetadataSchema = generate_model_schema(
     name="SetDidMetadata",
     handler="acapy_plugin_toolbox.dids.SetDidMetadataHandler",
-    msg_type=SET_DID_METADATA,
+    msg_type=DIDS_SET_DID_METADATA,
     schema={
         "did": fields.Str(required=True),
         "metadata": fields.Dict(keys=fields.Str(), required=False),
@@ -127,28 +127,28 @@ SetDidMetadata, SetDidMetadataSchema = generate_model_schema(
 Did, DidSchema = generate_model_schema(
     name="Did",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=DID,
+    msg_type=DIDS_DID,
     schema={"result": fields.Nested(DidRecordSchema, required=False)},
 )
 
 GetPublicDid, GetPublicDidSchema = generate_model_schema(
     name="GetPublicDid",
     handler="acapy_plugin_toolbox.dids.GetPublicDidHandler",
-    msg_type=GET_PUBLIC_DID,
+    msg_type=DIDS_GET_PUBLIC_DID,
     schema={},
 )
 
 SetPublicDid, SetPublicDidSchema = generate_model_schema(
     name="SetPublicDid",
     handler="acapy_plugin_toolbox.dids.SetPublicDidHandler",
-    msg_type=SET_PUBLIC_DID,
+    msg_type=DIDS_SET_PUBLIC_DID,
     schema={"did": fields.Str(required=True)},
 )
 
 RegisterDid, RegisterDidSchema = generate_model_schema(
     name="RegisterDid",
     handler="acapy_plugin_toolbox.dids.RegisterDidHandler",
-    msg_type=SET_PUBLIC_DID,
+    msg_type=DIDS_SET_PUBLIC_DID,
     schema={
         "did": fields.Str(required=True),
         "verkey": fields.Str(required=True),
@@ -160,14 +160,14 @@ RegisterDid, RegisterDidSchema = generate_model_schema(
 GetDidVerkey, GetDidVerkeySchema = generate_model_schema(
     name="GetDidVerkey",
     handler="acapy_plugin_toolbox.dids.GetDidVerkeyHandler",
-    msg_type=GET_DID_VERKEY,
+    msg_type=DIDS_GET_DID_VERKEY,
     schema={"did": fields.Str(required=True)},
 )
 
 GetDidEndpoint, GetDidEndpointSchema = generate_model_schema(
     name="GetDidEndpoint",
     handler="acapy_plugin_toolbox.dids.GetDidEndpointHandler",
-    msg_type=GET_DID_VERKEY,
+    msg_type=DIDS_GET_DID_VERKEY,
     schema={"did": fields.Str(required=True)},
 )
 

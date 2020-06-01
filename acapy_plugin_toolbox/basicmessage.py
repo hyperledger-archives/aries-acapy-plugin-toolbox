@@ -23,13 +23,29 @@ from aries_cloudagent.protocols.connections.v1_0.manager import ConnectionManage
 from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from aries_cloudagent.storage.error import StorageNotFoundError
 
-from ..util import (
+from .util import (
     generate_model_schema,
     admin_only,
     timestamp_utc_iso,
     datetime_from_iso,
 )
-from ..message_types import GET, SEND, DELETE, NEW
+
+PROTOCOL_URI = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0"
+
+ADMIN_PROTOCOL_URI = "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1"
+
+BASIC_MESSAGE_BASIC_MESSAGE = f"{PROTOCOL_URI}/message"
+BASIC_MESSAGE_GET = f"{ADMIN_PROTOCOL_URI}/get"
+BASIC_MESSAGE_SEND = f"{ADMIN_PROTOCOL_URI}/send"
+BASIC_MESSAGE_DELETE = f"{ADMIN_PROTOCOL_URI}/delete"
+BASIC_MESSAGE_NEW = f"{ADMIN_PROTOCOL_URI}/new"
+
+MESSAGE_TYPES = {
+    BASIC_MESSAGE_BASIC_MESSAGE: "acapy_plugin_toolbox.basicmessage.BasicMessage",
+    BASIC_MESSAGE_GET: "acapy_plugin_toolbox.basicmessage.Get",
+    BASIC_MESSAGE_SEND: "acapy_plugin_toolbox.basicmessage.Send",
+    BASIC_MESSAGE_DELETE: "acapy_plugin_toolbox.basicmessage.Delete",
+}
 
 
 class BasicMessageRecord(BaseRecord):
@@ -143,7 +159,7 @@ def basic_message_init(
 BasicMessage, BasicMessageSchema = generate_model_schema(
     name="BasicMessage",
     handler="acapy_plugin_toolbox.basicmessage.BasicMessageHandler",
-    msg_type=BASIC_MESSAGE,
+    msg_type=BASIC_MESSAGE_BASIC_MESSAGE,
     schema={
         "sent_time": fields.Str(
             required=False,
@@ -161,7 +177,7 @@ BasicMessage, BasicMessageSchema = generate_model_schema(
 New, NewSchema = generate_model_schema(
     name="New",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=NEW,
+    msg_type=BASIC_MESSAGE_NEW,
     schema={
         "connection_id": fields.Str(required=True),
         "message": fields.Nested(
@@ -227,7 +243,7 @@ class BasicMessageHandler(BaseHandler):
 Get, GetSchema = generate_model_schema(
     name="Get",
     handler="acapy_plugin_toolbox.basicmessage.GetHandler",
-    msg_type=GET,
+    msg_type=BASIC_MESSAGE_GET,
     schema={
         "connection_id": fields.Str(required=False),
         "limit": fields.Int(required=False),
@@ -304,7 +320,7 @@ class GetHandler(BaseHandler):
 Send, SendSchema = generate_model_schema(
     name="Send",
     handler="acapy_plugin_toolbox.basicmessage.SendHandler",
-    msg_type=SEND,
+    msg_type=BASIC_MESSAGE_SEND,
     schema={
         "connection_id": fields.Str(required=True),
         "content": fields.Str(required=True),
@@ -369,7 +385,7 @@ class SendHandler(BaseHandler):
 Delete, DeleteSchema = generate_model_schema(
     name="Delete",
     handler="acapy_plugin_toolbox.basicmessage.DeleteHandler",
-    msg_type=DELETE,
+    msg_type=BASIC_MESSAGE_DELETE,
     schema={
         "connection_id": fields.Str(required=False),
         "message_id": fields.Str(required=False),

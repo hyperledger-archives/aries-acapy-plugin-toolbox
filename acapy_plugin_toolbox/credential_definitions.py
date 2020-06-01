@@ -26,20 +26,28 @@ from .schemas import SchemaRecord
 
 PROTOCOL_URI = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1"
 
-SEND_CRED_DEF = "{}/send-credential-definition".format(PROTOCOL_URI)
-CRED_DEF_ID = "{}/credential-definition-id".format(PROTOCOL_URI)
-CRED_DEF_GET = "{}/credential-definition-get".format(PROTOCOL_URI)
-CRED_DEF = "{}/credential-definition".format(PROTOCOL_URI)
-CRED_DEF_GET_LIST = "{}/credential-definition-get-list".format(PROTOCOL_URI)
-CRED_DEF_LIST = "{}/credential-definition-list".format(PROTOCOL_URI)
+CREDENTIAL_DEFINITIONS_SEND_CRED_DEF = "{}/send-credential-definition".format(
+    PROTOCOL_URI
+)
+CREDENTIAL_DEFINITIONS_CRED_DEF_ID = "{}/credential-definition-id".format(PROTOCOL_URI)
+CREDENTIAL_DEFINITIONS_CRED_DEF_GET = "{}/credential-definition-get".format(
+    PROTOCOL_URI
+)
+CREDENTIAL_DEFINITIONS_CRED_DEF = "{}/credential-definition".format(PROTOCOL_URI)
+CREDENTIAL_DEFINITIONS_CRED_DEF_GET_LIST = "{}/credential-definition-get-list".format(
+    PROTOCOL_URI
+)
+CREDENTIAL_DEFINITIONS_CRED_DEF_LIST = "{}/credential-definition-list".format(
+    PROTOCOL_URI
+)
 
 MESSAGE_TYPES = {
-    SEND_CRED_DEF: "acapy_plugin_toolbox.credential_definitions.SendCredDef",
-    CRED_DEF_ID: "acapy_plugin_toolbox.credential_definitions.CredDefID",
-    CRED_DEF_GET: "acapy_plugin_toolbox.credential_definitions.CredDefGet",
-    CRED_DEF: "acapy_plugin_toolbox.credential_definitions.CredDef",
-    CRED_DEF_GET_LIST: "acapy_plugin_toolbox.credential_definitions.CredDefGetList",
-    CRED_DEF_LIST: "acapy_plugin_toolbox.credential_definitions.CredDefList",
+    CREDENTIAL_DEFINITIONS_SEND_CRED_DEF: "acapy_plugin_toolbox.credential_definitions.SendCredDef",
+    CREDENTIAL_DEFINITIONS_CRED_DEF_ID: "acapy_plugin_toolbox.credential_definitions.CredDefID",
+    CREDENTIAL_DEFINITIONS_CRED_DEF_GET: "acapy_plugin_toolbox.credential_definitions.CredDefGet",
+    CREDENTIAL_DEFINITIONS_CRED_DEF: "acapy_plugin_toolbox.credential_definitions.CredDef",
+    CREDENTIAL_DEFINITIONS_CRED_DEF_GET_LIST: "acapy_plugin_toolbox.credential_definitions.CredDefGetList",
+    CREDENTIAL_DEFINITIONS_CRED_DEF_LIST: "acapy_plugin_toolbox.credential_definitions.CredDefList",
 }
 
 
@@ -121,14 +129,14 @@ class CredDefRecordSchema(BaseRecordSchema):
 SendCredDef, SendCredDefSchema = generate_model_schema(
     name="SendCredDef",
     handler="acapy_plugin_toolbox.credential_definitions" ".SendCredDefHandler",
-    msg_type=SEND_CRED_DEF,
+    msg_type=CREDENTIAL_DEFINITIONS_SEND_CRED_DEF,
     schema={"schema_id": fields.Str(required=True)},
 )
 
 CredDefID, CredDefIDSchema = generate_model_schema(
     name="CredDefID",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=CRED_DEF_ID,
+    msg_type=CREDENTIAL_DEFINITIONS_CRED_DEF_ID,
     schema={"cred_def_id": fields.Str(required=True)},
 )
 
@@ -199,14 +207,14 @@ class SendCredDefHandler(BaseHandler):
 CredDefGet, CredDefGetSchema = generate_model_schema(
     name="CredDefGet",
     handler="acapy_plugin_toolbox.credential_definitions" ".CredDefGetHandler",
-    msg_type=CRED_DEF_GET,
+    msg_type=CREDENTIAL_DEFINITIONS_CRED_DEF_GET,
     schema={"cred_def_id": fields.Str(required=True)},
 )
 
 CredDef, CredDefSchema = generate_model_schema(
     name="CredDef",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=CRED_DEF,
+    msg_type=CREDENTIAL_DEFINITIONS_CRED_DEF,
     schema=CredDefRecordSchema,
 )
 
@@ -271,14 +279,14 @@ class CredDefGetHandler(BaseHandler):
 CredDefGetList, CredDefGetListSchema = generate_model_schema(
     name="CredDefGetList",
     handler="acapy_plugin_toolbox.credential_definitions" ".CredDefGetListHandler",
-    msg_type=CRED_DEF_GET_LIST,
+    msg_type=CREDENTIAL_DEFINITIONS_CRED_DEF_GET_LIST,
     schema={},
 )
 
 CredDefList, CredDefListSchema = generate_model_schema(
     name="CredDefList",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=CRED_DEF_LIST,
+    msg_type=CREDENTIAL_DEFINITIONS_CRED_DEF_LIST,
     schema={"results": fields.List(fields.Nested(CredDefRecordSchema), required=True)},
 )
 
