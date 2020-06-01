@@ -7,18 +7,26 @@ from marshmallow import fields
 
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
-from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
+from aries_cloudagent.messaging.base_handler import (
+    BaseHandler,
+    BaseResponder,
+    RequestContext,
+)
 from aries_cloudagent.holder.base import BaseHolder
 
+from aries_cloudagent.messaging.valid import (
+    INDY_SCHEMA_ID,
+    UUID4,
+    INDY_CRED_DEF_ID,
+    INDY_REV_REG_ID,
+)
+from aries_cloudagent.messaging.models.base import Schema
 from aries_cloudagent.protocols.issue_credential.v1_0.routes import (
     V10CredentialExchangeListResultSchema,
-    V10CredentialProposalRequestMandSchema
-)
-from aries_cloudagent.protocols.credentials.routes import (
-    CredentialListSchema
+    V10CredentialProposalRequestMandSchema,
 )
 from aries_cloudagent.protocols.issue_credential.v1_0.models.credential_exchange import (
-    V10CredentialExchangeSchema
+    V10CredentialExchangeSchema,
 )
 from aries_cloudagent.protocols.issue_credential.v1_0.messages.credential_proposal import (
     CredentialProposal,
@@ -27,11 +35,11 @@ from aries_cloudagent.protocols.issue_credential.v1_0.manager import CredentialM
 
 from aries_cloudagent.protocols.present_proof.v1_0.routes import (
     V10PresentationExchangeListSchema,
-    V10PresentationProposalRequestSchema
+    V10PresentationProposalRequestSchema,
 )
 from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import (
     V10PresentationExchange,
-    V10PresentationExchangeSchema
+    V10PresentationExchangeSchema,
 )
 from aries_cloudagent.protocols.present_proof.v1_0.messages.presentation_proposal import (
     PresentationProposal,
@@ -40,60 +48,50 @@ from aries_cloudagent.protocols.present_proof.v1_0.manager import PresentationMa
 
 from aries_cloudagent.connections.models.connection_record import ConnectionRecord
 from aries_cloudagent.storage.error import StorageNotFoundError
-from aries_cloudagent.protocols.problem_report.message import ProblemReport
+from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 
 from .util import generate_model_schema, admin_only
-PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1'
 
-SEND_CRED_PROPOSAL = '{}/send-credential-proposal'.format(PROTOCOL)
-CRED_EXCHANGE = '{}/credential-exchange'.format(PROTOCOL)
-SEND_PRES_PROPOSAL = '{}/send-presentation-proposal'.format(PROTOCOL)
-PRES_EXCHANGE = '{}/presentation-exchange'.format(PROTOCOL)
-CREDENTIALS_GET_LIST = '{}/credentials-get-list'.format(PROTOCOL)
-CREDENTIALS_LIST = '{}/credentials-list'.format(PROTOCOL)
-PRESENTATIONS_GET_LIST = '{}/presentations-get-list'.format(PROTOCOL)
-PRESENTATIONS_LIST = '{}/presentations-list'.format(PROTOCOL)
+PROTOCOL = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1"
+
+SEND_CRED_PROPOSAL = "{}/send-credential-proposal".format(PROTOCOL)
+CRED_EXCHANGE = "{}/credential-exchange".format(PROTOCOL)
+SEND_PRES_PROPOSAL = "{}/send-presentation-proposal".format(PROTOCOL)
+PRES_EXCHANGE = "{}/presentation-exchange".format(PROTOCOL)
+CREDENTIALS_GET_LIST = "{}/credentials-get-list".format(PROTOCOL)
+CREDENTIALS_LIST = "{}/credentials-list".format(PROTOCOL)
+PRESENTATIONS_GET_LIST = "{}/presentations-get-list".format(PROTOCOL)
+PRESENTATIONS_LIST = "{}/presentations-list".format(PROTOCOL)
 
 MESSAGE_TYPES = {
-    SEND_CRED_PROPOSAL:
-        'acapy_plugin_toolbox.holder.SendCredProposal',
-    SEND_PRES_PROPOSAL:
-        'acapy_plugin_toolbox.holder.SendPresProposal',
-    CREDENTIALS_GET_LIST:
-        'acapy_plugin_toolbox.holder.CredGetList',
-    CREDENTIALS_LIST:
-        'acapy_plugin_toolbox.holder.CredList',
-    PRESENTATIONS_GET_LIST:
-        'acapy_plugin_toolbox.holder.PresGetList',
-    PRESENTATIONS_LIST:
-        'acapy_plugin_toolbox.holder.PresList',
+    SEND_CRED_PROPOSAL: "acapy_plugin_toolbox.holder.SendCredProposal",
+    SEND_PRES_PROPOSAL: "acapy_plugin_toolbox.holder.SendPresProposal",
+    CREDENTIALS_GET_LIST: "acapy_plugin_toolbox.holder.CredGetList",
+    CREDENTIALS_LIST: "acapy_plugin_toolbox.holder.CredList",
+    PRESENTATIONS_GET_LIST: "acapy_plugin_toolbox.holder.PresGetList",
+    PRESENTATIONS_LIST: "acapy_plugin_toolbox.holder.PresList",
 }
 
 
-async def setup(
-        context: InjectionContext,
-        protocol_registry: ProblemReport = None
-):
+async def setup(context: InjectionContext, protocol_registry: ProblemReport = None):
     """Setup the holder plugin."""
     if not protocol_registry:
         protocol_registry = await context.inject(ProtocolRegistry)
-    protocol_registry.register_message_types(
-        MESSAGE_TYPES
-    )
+    protocol_registry.register_message_types(MESSAGE_TYPES)
 
 
 SendCredProposal, SendCredProposalSchema = generate_model_schema(
-    name='SendCredProposal',
-    handler='acapy_plugin_toolbox.holder.SendCredProposalHandler',
+    name="SendCredProposal",
+    handler="acapy_plugin_toolbox.holder.SendCredProposalHandler",
     msg_type=SEND_CRED_PROPOSAL,
-    schema=V10CredentialProposalRequestMandSchema
+    schema=V10CredentialProposalRequestMandSchema,
 )
 
 CredExchange, CredExchangeSchema = generate_model_schema(
-    name='CredExchange',
-    handler='acapy_plugin_toolbox.util.PassHandler',
+    name="CredExchange",
+    handler="acapy_plugin_toolbox.util.PassHandler",
     msg_type=CRED_EXCHANGE,
-    schema=V10CredentialExchangeSchema
+    schema=V10CredentialExchangeSchema,
 )
 
 
@@ -111,13 +109,11 @@ class SendCredProposalHandler(BaseHandler):
 
         try:
             connection_record = await ConnectionRecord.retrieve_by_id(
-                context,
-                connection_id
+                context, connection_id
             )
         except StorageNotFoundError:
             report = ProblemReport(
-                explain_ltxt='Connection not found.',
-                who_retries='none'
+                explain_ltxt="Connection not found.", who_retries="none"
             )
             report.assign_thread_from(context.message)
             await responder.send_reply(report)
@@ -125,8 +121,7 @@ class SendCredProposalHandler(BaseHandler):
 
         if not connection_record.is_ready:
             report = ProblemReport(
-                explain_ltxt='Connection invalid.',
-                who_retries='none'
+                explain_ltxt="Connection invalid.", who_retries="none"
             )
             report.assign_thread_from(context.message)
             await responder.send_reply(report)
@@ -136,16 +131,16 @@ class SendCredProposalHandler(BaseHandler):
             connection_id,
             comment=comment,
             credential_preview=context.message.credential_proposal,
-            credential_definition_id=credential_definition_id
+            credential_definition_id=credential_definition_id,
         )
 
         await responder.send(
             CredentialProposal(
                 comment=context.message.comment,
                 credential_proposal=context.message.credential_proposal,
-                cred_def_id=context.message.credential_definition_id
+                cred_def_id=context.message.credential_definition_id,
             ),
-            connection_id=connection_id
+            connection_id=connection_id,
         )
         cred_exchange = CredExchange(**credential_exchange_record.serialize())
         cred_exchange.assign_thread_from(context.message)
@@ -153,17 +148,17 @@ class SendCredProposalHandler(BaseHandler):
 
 
 SendPresProposal, SendPresProposalSchema = generate_model_schema(
-    name='SendPresProposal',
-    handler='acapy_plugin_toolbox.holder.SendPresProposalHandler',
+    name="SendPresProposal",
+    handler="acapy_plugin_toolbox.holder.SendPresProposalHandler",
     msg_type=SEND_PRES_PROPOSAL,
-    schema=V10PresentationProposalRequestSchema
+    schema=V10PresentationProposalRequestSchema,
 )
 
 PresExchange, PresExchangeSchema = generate_model_schema(
-    name='PresExchange',
-    handler='acapy_plugin_toolbox.util.PassHandler',
+    name="PresExchange",
+    handler="acapy_plugin_toolbox.util.PassHandler",
     msg_type=PRES_EXCHANGE,
-    schema=V10PresentationExchangeSchema
+    schema=V10PresentationExchangeSchema,
 )
 
 
@@ -177,13 +172,11 @@ class SendPresProposalHandler(BaseHandler):
         connection_id = str(context.message.connection_id)
         try:
             connection_record = await ConnectionRecord.retrieve_by_id(
-                context,
-                connection_id
+                context, connection_id
             )
         except StorageNotFoundError:
             report = ProblemReport(
-                explain_ltxt='Connection not found.',
-                who_retries='none'
+                explain_ltxt="Connection not found.", who_retries="none"
             )
             report.assign_thread_from(context.message)
             await responder.send_reply(report)
@@ -191,8 +184,7 @@ class SendPresProposalHandler(BaseHandler):
 
         if not connection_record.is_ready:
             report = ProblemReport(
-                explain_ltxt='Connection invalid.',
-                who_retries='none'
+                explain_ltxt="Connection invalid.", who_retries="none"
             )
             report.assign_thread_from(context.message)
             await responder.send_reply(report)
@@ -201,22 +193,18 @@ class SendPresProposalHandler(BaseHandler):
         comment = context.message.comment
         # Aries#0037 calls it a proposal in the proposal struct but it's of type preview
         presentation_proposal = PresentationProposal(
-            comment=comment,
-            presentation_proposal=context.message.presentation_proposal
+            comment=comment, presentation_proposal=context.message.presentation_proposal
         )
-        auto_present = (
-            context.message.auto_present or
-            context.settings.get("debug.auto_respond_presentation_request")
+        auto_present = context.message.auto_present or context.settings.get(
+            "debug.auto_respond_presentation_request"
         )
 
         presentation_manager = PresentationManager(context)
 
-        presentation_exchange_record = (
-            await presentation_manager.create_exchange_for_proposal(
-                connection_id=connection_id,
-                presentation_proposal_message=presentation_proposal,
-                auto_present=auto_present
-            )
+        presentation_exchange_record = await presentation_manager.create_exchange_for_proposal(
+            connection_id=connection_id,
+            presentation_proposal_message=presentation_proposal,
+            auto_present=auto_present,
         )
         await responder.send(presentation_proposal, connection_id=connection_id)
 
@@ -226,21 +214,43 @@ class SendPresProposalHandler(BaseHandler):
 
 
 CredGetList, CredGetListSchema = generate_model_schema(
-    name='CredGetList',
-    handler='acapy_plugin_toolbox.holder.CredGetListHandler',
+    name="CredGetList",
+    handler="acapy_plugin_toolbox.holder.CredGetListHandler",
     msg_type=CREDENTIALS_GET_LIST,
     schema={
-        'connection_id': fields.Str(required=False),
-        'credential_definition_id': fields.Str(required=False),
-        'schema_id': fields.Str(required=False)
-    }
+        "connection_id": fields.Str(required=False),
+        "credential_definition_id": fields.Str(required=False),
+        "schema_id": fields.Str(required=False),
+    },
 )
 
+
+class CredentialSchema(Schema):
+    """Result schema for a credential query."""
+
+    attrs = fields.Dict(description="Credential attributes",)
+    schema_id = fields.Str(description="Schema identifier", **INDY_SCHEMA_ID)
+    referent = fields.Str(description="Credential referent", **UUID4)
+    cred_def_id = fields.Str(
+        description="Credential definition identifier", **INDY_CRED_DEF_ID
+    )
+    rev_reg_id = fields.Str(
+        description="Revocation registry identifier", **INDY_REV_REG_ID
+    )
+    cred_rev_id = fields.Str(description="Credential revocation identifier")
+
+
+class CredentialListSchema(Schema):
+    """Result schema for a credential query."""
+
+    results = fields.List(fields.Nested(CredentialSchema()))
+
+
 CredList, CredListSchema = generate_model_schema(
-    name='CredList',
-    handler='acapy_plugin_toolbox.util.PassHandler',
+    name="CredList",
+    handler="acapy_plugin_toolbox.util.PassHandler",
     msg_type=CREDENTIALS_LIST,
-    schema=CredentialListSchema
+    schema=CredentialListSchema,
 )
 
 
@@ -271,18 +281,18 @@ class CredGetListHandler(BaseHandler):
 
 
 PresGetList, PresGetListSchema = generate_model_schema(
-    name='PresGetList',
-    handler='acapy_plugin_toolbox.holder.PresGetListHandler',
+    name="PresGetList",
+    handler="acapy_plugin_toolbox.holder.PresGetListHandler",
     msg_type=PRESENTATIONS_GET_LIST,
     schema={
-        'connection_id': fields.Str(required=False),
-        'verified': fields.Str(required=False),
-    }
+        "connection_id": fields.Str(required=False),
+        "verified": fields.Str(required=False),
+    },
 )
 
 PresList, PresListSchema = generate_model_schema(
-    name='PresList',
-    handler='acapy_plugin_toolbox.util.PassHandler',
+    name="PresList",
+    handler="acapy_plugin_toolbox.util.PassHandler",
     msg_type=PRESENTATIONS_LIST,
     schema=V10PresentationExchangeListSchema
     # schema={
@@ -299,12 +309,15 @@ class PresGetListHandler(BaseHandler):
         """Handle received get cred list request."""
 
         post_filter = dict(
-            filter(lambda item: item[1] is not None, {
-                # 'state': V10PresentialExchange.STATE_CREDENTIAL_RECEIVED,
-                'role': V10PresentationExchange.ROLE_PROVER,
-                'connection_id': context.message.connection_id,
-                'verified': context.message.verified,
-            }.items())
+            filter(
+                lambda item: item[1] is not None,
+                {
+                    # 'state': V10PresentialExchange.STATE_CREDENTIAL_RECEIVED,
+                    "role": V10PresentationExchange.ROLE_PROVER,
+                    "connection_id": context.message.connection_id,
+                    "verified": context.message.verified,
+                }.items(),
+            )
         )
         records = await V10PresentationExchange.query(context, {}, post_filter)
         cred_list = PresList(results=records)
