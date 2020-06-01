@@ -29,20 +29,20 @@ from .util import generate_model_schema, admin_only
 PROTOCOL_URI = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/0.1"
 
 # Message Types
-CREATE_STATIC_CONNECTION = "{}/create-static-connection".format(PROTOCOL_URI)
-STATIC_CONNECTION_INFO = "{}/static-connection-info".format(PROTOCOL_URI)
-STATIC_CONNECTION_GET_LIST = "{}/static-connection-get-list".format(PROTOCOL_URI)
-STATIC_CONNECTION_LIST = "{}/static-connection-list".format(PROTOCOL_URI)
+STATIC_CONNECTIONS_CREATE = "{}/create-static-connection".format(PROTOCOL_URI)
+STATIC_CONNECTIONS_INFO = "{}/static-connection-info".format(PROTOCOL_URI)
+STATIC_CONNECTIONS_GET_LIST = "{}/static-connection-get-list".format(PROTOCOL_URI)
+STATIC_CONNECTIONS_LIST = "{}/static-connection-list".format(PROTOCOL_URI)
 
 # Message Type to Message Class Map
 MESSAGE_TYPES = {
-    CREATE_STATIC_CONNECTION: "acapy_plugin_toolbox.static_connections"
+    STATIC_CONNECTIONS_CREATE: "acapy_plugin_toolbox.static_connections"
     ".CreateStaticConnection",
-    STATIC_CONNECTION_INFO: "acapy_plugin_toolbox.static_connections"
+    STATIC_CONNECTIONS_INFO: "acapy_plugin_toolbox.static_connections"
     ".StaticConnectionInfo",
-    STATIC_CONNECTION_GET_LIST: "acapy_plugin_toolbox.static_connections"
+    STATIC_CONNECTIONS_GET_LIST: "acapy_plugin_toolbox.static_connections"
     ".StaticConnectionGetList",
-    STATIC_CONNECTION_LIST: "acapy_plugin_toolbox.static_connections"
+    STATIC_CONNECTIONS_LIST: "acapy_plugin_toolbox.static_connections"
     ".StaticConnectionList",
 }
 
@@ -51,7 +51,7 @@ MESSAGE_TYPES = {
 CreateStaticConnection, CreateStaticConnectionSchema = generate_model_schema(
     name="CreateStaticConnection",
     handler="acapy_plugin_toolbox.static_connections" ".CreateStaticConnectionHandler",
-    msg_type=CREATE_STATIC_CONNECTION,
+    msg_type=STATIC_CONNECTIONS_CREATE,
     schema={
         "label": fields.Str(required=True),
         "role": fields.Str(required=False),
@@ -63,7 +63,7 @@ CreateStaticConnection, CreateStaticConnectionSchema = generate_model_schema(
 StaticConnectionInfo, StaticConnectionInfoSchema = generate_model_schema(
     name="StaticConnectionInfo",
     handler="acapy_plugin_toolbox.static_connections" ".StaticConnectionInfoHandler",
-    msg_type=STATIC_CONNECTION_INFO,
+    msg_type=STATIC_CONNECTIONS_INFO,
     schema={
         "did": fields.Str(required=True),
         "key": fields.Str(required=True),
@@ -134,7 +134,7 @@ class CreateStaticConnectionHandler(BaseHandler):
 StaticConnectionGetList, StaticConnectionGetListSchema = generate_model_schema(
     name="StaticConnectionGetList",
     handler="acapy_plugin_toolbox.static_connections" ".StaticConnectionGetListHandler",
-    msg_type=STATIC_CONNECTION_GET_LIST,
+    msg_type=STATIC_CONNECTIONS_GET_LIST,
     schema={
         "initiator": fields.Str(
             validate=validate.OneOf(["self", "external"]), required=False,
@@ -149,7 +149,7 @@ StaticConnectionGetList, StaticConnectionGetListSchema = generate_model_schema(
 StaticConnectionList, StaticConnectionListSchema = generate_model_schema(
     name="StaticConnectionList",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=STATIC_CONNECTION_LIST,
+    msg_type=STATIC_CONNECTIONS_LIST,
     schema={
         "results": fields.List(
             fields.Dict(

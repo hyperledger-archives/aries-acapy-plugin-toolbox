@@ -16,20 +16,20 @@ from .util import generate_model_schema, admin_only
 PROTOCOL_URI = (
     "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-taa/0.1"
 )
-GET = f"{PROTOCOL_URI}/get"
-TAA = f"{PROTOCOL_URI}/taa"
-ACCEPT = f"{PROTOCOL_URI}/accept"
-ACCEPTED = f"{PROTOCOL_URI}/accepted"
-GET_ACCEPTANCE = f"{PROTOCOL_URI}/get-acceptance"
-ACCEPTANCE = f"{PROTOCOL_URI}/acceptance"
+TAA_GET = f"{PROTOCOL_URI}/get"
+TAA_TAA = f"{PROTOCOL_URI}/taa"
+TAA_ACCEPT = f"{PROTOCOL_URI}/accept"
+TAA_ACCEPTED = f"{PROTOCOL_URI}/accepted"
+TAA_GET_ACCEPTANCE = f"{PROTOCOL_URI}/get-acceptance"
+TAA_ACCEPTANCE = f"{PROTOCOL_URI}/acceptance"
 
 MESSAGE_TYPES = {
-    GET: "acapy_plugin_toolbox.taa.Get",
-    TAA: "acapy_plugin_toolbox.taa.Taa",
-    ACCEPT: "acapy_plugin_toolbox.taa.Accept",
-    ACCEPTED: "acapy_plugin_toolbox.taa.Accepted",
-    GET_ACCEPTANCE: "acapy_plugin_toolbox.taa.GetAcceptance",
-    ACCEPTANCE: "acapy_plugin_toolbox.taa.Acceptance",
+    TAA_GET: "acapy_plugin_toolbox.taa.Get",
+    TAA_TAA: "acapy_plugin_toolbox.taa.Taa",
+    TAA_ACCEPT: "acapy_plugin_toolbox.taa.Accept",
+    TAA_ACCEPTED: "acapy_plugin_toolbox.taa.Accepted",
+    TAA_GET_ACCEPTANCE: "acapy_plugin_toolbox.taa.GetAcceptance",
+    TAA_ACCEPTANCE: "acapy_plugin_toolbox.taa.Acceptance",
 }
 
 
@@ -41,7 +41,7 @@ Get, GetSchema = generate_model_schema(
 Taa, TaaSchema = generate_model_schema(
     name="Taa",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=TAA,
+    msg_type=TAA_TAA,
     schema={
         "version": fields.Str(
             required=True, description="Version of Transaction Author Agreement",
@@ -92,7 +92,7 @@ class GetHandler(BaseHandler):
 Accept, AcceptSchema = generate_model_schema(
     name="Accept",
     handler="acapy_plugin_toolbox.taa.AcceptHandler",
-    msg_type=ACCEPT,
+    msg_type=TAA_ACCEPT,
     schema={
         "version": fields.Str(required=True, description="Version of accepted TAA."),
         "text": fields.Str(required=True, description="Text of accepted TAA."),
@@ -107,7 +107,7 @@ Accept, AcceptSchema = generate_model_schema(
 Accepted, AcceptedSchema = generate_model_schema(
     name="Accepted",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=ACCEPTED,
+    msg_type=TAA_ACCEPTED,
     schema={},
 )
 
@@ -152,7 +152,7 @@ class AcceptHandler(BaseHandler):
 GetAcceptance, GetAcceptanceSchema = generate_model_schema(
     name="GetAcceptance",
     handler="acapy_plugin_toolbox.taa.GetAcceptanceHandler",
-    msg_type=GET_ACCEPTANCE,
+    msg_type=TAA_GET_ACCEPTANCE,
     schema={},
 )
 
@@ -160,7 +160,7 @@ GetAcceptance, GetAcceptanceSchema = generate_model_schema(
 Acceptance, AcceptanceSchema = generate_model_schema(
     name="Acceptance",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=ACCEPTANCE,
+    msg_type=TAA_ACCEPTANCE,
     schema={
         "needed": fields.Bool(required=True, description="Acceptance needed."),
         "version": fields.Str(required=False, description="Version of accepted TAA."),

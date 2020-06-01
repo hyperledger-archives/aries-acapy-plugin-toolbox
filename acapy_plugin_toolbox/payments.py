@@ -38,23 +38,23 @@ PROTOCOL_URI = (
     "tree/master/docs/admin-payments/0.1"
 )
 
-GET_ADDRESS_LIST = f"{PROTOCOL_URI}/get-address-list"
-ADDRESS_LIST = f"{PROTOCOL_URI}/address-list"
-CREATE_ADDRESS = f"{PROTOCOL_URI}/create-address"
-ADDRESS = f"{PROTOCOL_URI}/address"
-GET_FEES = f"{PROTOCOL_URI}/get-fees"
-FEES = f"{PROTOCOL_URI}/fees"
-TRANSFER = f"{PROTOCOL_URI}/transfer"
-TRANSFER_COMPLETE = f"{PROTOCOL_URI}/transfer-complete"
+PAYMENTS_GET_ADDRESS_LIST = f"{PROTOCOL_URI}/get-address-list"
+PAYMENTS_ADDRESS_LIST = f"{PROTOCOL_URI}/address-list"
+PAYMENTS_CREATE_ADDRESS = f"{PROTOCOL_URI}/create-address"
+PAYMENTS_ADDRESS = f"{PROTOCOL_URI}/address"
+PAYMENTS_GET_FEES = f"{PROTOCOL_URI}/get-fees"
+PAYMENTS_FEES = f"{PROTOCOL_URI}/fees"
+PAYMENTS_TRANSFER = f"{PROTOCOL_URI}/transfer"
+PAYMENTS_TRANSFER_COMPLETE = f"{PROTOCOL_URI}/transfer-complete"
 
 MESSAGE_TYPES = {
-    GET_ADDRESS_LIST: "acapy_plugin_toolbox.payments.GetAddressList",
-    ADDRESS_LIST: "acapy_plugin_toolbox.payments.AddressList",
-    CREATE_ADDRESS: "acapy_plugin_toolbox.payments.CreateAddress",
-    GET_FEES: "acapy_plugin_toolbox.payments.GetFees",
-    ADDRESS: "acapy_plugin_toolbox.payments.Address",
-    TRANSFER: "acapy_plugin_toolbox.payments.Transfer",
-    TRANSFER_COMPLETE: "acapy_plugin_toolbox.payments.TransferComplete",
+    PAYMENTS_GET_ADDRESS_LIST: "acapy_plugin_toolbox.payments.GetAddressList",
+    PAYMENTS_ADDRESS_LIST: "acapy_plugin_toolbox.payments.AddressList",
+    PAYMENTS_CREATE_ADDRESS: "acapy_plugin_toolbox.payments.CreateAddress",
+    PAYMENTS_GET_FEES: "acapy_plugin_toolbox.payments.GetFees",
+    PAYMENTS_ADDRESS: "acapy_plugin_toolbox.payments.Address",
+    PAYMENTS_TRANSFER: "acapy_plugin_toolbox.payments.Transfer",
+    PAYMENTS_TRANSFER_COMPLETE: "acapy_plugin_toolbox.payments.TransferComplete",
 }
 
 
@@ -134,14 +134,14 @@ BasePaymentAddressSchema = Schema.from_dict(
 GetAddressList, GetAddressListSchema = generate_model_schema(
     name="GetAddressList",
     handler="acapy_plugin_toolbox.payments.GetAddressListHandler",
-    msg_type=GET_ADDRESS_LIST,
+    msg_type=PAYMENTS_GET_ADDRESS_LIST,
     schema={"method": fields.Str(required=False)},
 )
 
 AddressList, AddressListSchema = generate_model_schema(
     name="AddressList",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=ADDRESS_LIST,
+    msg_type=PAYMENTS_ADDRESS_LIST,
     schema={
         "addresses": fields.List(fields.Nested(BasePaymentAddressSchema), required=True)
     },
@@ -209,14 +209,14 @@ class GetAddressListHandler(BaseHandler):
 CreateAddress, CreateAddressSchema = generate_model_schema(
     name="CreateAddress",
     handler="acapy_plugin_toolbox.payments.CreateAddressHandler",
-    msg_type=CREATE_ADDRESS,
+    msg_type=PAYMENTS_CREATE_ADDRESS,
     schema={"seed": fields.Str(required=False), "method": fields.Str(required=True)},
 )
 
 Address, AddressSchema = generate_model_schema(
     name="Address",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=ADDRESS,
+    msg_type=PAYMENTS_ADDRESS,
     schema=BasePaymentAddressSchema,
 )
 
@@ -293,7 +293,7 @@ class CreateAddressHandler(BaseHandler):
 GetFees, GetFeesSchema = generate_model_schema(
     name="GetFees",
     handler="acapy_plugin_toolbox.payments.GetFeesHandler",
-    msg_type=GET_FEES,
+    msg_type=PAYMENTS_GET_FEES,
     schema={
         "method": fields.Str(required=True),
         "amount": fields.Float(required=False),
@@ -303,7 +303,7 @@ GetFees, GetFeesSchema = generate_model_schema(
 Fees, FeesSchema = generate_model_schema(
     name="Fees",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=FEES,
+    msg_type=PAYMENTS_FEES,
     schema={"total": fields.Float(required=True)},
 )
 
@@ -390,7 +390,7 @@ class GetFeesHandler(BaseHandler):
 Transfer, TransferSchema = generate_model_schema(
     name="Transfer",
     handler="acapy_plugin_toolbox.payments.TransferHandler",
-    msg_type=TRANSFER,
+    msg_type=PAYMENTS_TRANSFER,
     schema={
         "method": fields.Str(required=True),
         "from_address": fields.Str(required=True),
@@ -411,7 +411,7 @@ BaseReceiptSchema = Schema.from_dict(
 TransferComplete, TransferCompleteSchema = generate_model_schema(
     name="TransferComplete",
     handler="acapy_plugin_toolbox.payments.TransferCompleteHandler",
-    msg_type=TRANSFER_COMPLETE,
+    msg_type=PAYMENTS_TRANSFER_COMPLETE,
     schema={
         "from_address": fields.Str(required=True),
         "to_address": fields.Str(required=True),

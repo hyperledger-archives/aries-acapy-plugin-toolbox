@@ -19,20 +19,20 @@ from .util import generate_model_schema, admin_only
 
 PROTOCOL_URI = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1"
 
-SEND_SCHEMA = "{}/send-schema".format(PROTOCOL_URI)
-SCHEMA_ID = "{}/schema-id".format(PROTOCOL_URI)
-SCHEMA_GET = "{}/schema-get".format(PROTOCOL_URI)
-SCHEMA = "{}/schema".format(PROTOCOL_URI)
-SCHEMA_GET_LIST = "{}/schema-get-list".format(PROTOCOL_URI)
-SCHEMA_LIST = "{}/schema-list".format(PROTOCOL_URI)
+SCHEMAS_SEND_SCHEMA = "{}/send-schema".format(PROTOCOL_URI)
+SCHEMAS_SCHEMA_ID = "{}/schema-id".format(PROTOCOL_URI)
+SCHEMAS_SCHEMA_GET = "{}/schema-get".format(PROTOCOL_URI)
+SCHEMAS_SCHEMA = "{}/schema".format(PROTOCOL_URI)
+SCHEMAS_SCHEMA_GET_LIST = "{}/schema-get-list".format(PROTOCOL_URI)
+SCHEMAS_SCHEMA_LIST = "{}/schema-list".format(PROTOCOL_URI)
 
 MESSAGE_TYPES = {
-    SEND_SCHEMA: "acapy_plugin_toolbox.schemas" ".SendSchema",
-    SCHEMA_ID: "acapy_plugin_toolbox.schemas" ".SchemaID",
-    SCHEMA_GET: "acapy_plugin_toolbox.schemas" ".SchemaGet",
-    SCHEMA: "acapy_plugin_toolbox.schemas" ".Schema",
-    SCHEMA_GET_LIST: "acapy_plugin_toolbox.schemas" ".SchemaGetList",
-    SCHEMA_LIST: "acapy_plugin_toolbox.schemas" ".SchemaList",
+    SCHEMAS_SEND_SCHEMA: "acapy_plugin_toolbox.schemas" ".SendSchema",
+    SCHEMAS_SCHEMA_ID: "acapy_plugin_toolbox.schemas" ".SchemaID",
+    SCHEMAS_SCHEMA_GET: "acapy_plugin_toolbox.schemas" ".SchemaGet",
+    SCHEMAS_SCHEMA: "acapy_plugin_toolbox.schemas" ".Schema",
+    SCHEMAS_SCHEMA_GET_LIST: "acapy_plugin_toolbox.schemas" ".SchemaGetList",
+    SCHEMAS_SCHEMA_LIST: "acapy_plugin_toolbox.schemas" ".SchemaList",
 }
 
 
@@ -123,7 +123,7 @@ class SchemaRecordSchema(BaseRecordSchema):
 SendSchema, SendSchemaSchema = generate_model_schema(
     name="SendSchema",
     handler="acapy_plugin_toolbox.schemas.SendSchemaHandler",
-    msg_type=SEND_SCHEMA,
+    msg_type=SCHEMAS_SEND_SCHEMA,
     schema={
         "schema_name": fields.Str(required=True),
         "schema_version": fields.Str(required=True),
@@ -133,7 +133,7 @@ SendSchema, SendSchemaSchema = generate_model_schema(
 SchemaID, SchemaIDSchema = generate_model_schema(
     name="SchemaID",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=SCHEMA_ID,
+    msg_type=SCHEMAS_SCHEMA_ID,
     schema={"schema_id": fields.Str()},
 )
 
@@ -171,13 +171,13 @@ class SendSchemaHandler(BaseHandler):
 SchemaGet, SchemaGetSchema = generate_model_schema(
     name="SchemaGet",
     handler="acapy_plugin_toolbox.schemas.SchemaGetHandler",
-    msg_type=SCHEMA_GET,
+    msg_type=SCHEMAS_SCHEMA_GET,
     schema={"schema_id": fields.Str(required=True)},
 )
 Schema, SchemaSchema = generate_model_schema(
     name="Schema",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=SCHEMA,
+    msg_type=SCHEMAS_SCHEMA,
     schema=SchemaRecordSchema,
 )
 
@@ -221,14 +221,14 @@ class SchemaGetHandler(BaseHandler):
 SchemaGetList, SchemaGetListSchema = generate_model_schema(
     name="SchemaGetList",
     handler="acapy_plugin_toolbox.schemas.SchemaGetListHandler",
-    msg_type=SCHEMA_GET_LIST,
+    msg_type=SCHEMAS_SCHEMA_GET_LIST,
     schema={},
 )
 
 SchemaList, SchemaListSchema = generate_model_schema(
     name="SchemaList",
     handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=SCHEMA_LIST,
+    msg_type=SCHEMAS_SCHEMA_LIST,
     schema={"results": fields.List(fields.Nested(SchemaRecordSchema), required=True)},
 )
 
