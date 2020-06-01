@@ -34,7 +34,10 @@ MESSAGE_TYPES = {
 
 
 Get, GetSchema = generate_model_schema(
-    name="Get", handler="acapy_plugin_toolbox.taa.GetHandler", msg_type=GET, schema={}
+    name="Get",
+    handler="acapy_plugin_toolbox.taa.GetHandler",
+    msg_type=TAA_GET,
+    schema={},
 )
 
 
