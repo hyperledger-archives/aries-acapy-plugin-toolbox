@@ -24,10 +24,8 @@ from aries_cloudagent.storage.error import StorageNotFoundError
 
 from .util import generate_model_schema, admin_only
 
-PROTOCOL_URI = (
-    "https://github.com/hyperledger/aries-toolbox/"
-    "tree/master/docs/admin-connections/0.1"
-)
+PROTOCOL_URI = "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1"
+
 
 CONNECTIONS_NEW_GET_LIST = "{}/get-list".format(PROTOCOL_URI)
 CONNECTIONS_NEW_LIST = "{}/list".format(PROTOCOL_URI)
@@ -254,7 +252,7 @@ class ReceiveInvitationHandler(BaseHandler):
         connection_mgr = ConnectionManager(context)
         invitation = ConnectionInvitation.from_url(context.message.invitation)
         connection = await connection_mgr.receive_invitation(
-            invitation, accept=("auto" if context.message.auto_accept else "none")
+            invitation, auto_accept=("auto" if context.message.auto_accept else "none")
         )
         connection_resp = Connection(**conn_record_to_message_repr(connection))
         await responder.send_reply(connection_resp)

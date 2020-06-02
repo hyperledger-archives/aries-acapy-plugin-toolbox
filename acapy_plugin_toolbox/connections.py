@@ -135,7 +135,7 @@ CreateInvitation, CreateInvitationSchema = generate_model_schema(
     schema={
         "label": fields.Str(required=False),
         "role": fields.Str(required=False),
-        "accept": fields.Str(required=False, validate=validate.OneOf(["none", "auto"])),
+        "auto_accept": fields.Str(required=False, validate=validate.OneOf(["none", "auto"])),
         "public": fields.Boolean(missing=False),
         "multi_use": fields.Boolean(missing=False),
     },
@@ -177,7 +177,7 @@ class CreateInvitationHandler(BaseHandler):
         connection, invitation = await connection_mgr.create_invitation(
             my_label=context.message.label,
             their_role=context.message.role,
-            accept=context.message.accept,
+            auto_accept=context.message.auto_accept,
             multi_use=bool(context.message.multi_use),
             public=bool(context.message.public),
         )
@@ -196,7 +196,7 @@ ReceiveInvitation, ReceiveInvitationSchema = generate_model_schema(
     msg_type=CONNECTIONS_RECEIVE_INVITATION,
     schema={
         "invitation": fields.Str(required=True),
-        "accept": fields.Str(validate=validate.OneOf(["none", "auto"]), missing=False),
+        "auto_accept": fields.Str(validate=validate.OneOf(["none", "auto"]), missing=False),
     },
 )
 
@@ -210,7 +210,7 @@ class ReceiveInvitationHandler(BaseHandler):
         connection_mgr = ConnectionManager(context)
         invitation = ConnectionInvitation.from_url(context.message.invitation)
         connection = await connection_mgr.receive_invitation(
-            invitation, accept=context.message.accept
+            invitation, auto_accept=context.message.auto_accept
         )
         connection_resp = Connection(connection=connection)
         await responder.send_reply(connection_resp)
