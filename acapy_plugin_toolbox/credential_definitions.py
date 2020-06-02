@@ -26,20 +26,12 @@ from .schemas import SchemaRecord
 
 PROTOCOL_URI = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1"
 
-CREDENTIAL_DEFINITIONS_SEND_CRED_DEF = "{}/send-credential-definition".format(
-    PROTOCOL_URI
-)
-CREDENTIAL_DEFINITIONS_CRED_DEF_ID = "{}/credential-definition-id".format(PROTOCOL_URI)
-CREDENTIAL_DEFINITIONS_CRED_DEF_GET = "{}/credential-definition-get".format(
-    PROTOCOL_URI
-)
-CREDENTIAL_DEFINITIONS_CRED_DEF = "{}/credential-definition".format(PROTOCOL_URI)
-CREDENTIAL_DEFINITIONS_CRED_DEF_GET_LIST = "{}/credential-definition-get-list".format(
-    PROTOCOL_URI
-)
-CREDENTIAL_DEFINITIONS_CRED_DEF_LIST = "{}/credential-definition-list".format(
-    PROTOCOL_URI
-)
+CREDENTIAL_DEFINITIONS_SEND_CRED_DEF = f"{PROTOCOL_URI}/send-credential-definition"
+CREDENTIAL_DEFINITIONS_CRED_DEF_ID = f"{PROTOCOL_URI}/credential-definition-id"
+CREDENTIAL_DEFINITIONS_CRED_DEF_GET = f"{PROTOCOL_URI}/credential-definition-get"
+CREDENTIAL_DEFINITIONS_CRED_DEF = f"{PROTOCOL_URI}/credential-definition"
+CREDENTIAL_DEFINITIONS_CRED_DEF_GET_LIST = f"{PROTOCOL_URI}/credential-definition-get-list"
+CREDENTIAL_DEFINITIONS_CRED_DEF_LIST = f"{PROTOCOL_URI}/credential-definition-list"
 
 MESSAGE_TYPES = {
     CREDENTIAL_DEFINITIONS_SEND_CRED_DEF: "acapy_plugin_toolbox.credential_definitions.SendCredDef",

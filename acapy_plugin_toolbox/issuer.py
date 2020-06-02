@@ -31,7 +31,7 @@ from aries_cloudagent.protocols.issue_credential.v1_0.messages.inner.credential_
 )
 from aries_cloudagent.protocols.present_proof.v1_0.routes import (
     V10PresentationExchangeListSchema,
-    V10PresentationRequestRequestSchema,
+    IndyProofRequestSchema,
 )
 from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import (
     V10PresentationExchange,
@@ -45,6 +45,7 @@ from aries_cloudagent.protocols.issue_credential.v1_0.manager import CredentialM
 from aries_cloudagent.connections.models.connection_record import ConnectionRecord
 from aries_cloudagent.storage.error import StorageNotFoundError
 from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
+from aries_cloudagent.utils.tracing import AdminAPIMessageTracingSchema
 
 from .util import generate_model_schema, admin_only
 
@@ -138,6 +139,16 @@ class SendCredHandler(BaseHandler):
         cred_exchange.assign_thread_from(context.message)
         await responder.send_reply(cred_exchange)
 
+
+## class from acapy 0.4
+class V10PresentationRequestRequestSchema(AdminAPIMessageTracingSchema):
+    """Request schema for sending a proof request."""
+
+    connection_id = fields.UUID(
+        description="Connection identifier", required=True
+    )
+    proof_request = fields.Nested(IndyProofRequestSchema(), required=True)
+    comment = fields.Str(required=False)
 
 RequestPres, RequestPresSchema = generate_model_schema(
     name="RequestPres",
