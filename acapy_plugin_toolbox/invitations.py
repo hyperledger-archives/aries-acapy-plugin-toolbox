@@ -1,8 +1,5 @@
 """Define messages for connections admin protocol."""
 
-# pylint: disable=invalid-name
-# pylint: disable=too-few-public-methods
-
 from marshmallow import Schema, fields
 
 from aries_cloudagent.config.injection_context import InjectionContext
@@ -22,10 +19,7 @@ from aries_cloudagent.messaging.valid import INDY_ISO8601_DATETIME
 
 from .util import generate_model_schema, admin_only
 
-PROTOCOL_URI = (
-    "https://github.com/hyperledger/aries-toolbox/"
-    "tree/master/docs/admin-invitations/0.1"
-)
+PROTOCOL_URI = "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1"
 
 # Message Types
 INVITATIONS_INVITATION_GET_LIST = "{}/get-list".format(PROTOCOL_URI)
@@ -35,11 +29,9 @@ INVITATIONS_INVITATION = "{}/invitation".format(PROTOCOL_URI)
 
 # Message Type string to Message Class map
 MESSAGE_TYPES = {
-    INVITATIONS_CREATE_INVITATION: "acapy_plugin_toolbox.invitations"
-    ".CreateInvitation",
-    INVITATIONS_INVITATION_GET_LIST: "acapy_plugin_toolbox.invitations"
-    ".InvitationGetList",
-    INVITATIONS_INVITATION: "acapy_plugin_toolbox.invitations" ".Invitation",
+    INVITATIONS_CREATE_INVITATION: "acapy_plugin_toolbox.invitations.CreateInvitation",
+    INVITATIONS_INVITATION_GET_LIST: "acapy_plugin_toolbox.invitations.InvitationGetList",
+    INVITATIONS_INVITATION: "acapy_plugin_toolbox.invitations.Invitation",
 }
 
 
@@ -106,7 +98,7 @@ class CreateInvitationHandler(BaseHandler):
         connection, invitation = await connection_mgr.create_invitation(
             my_label=context.message.label,
             their_role=context.message.role,
-            accept="auto" if context.message.auto_accept else "none",
+            auto_accept="auto" if context.message.auto_accept else "none",
             multi_use=bool(context.message.multi_use),
             public=False,
             alias=context.message.alias,
