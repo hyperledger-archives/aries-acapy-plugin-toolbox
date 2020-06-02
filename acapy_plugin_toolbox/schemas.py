@@ -27,12 +27,12 @@ SCHEMAS_SCHEMA_GET_LIST = "{}/schema-get-list".format(PROTOCOL_URI)
 SCHEMAS_SCHEMA_LIST = "{}/schema-list".format(PROTOCOL_URI)
 
 MESSAGE_TYPES = {
-    SCHEMAS_SEND_SCHEMA: "acapy_plugin_toolbox.schemas" ".SendSchema",
-    SCHEMAS_SCHEMA_ID: "acapy_plugin_toolbox.schemas" ".SchemaID",
-    SCHEMAS_SCHEMA_GET: "acapy_plugin_toolbox.schemas" ".SchemaGet",
-    SCHEMAS_SCHEMA: "acapy_plugin_toolbox.schemas" ".Schema",
-    SCHEMAS_SCHEMA_GET_LIST: "acapy_plugin_toolbox.schemas" ".SchemaGetList",
-    SCHEMAS_SCHEMA_LIST: "acapy_plugin_toolbox.schemas" ".SchemaList",
+    SCHEMAS_SEND_SCHEMA: "acapy_plugin_toolbox.schemas.SendSchema",
+    SCHEMAS_SCHEMA_ID: "acapy_plugin_toolbox.schemas.SchemaID",
+    SCHEMAS_SCHEMA_GET: "acapy_plugin_toolbox.schemas.SchemaGet",
+    SCHEMAS_SCHEMA: "acapy_plugin_toolbox.schemas.Schema",
+    SCHEMAS_SCHEMA_GET_LIST: "acapy_plugin_toolbox.schemas.SchemaGetList",
+    SCHEMAS_SCHEMA_LIST: "acapy_plugin_toolbox.schemas.SchemaList",
 }
 
 

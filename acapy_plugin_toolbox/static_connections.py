@@ -36,14 +36,10 @@ STATIC_CONNECTIONS_LIST = "{}/static-connection-list".format(PROTOCOL_URI)
 
 # Message Type to Message Class Map
 MESSAGE_TYPES = {
-    STATIC_CONNECTIONS_CREATE: "acapy_plugin_toolbox.static_connections"
-    ".CreateStaticConnection",
-    STATIC_CONNECTIONS_INFO: "acapy_plugin_toolbox.static_connections"
-    ".StaticConnectionInfo",
-    STATIC_CONNECTIONS_GET_LIST: "acapy_plugin_toolbox.static_connections"
-    ".StaticConnectionGetList",
-    STATIC_CONNECTIONS_LIST: "acapy_plugin_toolbox.static_connections"
-    ".StaticConnectionList",
+    STATIC_CONNECTIONS_CREATE: "acapy_plugin_toolbox.static_connections.CreateStaticConnection",
+    STATIC_CONNECTIONS_INFO: "acapy_plugin_toolbox.static_connections.StaticConnectionInfo",
+    STATIC_CONNECTIONS_GET_LIST: "acapy_plugin_toolbox.static_connections.StaticConnectionGetList",
+    STATIC_CONNECTIONS_LIST: "acapy_plugin_toolbox.static_connections.StaticConnectionList",
 }
 
 

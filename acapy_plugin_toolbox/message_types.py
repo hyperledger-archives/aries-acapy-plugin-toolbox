@@ -5,7 +5,6 @@ from .credential_definitions import MESSAGE_TYPES as CREDENTIAL_DEFINITIONS_MESS
 from .dids import MESSAGE_TYPES as DIDS_MESSAGE_TYPES
 from .holder import MESSAGE_TYPES as HOLDER_MESSAGE_TYPES
 from .invitations import MESSAGE_TYPES as INVITATIONS_MESSAGE_TYPES
-
 from .issuer import MESSAGE_TYPES as ISSUER_MESSAGE_TYPES
 from .payments import MESSAGE_TYPES as PAYMENTS_MESSAGE_TYPES
 from .schemas import MESSAGE_TYPES as SCHEMAS_MESSAGE_TYPES
