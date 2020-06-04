@@ -14,6 +14,7 @@ from aries_cloudagent.messaging.models.base_record import BaseRecord, BaseRecord
 from aries_cloudagent.ledger.base import BaseLedger
 from aries_cloudagent.storage.error import StorageNotFoundError
 from aries_cloudagent.config.injection_context import InjectionContext
+from aries_cloudagent.issuer.base import BaseIssuer
 
 from .util import generate_model_schema, admin_only
 
@@ -92,10 +93,10 @@ class SchemaRecord(BaseRecord):
             )
         }
 
-    @property
-    def record_tags(self) -> dict:
-        """Get tags for record."""
-        return {prop: getattr(self, prop) for prop in ("schema_id",)}
+    # @property
+    # def record_tags(self) -> dict:
+    #     """Get tags for record."""
+    #     return {prop: getattr(self, prop) for prop in ("schema_id",)}
 
     @classmethod
     async def retrieve_by_schema_id(
@@ -145,9 +146,11 @@ class SendSchemaHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received send schema request."""
         ledger: BaseLedger = await context.inject(BaseLedger)
+        issuer: BaseIssuer = await context.inject(BaseIssuer)
         async with ledger:
             schema_id = await shield(
-                ledger.send_schema(
+                ledger.create_and_send_schema(
+                    issuer,
                     context.message.schema_name,
                     context.message.schema_version,
                     context.message.attributes,
