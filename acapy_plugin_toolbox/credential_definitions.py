@@ -20,6 +20,7 @@ from aries_cloudagent.ledger.base import BaseLedger
 from aries_cloudagent.storage.error import StorageNotFoundError
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.messaging.util import canon
+from aries_cloudagent.issuer.base import BaseIssuer
 
 from .util import generate_model_schema, admin_only
 from .schemas import SchemaRecord
@@ -86,14 +87,17 @@ class CredDefRecord(BaseRecord):
     @property
     def record_value(self) -> dict:
         """Get record value."""
-        return {"attributes": self.attributes}
+        return {
+            "attributes": self.attributes, "cred_def_id": self.cred_def_id, 
+            "schema_id": self.schema_id, "state": self.state, "author": self.author}
 
     @property
     def record_tags(self) -> dict:
-        """Get tags for record."""
+        """Accessor to define implementation-specific tags."""
         return {
-            prop: getattr(self, prop)
-            for prop in ("cred_def_id", "schema_id", "state", "author",)
+            tag: getattr(self, prop)
+            for (prop, tag) in self.get_tag_map().items()
+            if getattr(self, prop) is not None
         }
 
     @classmethod
@@ -140,6 +144,7 @@ class SendCredDefHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received send cred def request."""
         ledger: BaseLedger = await context.inject(BaseLedger)
+        issuer: BaseIssuer = await context.inject(BaseIssuer)
         # If no schema record, make one
         try:
             schema_record = await SchemaRecord.retrieve_by_schema_id(
@@ -164,8 +169,9 @@ class SendCredDefHandler(BaseHandler):
 
         try:
             async with ledger:
-                credential_definition_id = await shield(
-                    ledger.send_credential_definition(
+                credential_definition_id, credential_definition= await shield(
+                    ledger.create_and_send_credential_definition(
+                        issuer,
                         context.message.schema_id,
                         tag="{}_{}".format(
                             schema_record.schema_name, schema_record.schema_version
@@ -289,7 +295,7 @@ class CredDefGetListHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle get schema list request."""
-        records = await CredDefRecord.query(context, {})
+        records = await CredDefRecord.query(context, None)
         cred_def_list = CredDefList(results=records)
         cred_def_list.assign_thread_from(context.message)
         await responder.send_reply(cred_def_list)
