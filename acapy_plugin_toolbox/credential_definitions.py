@@ -91,15 +91,6 @@ class CredDefRecord(BaseRecord):
             "attributes": self.attributes, "cred_def_id": self.cred_def_id, 
             "schema_id": self.schema_id, "state": self.state, "author": self.author}
 
-    @property
-    def record_tags(self) -> dict:
-        """Accessor to define implementation-specific tags."""
-        return {
-            tag: getattr(self, prop)
-            for (prop, tag) in self.get_tag_map().items()
-            if getattr(self, prop) is not None
-        }
-
     @classmethod
     async def retrieve_by_cred_def_id(
         cls, context: InjectionContext, cred_def_id: str

@@ -88,6 +88,7 @@ class SchemaRecord(BaseRecord):
                 "attributes",
                 "schema_name",
                 "schema_version",
+                "schema_id",
                 "state",
                 "author",
             )
@@ -184,7 +185,6 @@ Schema, SchemaSchema = generate_model_schema(
     schema=SchemaRecordSchema,
 )
 
-
 class SchemaGetHandler(BaseHandler):
     """Handler for received schema get request."""
 
@@ -243,6 +243,13 @@ class SchemaGetListHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle get schema list request."""
         records = await SchemaRecord.query(context, {})
-        schema_list = SchemaList(results=records)
+        # Note(Kkrz): hack alert, for some reason schema id returns 
+        # a list of all the schema attributes
+        for record in records:
+            record.schema_id = record.schema_id[0]
+
+        schema_list = SchemaList(
+            results=records
+        )
         schema_list.assign_thread_from(context.message)
         await responder.send_reply(schema_list)
