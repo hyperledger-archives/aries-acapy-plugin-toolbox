@@ -21,8 +21,8 @@ from aries_cloudagent.messaging.models.base_record import (
     BaseRecord, BaseRecordSchema
 )
 from aries_cloudagent.messaging.valid import INDY_ISO8601_DATETIME
-from aries_cloudagent.protocols.connections.manager import ConnectionManager
-from aries_cloudagent.protocols.problem_report.message import ProblemReport
+from aries_cloudagent.protocols.connections.v1_0.manager import ConnectionManager
+from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from aries_cloudagent.storage.error import StorageNotFoundError
 
 from .util import (

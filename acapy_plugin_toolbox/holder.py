@@ -36,7 +36,7 @@ from aries_cloudagent.protocols.present_proof.v1_0.manager import PresentationMa
 
 from aries_cloudagent.connections.models.connection_record import ConnectionRecord
 from aries_cloudagent.storage.error import StorageNotFoundError
-from aries_cloudagent.protocols.problem_report.message import ProblemReport
+from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 
 from .util import generate_model_schema, admin_only
 PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1'

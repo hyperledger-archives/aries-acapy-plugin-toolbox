@@ -10,14 +10,14 @@ from marshmallow import Schema, fields, validate
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
-from aries_cloudagent.protocols.connections.manager import ConnectionManager
+from aries_cloudagent.protocols.connections.v1_0.manager import ConnectionManager
 from aries_cloudagent.connections.models.connection_record import (
     ConnectionRecord
 )
-from aries_cloudagent.protocols.connections.messages.connection_invitation import (
+from aries_cloudagent.protocols.connections.v1_0.messages.connection_invitation import (
     ConnectionInvitation,
 )
-from aries_cloudagent.protocols.problem_report.message import ProblemReport
+from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from aries_cloudagent.storage.error import StorageNotFoundError
 
 from .util import generate_model_schema, admin_only
