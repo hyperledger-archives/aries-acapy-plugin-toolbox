@@ -238,7 +238,7 @@ class BasicMessageHandler(BaseHandler):
 
         connection_mgr = ConnectionManager(context)
         admins = await ConnectionRecord.query(
-            context, post_filter={'their_role': 'admin'}
+            context, post_filter_positive={'their_role': 'admin'}
         )
 
         if not admins:

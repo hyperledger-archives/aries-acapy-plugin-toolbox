@@ -201,7 +201,7 @@ class StaticConnectionGetListHandler(BaseHandler):
                     'their_did': context.message.their_did,
                 }.items())
             )
-            post_filter = dict(
+            post_filter_positive = dict(
                 filter(lambda item: item[1] is not None, {
                     'initiator': context.message.initiator,
                     'invitation_key': context.message.invitation_key,
@@ -209,7 +209,7 @@ class StaticConnectionGetListHandler(BaseHandler):
                     'their_role': context.message.their_role
                 }.items())
             )
-            records = await ConnectionRecord.query(context, tag_filter, post_filter)
+            records = await ConnectionRecord.query(context, tag_filter, post_filter_positive)
         except StorageNotFoundError:
             report = ProblemReport(
                 explain_ltxt='Connection not found.',

@@ -153,7 +153,7 @@ class GetListHandler(BaseHandler):
                 'their_did': context.message.their_did,
             }.items())
         )
-        post_filter = dict(filter(
+        post_filter_positive = dict(filter(
             lambda item: item[1] is not None,
             {
                 'their_role': context.message.role
@@ -161,7 +161,7 @@ class GetListHandler(BaseHandler):
         ))
         # TODO: Filter on state (needs mapping back to ACA-Py connection states)
         records = await ConnectionRecord.query(
-            context, tag_filter, post_filter
+            context, tag_filter, post_filter_positive
         )
         results = [
             Connection(**conn_record_to_message_repr(record))

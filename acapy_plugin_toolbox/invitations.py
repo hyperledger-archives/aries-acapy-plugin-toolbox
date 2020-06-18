@@ -161,7 +161,7 @@ class InvitationGetListHandler(BaseHandler):
 
             }.items())
         )
-        post_filter = dict(filter(
+        post_filter_positive = dict(filter(
             lambda item: item[1] is not None,
             {
                 'state': 'invitation',
@@ -170,7 +170,7 @@ class InvitationGetListHandler(BaseHandler):
             }.items()
         ))
         records = await ConnectionRecord.query(
-            context, tag_filter, post_filter
+            context, tag_filter, post_filter_positive
         )
         results = []
         for connection in records:
