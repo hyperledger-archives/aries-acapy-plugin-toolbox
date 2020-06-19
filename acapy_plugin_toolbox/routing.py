@@ -14,7 +14,7 @@ from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, 
 from aries_cloudagent.messaging.decorators.attach_decorator import AttachDecorator
 from aries_cloudagent.messaging.credential_definitions.util import CRED_DEF_TAGS
 from aries_cloudagent.protocols.routing.v1_0.manager import RoutingManager
-from aries_cloudagent.protocols.routing.models.route_record import RouteRecord, RouteRecordSchema
+from aries_cloudagent.protocols.routing.v1_0.models.route_record import RouteRecord, RouteRecordSchema
 
 from aries_cloudagent.connections.models.connection_record import ConnectionRecord
 from aries_cloudagent.storage.error import StorageNotFoundError
@@ -28,7 +28,7 @@ ROUTES_LIST = '{}/routes_list'.format(PROTOCOL)
 
 MESSAGE_TYPES = {
     ROUTES_LIST_GET:
-        'acapy_plugin_toolbox.routing.RoutesList',
+        'acapy_plugin_toolbox.routing.RoutesListGet',
 }
 
 
@@ -88,4 +88,5 @@ class RoutesListHandler(BaseHandler):
 
         } for r in routes] #await V10PresentationExchange.query(context, {}, post_filter_positive)
         list = RoutesList(results=records)
+        list.assign_thread_from(context.message)
         await responder.send_reply(list)

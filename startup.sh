@@ -10,6 +10,7 @@ aca-py start \
     --genesis-url https://raw.githubusercontent.com/sovrin-foundation/sovrin/master/sovrin/pool_transactions_sandbox_genesis \
     --wallet-type indy \
     --plugin acapy_plugin_toolbox \
+    --log-level ERROR \
     --debug-connections \
     --debug-credentials \
     --debug-presentations \
