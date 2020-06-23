@@ -9,6 +9,9 @@ services:
       NGROK_NAME: ngrok-alice
       AGENT_NAME: Alice
       PORT: 3000
+      ADMIN_PORT: 3001
+    ports:
+      - "3001:3001"
 
   ngrok-bob:
     image: wernight/ngrok
@@ -19,3 +22,6 @@ services:
       NGROK_NAME: ngrok-bob
       AGENT_NAME: Bob
       PORT: 3000
+      ADMIN_PORT: 3002
+    ports:
+      - "3002:3002"
