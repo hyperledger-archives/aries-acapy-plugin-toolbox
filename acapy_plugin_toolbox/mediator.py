@@ -28,7 +28,7 @@ ROUTES_LIST = '{}/routes_list'.format(PROTOCOL)
 
 MESSAGE_TYPES = {
     ROUTES_LIST_GET:
-        'acapy_plugin_toolbox.routing.RoutesListGet',
+        'acapy_plugin_toolbox.mediator.RoutesListGet',
 }
 
 
@@ -46,7 +46,7 @@ async def setup(
 
 RoutesListGet, RoutesListGetSchema = generate_model_schema(
     name='RoutesListGet',
-    handler='acapy_plugin_toolbox.routing.RoutesListHandler',
+    handler='acapy_plugin_toolbox.mediator.RoutesListHandler',
     msg_type=ROUTES_LIST_GET,
     schema={
     }
