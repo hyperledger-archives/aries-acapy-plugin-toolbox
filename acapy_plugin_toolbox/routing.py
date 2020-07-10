@@ -36,11 +36,9 @@ from .util import (
 ADMIN_PROTOCOL_URI = "https://github.com/hyperledger/" \
     "aries-toolbox/tree/master/docs/admin-routing/0.1"
 SEND_UPDATE = f"{ADMIN_PROTOCOL_URI}/send_update"
-SEND_QUERY = f"{ADMIN_PROTOCOL_URI}/sent_query"
 
 MESSAGE_TYPES = {
     SEND_UPDATE: 'acapy_plugin_toolbox.routing.SendUpdate',
-    SEND_Query: 'acapy_plugin_toolbox.routing.SendQuery',
 }
 
 
@@ -85,32 +83,5 @@ class SendUpdateHandler(BaseHandler):
         # TODO make sure connection_id is valid, fail gracefully
         await responder.send(
             update_msg,
-            connection_id=context.message.connection_id,
-        )
-
-SendQuery, SendQuerySchema = generate_model_schema(
-    name='SendQuery',
-    handler='acapy_plugin_toolbox.routing.SendQueryHandler',
-    msg_type=SEND_QUERY,
-    schema={
-        'connection_id': fields.Str(required=True)
-    }
-)
-
-
-class SendQueryHandler(BaseHandler):
-    """Handler for received delete requests."""
-
-    @admin_only
-    async def handle(self, context: RequestContext, responder: BaseResponder):
-        """Handle received delete requests."""
-
-        msg = RouteQueryRequest(
-            # not including limiting details at this point
-        )
-
-        # TODO make sure connection_id is valid, fail gracefully
-        await responder.send(
-            msg,
             connection_id=context.message.connection_id,
         )
