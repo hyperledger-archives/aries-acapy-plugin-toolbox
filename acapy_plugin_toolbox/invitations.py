@@ -123,7 +123,7 @@ class CreateInvitationHandler(BaseHandler):
         connection, invitation = await connection_mgr.create_invitation(
             my_label=context.message.label,
             their_role=context.message.role,
-            accept="auto" if context.message.auto_accept else "none",
+            auto_accept=context.message.auto_accept,
             multi_use=bool(context.message.multi_use),
             public=False,
             alias=context.message.alias,
