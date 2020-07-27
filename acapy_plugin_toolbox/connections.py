@@ -294,7 +294,7 @@ class ReceiveInvitationHandler(BaseHandler):
         invitation = ConnectionInvitation.from_url(context.message.invitation)
         connection = await connection_mgr.receive_invitation(
             invitation,
-            accept=('auto' if context.message.auto_accept else 'none')
+            auto_accept=context.message.auto_accept
         )
         connection_resp = Connection(**conn_record_to_message_repr(connection))
         await responder.send_reply(connection_resp)
