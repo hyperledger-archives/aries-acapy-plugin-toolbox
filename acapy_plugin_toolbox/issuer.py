@@ -30,7 +30,7 @@ from aries_cloudagent.protocols.issue_credential.v1_0.messages.inner.credential_
 )
 from aries_cloudagent.protocols.present_proof.v1_0.routes import (
     V10PresentationExchangeListSchema,
-    V10PresentationRequestSchema
+    V10PresentationSendRequestRequestSchema
 )
 from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import (
     V10PresentationExchange,
@@ -161,7 +161,7 @@ RequestPres, RequestPresSchema = generate_model_schema(
     name='RequestPres',
     handler='acapy_plugin_toolbox.issuer.RequestPresHandler',
     msg_type=REQUEST_PRESENTATION,
-    schema=V10PresentationRequestSchema,
+    schema=V10PresentationSendRequestRequestSchema,
 )
 IssuerPresExchange, IssuerPresExchangeSchema = generate_model_schema(
     name='IssuerPresExchange',
