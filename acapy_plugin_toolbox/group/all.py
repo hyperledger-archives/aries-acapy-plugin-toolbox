@@ -12,8 +12,10 @@ from ..holder import setup as holder_setup
 from ..issuer import setup as issuer_setup
 from ..basicmessage import setup as basic_message_setup
 from ..taa import setup as taa_setup
-from ..payments import setup as payment_setup
+#from ..payments import setup as payment_setup
 from ..invitations import setup as invitations_setup
+from ..mediator import setup as mediator_setup
+from ..routing import setup as routing_setup
 
 async def setup(context: InjectionContext):
     """Setup Toolbox Plugin."""
@@ -27,5 +29,7 @@ async def setup(context: InjectionContext):
     await issuer_setup(context, protocol_registry)
     await basic_message_setup(context, protocol_registry)
     await taa_setup(context, protocol_registry)
-    await payment_setup(context, protocol_registry)
+#    await payment_setup(context, protocol_registry)
     await invitations_setup(context, protocol_registry)
+    await mediator_setup(context, protocol_registry)
+    await routing_setup(context, protocol_registry)

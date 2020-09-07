@@ -10,12 +10,12 @@ from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler, BaseResponder, RequestContext
 )
-from aries_cloudagent.protocols.connections.manager import ConnectionManager
+from aries_cloudagent.protocols.connections.v1_0.manager import ConnectionManager
 from aries_cloudagent.connections.models.connection_record import (
     ConnectionRecord
 )
 # ProblemReport will probably be needed when a delete message is implemented
-# from aries_cloudagent.protocols.problem_report.message import ProblemReport
+# from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from aries_cloudagent.storage.error import StorageNotFoundError
 from aries_cloudagent.messaging.valid import INDY_ISO8601_DATETIME
 
@@ -123,7 +123,7 @@ class CreateInvitationHandler(BaseHandler):
         connection, invitation = await connection_mgr.create_invitation(
             my_label=context.message.label,
             their_role=context.message.role,
-            accept="auto" if context.message.auto_accept else "none",
+            auto_accept=context.message.auto_accept,
             multi_use=bool(context.message.multi_use),
             public=False,
             alias=context.message.alias,
@@ -161,7 +161,7 @@ class InvitationGetListHandler(BaseHandler):
 
             }.items())
         )
-        post_filter = dict(filter(
+        post_filter_positive = dict(filter(
             lambda item: item[1] is not None,
             {
                 'state': 'invitation',
@@ -170,7 +170,7 @@ class InvitationGetListHandler(BaseHandler):
             }.items()
         ))
         records = await ConnectionRecord.query(
-            context, tag_filter, post_filter
+            context, tag_filter, post_filter_positive
         )
         results = []
         for connection in records:

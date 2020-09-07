@@ -30,7 +30,7 @@ from aries_cloudagent.protocols.issue_credential.v1_0.messages.inner.credential_
 )
 from aries_cloudagent.protocols.present_proof.v1_0.routes import (
     V10PresentationExchangeListSchema,
-    V10PresentationRequestRequestSchema
+    V10PresentationSendRequestRequestSchema
 )
 from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import (
     V10PresentationExchange,
@@ -41,7 +41,7 @@ from aries_cloudagent.protocols.present_proof.v1_0.manager import PresentationMa
 from aries_cloudagent.protocols.issue_credential.v1_0.manager import CredentialManager
 from aries_cloudagent.connections.models.connection_record import ConnectionRecord
 from aries_cloudagent.storage.error import StorageNotFoundError
-from aries_cloudagent.protocols.problem_report.message import ProblemReport
+from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 
 from .util import generate_model_schema, admin_only
 PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1'
@@ -161,7 +161,7 @@ RequestPres, RequestPresSchema = generate_model_schema(
     name='RequestPres',
     handler='acapy_plugin_toolbox.issuer.RequestPresHandler',
     msg_type=REQUEST_PRESENTATION,
-    schema=V10PresentationRequestRequestSchema,
+    schema=V10PresentationSendRequestRequestSchema,
 )
 IssuerPresExchange, IssuerPresExchangeSchema = generate_model_schema(
     name='IssuerPresExchange',
@@ -260,7 +260,7 @@ class CredGetListHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received get cred list request."""
 
-        post_filter = dict(
+        post_filter_positive = dict(
             filter(lambda item: item[1] is not None, {
                 # 'state': V10CredentialExchange.STATE_ISSUED,
                 'role': V10CredentialExchange.ROLE_ISSUER,
@@ -269,7 +269,7 @@ class CredGetListHandler(BaseHandler):
                 'schema_id': context.message.schema_id
             }.items())
         )
-        records = await V10CredentialExchange.query(context, {}, post_filter)
+        records = await V10CredentialExchange.query(context, {}, post_filter_positive)
         cred_list = CredList(results=records)
         await responder.send_reply(cred_list)
 
@@ -302,7 +302,7 @@ class PresGetListHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received get cred list request."""
 
-        post_filter = dict(
+        post_filter_positive = dict(
             filter(lambda item: item[1] is not None, {
                 # 'state': V10PresentialExchange.STATE_CREDENTIAL_RECEIVED,
                 'role': V10PresentationExchange.ROLE_VERIFIER,
@@ -310,6 +310,6 @@ class PresGetListHandler(BaseHandler):
                 'verified': context.message.verified,
             }.items())
         )
-        records = await V10PresentationExchange.query(context, {}, post_filter)
+        records = await V10PresentationExchange.query(context, {}, post_filter_positive)
         cred_list = PresList(results=records)
         await responder.send_reply(cred_list)

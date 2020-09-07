@@ -14,7 +14,7 @@ from aries_cloudagent.messaging.agent_message import (
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler, BaseResponder, RequestContext
 )
-from aries_cloudagent.protocols.problem_report.message import (
+from aries_cloudagent.protocols.problem_report.v1_0.message import (
     ProblemReport
 )
 

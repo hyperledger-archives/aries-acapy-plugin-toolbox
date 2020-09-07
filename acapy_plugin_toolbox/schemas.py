@@ -12,6 +12,7 @@ from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
 from aries_cloudagent.messaging.models.base_record import BaseRecord, BaseRecordSchema
 from aries_cloudagent.ledger.base import BaseLedger
+from aries_cloudagent.issuer.base import BaseIssuer
 from aries_cloudagent.storage.error import StorageNotFoundError
 from aries_cloudagent.config.injection_context import InjectionContext
 
@@ -179,14 +180,17 @@ class SendSchemaHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received send schema request."""
         ledger: BaseLedger = await context.inject(BaseLedger)
+        issuer: BaseIssuer = await context.inject(BaseIssuer)
         async with ledger:
-            schema_id = await shield(
-                ledger.send_schema(
+            schema_id, schema_def = await shield(
+                ledger.create_and_send_schema(
+                    issuer,
                     context.message.schema_name,
                     context.message.schema_version,
                     context.message.attributes
                 )
             )
+        # Note: We may not need to save the schema as done below.
         schema = SchemaRecord(
             schema_id=schema_id,
             schema_name=context.message.schema_name,

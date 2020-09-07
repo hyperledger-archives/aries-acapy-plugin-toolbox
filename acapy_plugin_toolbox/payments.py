@@ -21,7 +21,7 @@ from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler, BaseResponder, RequestContext
 )
-from aries_cloudagent.protocols.problem_report.message import ProblemReport
+from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from aries_cloudagent.wallet.base import BaseWallet
 from .util import generate_model_schema, admin_only
 

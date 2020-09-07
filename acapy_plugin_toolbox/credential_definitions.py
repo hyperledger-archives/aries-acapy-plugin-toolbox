@@ -11,8 +11,9 @@ from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
 from aries_cloudagent.messaging.models.base_record import BaseRecord, BaseRecordSchema
-from aries_cloudagent.protocols.problem_report.message import ProblemReport
+from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from aries_cloudagent.ledger.base import BaseLedger
+from aries_cloudagent.issuer.base import BaseIssuer
 from aries_cloudagent.storage.error import StorageNotFoundError
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.messaging.util import canon
@@ -168,6 +169,7 @@ class SendCredDefHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received send cred def request."""
         ledger: BaseLedger = await context.inject(BaseLedger)
+        issuer: BaseIssuer = await context.inject(BaseIssuer)
         # If no schema record, make one
         try:
             schema_record = await SchemaRecord.retrieve_by_schema_id(
@@ -193,8 +195,9 @@ class SendCredDefHandler(BaseHandler):
 
         try:
             async with ledger:
-                credential_definition_id = await shield(
-                    ledger.send_credential_definition(
+                credential_definition_id, credential_definition = await shield(
+                    ledger.create_and_send_credential_definition(
+                        issuer,
                         context.message.schema_id,
                         tag='{}_{}'.format(
                             schema_record.schema_name,
@@ -210,6 +213,7 @@ class SendCredDefHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
+        # we may not need to save the record as below
         cred_def_record = CredDefRecord(
             cred_def_id=credential_definition_id,
             schema_id=context.message.schema_id,
