@@ -128,6 +128,14 @@ def generate_model_schema(  # pylint: disable=protected-access
         __module__ = sys._getframe(2).f_globals['__name__']
         __init__ = init if init else generic_init
 
+        @property
+        def _type(self):
+            """
+            Override default _type method to ensure incorrect DIDComm Prefix
+            is not prepended to all our message types.
+            """
+            return self.Meta.message_type
+
         class Meta:
             """Generated Meta."""
             __qualname__ = name + '.Meta'
