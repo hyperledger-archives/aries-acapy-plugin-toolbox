@@ -21,11 +21,10 @@ from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from .util import generate_model_schema, admin_only
 PROTOCOL = 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-mediator/0.1'
 
-KEYLISTS_GET = '{}/keylists-get'.format(PROTOCOL)
-KEYLISTS = '{}/keylists'.format(PROTOCOL)
-
-MEDIATION_REQUESTS_GET = '{}/mediation-requests-get'.format(PROTOCOL)
-MEDIATION_REQUESTS = '{}/mediation-requests'.format(PROTOCOL)
+KEYLISTS_GET = f'{PROTOCOL}/keylists-get'
+KEYLISTS = f'{PROTOCOL}/keylists'
+MEDIATION_REQUESTS_GET = f'{PROTOCOL}/mediation-requests-get'
+MEDIATION_REQUESTS = f'{PROTOCOL}/mediation-requests'
 
 MESSAGE_TYPES = {
     MEDIATION_REQUESTS_GET:
