@@ -16,4 +16,5 @@ aca-py start \
     --debug-credentials \
     --debug-presentations \
     --enable-undelivered-queue \
+    --open-mediation \
     "$@"

@@ -1,4 +1,4 @@
-aries-cloudagent[indy]@git+https://github.com/hyperledger/aries-cloudagent-python@0.5.3
-marshmallow==3.0.0
+aries-cloudagent[indy]@git+https://github.com/dbluhm/aries-cloudagent-python@feature/mediator-coordination
+marshmallow==3.5.1
 flake8
 python-dateutil

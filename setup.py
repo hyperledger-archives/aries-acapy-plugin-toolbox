@@ -18,7 +18,7 @@ if __name__ == '__main__':
         version='0.1.0',
         author='Daniel Bluhm <daniel.bluhm@sovrin.org>, '
                'Sam Curren <sam@sovrin.org>, '
-               'Adam Burdett <adam@sovrin.org, '
+               'Adam Burdett <burdettadam@gmail.com, '
                'Mike Lodder <mike@sovrin.org>',
         description='Aries Cloud Agent - Python Plugin for Aries Toolbox',
         long_description=LONG_DESCRIPTION,
