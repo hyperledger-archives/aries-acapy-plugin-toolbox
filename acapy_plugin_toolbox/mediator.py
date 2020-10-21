@@ -25,16 +25,22 @@ KEYLISTS_GET = f'{PROTOCOL}/keylists-get'
 KEYLISTS = f'{PROTOCOL}/keylists'
 MEDIATION_REQUESTS_GET = f'{PROTOCOL}/mediation-requests-get'
 MEDIATION_REQUESTS = f'{PROTOCOL}/mediation-requests'
+MEDIATION_GRANT = f'{PROTOCOL}/mediate-grant'
+MEDIATION_DENY = f'{PROTOCOL}/mediate-deny'
 
 MESSAGE_TYPES = {
-    MEDIATION_REQUESTS_GET:
+    MEDIATION_REQUESTS_GET: # get all mediation records
         'acapy_plugin_toolbox.mediator.MediationRequestsGet',
-    MEDIATION_REQUESTS:
+    MEDIATION_REQUESTS: # return type for get all mediation records for a connection
         'acapy_plugin_toolbox.mediator.MediationRequests',
-    KEYLISTS:
+    KEYLISTS: # get all keylists used for mediation
         'acapy_plugin_toolbox.mediator.Keylists',
-    KEYLISTS_GET:
+    KEYLISTS_GET: # return type for get all keylists
         'acapy_plugin_toolbox.mediator.KeylistsGet',
+    MEDIATION_GRANT: # return type for request
+        'acapy_plugin_toolbox.mediator.MediationGrant',
+    MEDIATION_DENY: # return type for request
+        'acapy_plugin_toolbox.mediator.MediationDeny',
 }
 
 
@@ -89,15 +95,15 @@ class MediationRequestsGetHandler(BaseHandler):
 
 KeylistsGet, KeylistsGetSchema = generate_model_schema(
     name='KeylistsGet',
-    handler='acapy_plugin_toolbox.mediator.KeyListsGetHandler',
+    handler='acapy_plugin_toolbox.mediator.KeylistsGetHandler',
     msg_type=KEYLISTS_GET,
     schema={
         'connection_id': fields.Str(required=False)
     }
 )
 
-KeyLists, KeyListsSchema = generate_model_schema(
-    name='KeyLists',
+Keylists, KeylistsSchema = generate_model_schema(
+    name='Keylists',
     handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=KEYLISTS,
     schema={
@@ -106,7 +112,7 @@ KeyLists, KeyListsSchema = generate_model_schema(
 )
 
 
-class KeyListsGetHandler(BaseHandler):
+class KeylistsGetHandler(BaseHandler):
     """Handler for keylist get request."""
 
     @admin_only
@@ -121,3 +127,21 @@ class KeyListsGetHandler(BaseHandler):
         response = KeyLists(requests=records)
         response.assign_thread_from(context.message)
         await responder.send_reply(response)
+
+MediationGrant, MediationGrantSchema = generate_model_schema(
+    name='MediationGrant',
+    handler='acapy_plugin_toolbox.util.PassHandler',
+    msg_type=MEDIATION_GRANT,
+    schema={
+        'connection_id': fields.Str(required=False)
+    }
+)
+
+MediationDeny, MediationDenySchema = generate_model_schema(
+    name='MediationDeny',
+    handler='acapy_plugin_toolbox.util.PassHandler',
+    msg_type=MEDIATION_DENY,
+    schema={
+        'connection_id': fields.Str(required=False)
+    }
+)

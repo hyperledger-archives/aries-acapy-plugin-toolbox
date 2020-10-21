@@ -26,7 +26,7 @@ from aries_cloudagent.protocols.routing.v1_0.messages.route_update_request impor
 from aries_cloudagent.protocols.routing.v1_0.models.route_update import RouteUpdate
 from aries_cloudagent.protocols.routing.v1_0.messages.route_query_request import RouteQueryRequest
 
-from aries_cloudagent.protocols.coordinate_mediation.v1_0.messages.mediation_request import MediationRequest
+from aries_cloudagent.protocols.coordinate_mediation.v1_0.messages.mediate_request import MediationRequest
 
 from .util import (
     generate_model_schema, admin_only, timestamp_utc_iso, datetime_from_iso
@@ -36,7 +36,7 @@ ADMIN_PROTOCOL_URI = "https://github.com/hyperledger/" \
     "aries-toolbox/tree/master/docs/admin-routing/0.1"
 
 SEND_UPDATE = f"{ADMIN_PROTOCOL_URI}/send_update"
-SEND_MEDIATION_REQUEST = f"{ADMIN_PROTOCOL_URI/send_mediation_request}"
+SEND_MEDIATION_REQUEST = f"{ADMIN_PROTOCOL_URI}/send_mediation_request"
 
 MESSAGE_TYPES = {
     SEND_UPDATE: 'acapy_plugin_toolbox.routing.SendUpdate',
