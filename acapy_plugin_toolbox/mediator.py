@@ -21,15 +21,21 @@ from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from .util import generate_model_schema, admin_only
 PROTOCOL = 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-mediator/0.1'
 
-ROUTES_LIST_GET = '{}/routes_list_get'.format(PROTOCOL)
-ROUTES_LIST = '{}/routes_list'.format(PROTOCOL)
+KEYLISTS_GET = '{}/keylists-get'.format(PROTOCOL)
+KEYLISTS = '{}/keylists'.format(PROTOCOL)
 
 MEDIATION_REQUESTS_GET = '{}/mediation-requests-get'.format(PROTOCOL)
 MEDIATION_REQUESTS = '{}/mediation-requests'.format(PROTOCOL)
 
 MESSAGE_TYPES = {
-    ROUTES_LIST_GET:
-        'acapy_plugin_toolbox.mediator.RoutesListGet',
+    MEDIATION_REQUESTS_GET:
+        'acapy_plugin_toolbox.mediator.MediationRequestsGet',
+    MEDIATION_REQUESTS:
+        'acapy_plugin_toolbox.mediator.MediationRequests',
+    KEYLISTS:
+        'acapy_plugin_toolbox.mediator.Keylists',
+    KEYLISTS_GET:
+        'acapy_plugin_toolbox.mediator.KeylistsGet',
 }
 
 
@@ -37,7 +43,7 @@ async def setup(
         context: InjectionContext,
         protocol_registry: ProblemReport = None
 ):
-    """Setup the issuer plugin."""
+    """Setup the admin-mediator v1_0 plugin."""
     if not protocol_registry:
         protocol_registry = await context.inject(ProtocolRegistry)
     protocol_registry.register_message_types(
@@ -82,53 +88,37 @@ class MediationRequestsGetHandler(BaseHandler):
         await responder.send_reply(response)
 
 
-RoutesListGet, RoutesListGetSchema = generate_model_schema(
-    name='RoutesListGet',
-    handler='acapy_plugin_toolbox.mediator.RoutesListHandler',
-    msg_type=ROUTES_LIST_GET,
+KeylistsGet, KeylistsGetSchema = generate_model_schema(
+    name='KeylistsGet',
+    handler='acapy_plugin_toolbox.mediator.KeyListsGetHandler',
+    msg_type=KEYLISTS_GET,
     schema={
+        'connection_id': fields.Str(required=False)
     }
 )
 
-RoutesList, RoutesListSchema = generate_model_schema(
-    name='RoutesList',
+KeyLists, KeyListsSchema = generate_model_schema(
+    name='KeyLists',
     handler='acapy_plugin_toolbox.util.PassHandler',
-    msg_type=ROUTES_LIST,
+    msg_type=KEYLISTS,
     schema={
-        'results': fields.List(fields.Dict())
+        'keylists': fields.List(fields.Nested(RouteRecordSchema))
     }
 )
 
 
-# TODO: Convert this to use coordinate-mediation models
-# TODO: Change this to keylists-get as outlined in
-#       docs/admin-mediator/1.0/README
-# TODO: Prefer using RouteRecord directly over using the RoutingManager (it's
-#       effectively the same thing)
-class RoutesListHandler(BaseHandler):
-    """Handler for received get cred list request."""
+class KeyListsGetHandler(BaseHandler):
+    """Handler for keylist get request."""
 
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
-        """Handle received get route list request."""
-
-        mgr = RoutingManager(context)
-        routes = await mgr.get_routes()  # connectionid, recipient key
-
-        # post_filter_positive = dict(
-        #     filter(lambda item: item[1] is not None, {
-        #         # 'state': V10PresentialExchange.STATE_CREDENTIAL_RECEIVED,
-        #         'role': V10PresentationExchange.ROLE_VERIFIER,
-        #         'connection_id': context.message.connection_id,
-        #         'verified': context.message.verified,
-        #     }.items())
-        # )
-        records = [{
-            'id:': r.record_id,
-            'recipient_key': r.recipient_key,
-            'connection_id': r.connection_id,
-            'created_at': r.created_at,
-        } for r in routes]
-        list = RoutesList(results=records)
-        list.assign_thread_from(context.message)
-        await responder.send_reply(list)
+        """Handle received get Keylist get request."""
+        tag_filter = dict(
+            filter(lambda item: item[1] is not None, {
+                'connection_id': context.message.connection_id
+            })
+        )
+        records = RouteRecord.query(context, tag_filter=tag_filter)
+        response = KeyLists(requests=records)
+        response.assign_thread_from(context.message)
+        await responder.send_reply(response)
