@@ -9,3 +9,4 @@ services:
       NGROK_NAME: ngrok
       AGENT_NAME: MyAgent
       PORT: 3000
+      ADMIN_PORT: 3001
