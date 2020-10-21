@@ -1,23 +1,21 @@
-"""Define messages for credential issuer admin protocols."""
+"""Define messages and handlers for mediator admin protocol."""
 
 # pylint: disable=invalid-name
 # pylint: disable=too-few-public-methods
-import asyncio
-
-from uuid import uuid4
-
 from marshmallow import fields
 
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
-from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
-from aries_cloudagent.messaging.decorators.attach_decorator import AttachDecorator
-from aries_cloudagent.messaging.credential_definitions.util import CRED_DEF_TAGS
+from aries_cloudagent.messaging.base_handler import (
+    BaseHandler, BaseResponder, RequestContext
+)
 from aries_cloudagent.protocols.routing.v1_0.manager import RoutingManager
-from aries_cloudagent.protocols.routing.v1_0.models.route_record import RouteRecord, RouteRecordSchema
-
-from aries_cloudagent.connections.models.connection_record import ConnectionRecord
-from aries_cloudagent.storage.error import StorageNotFoundError
+from aries_cloudagent.protocols.routing.v1_0.models.route_record import (
+    RouteRecord, RouteRecordSchema
+)
+from aries_cloudagent.protocols.coordinate_mediation.v1_0.models.mediation_record import (
+    MediationRecord, MediationRecordSchema
+)
 from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 
 from .util import generate_model_schema, admin_only
@@ -25,6 +23,9 @@ PROTOCOL = 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-
 
 ROUTES_LIST_GET = '{}/routes_list_get'.format(PROTOCOL)
 ROUTES_LIST = '{}/routes_list'.format(PROTOCOL)
+
+MEDIATION_REQUESTS_GET = '{}/mediation-requests-get'.format(PROTOCOL)
+MEDIATION_REQUESTS = '{}/mediation-requests'.format(PROTOCOL)
 
 MESSAGE_TYPES = {
     ROUTES_LIST_GET:
@@ -42,6 +43,43 @@ async def setup(
     protocol_registry.register_message_types(
         MESSAGE_TYPES
     )
+
+MediationRequestsGet, MediationRequestsGetSchema = generate_model_schema(
+    name='MediationRequestsGet',
+    handler='acapy_plugin_toolbox.mediator.MediationRequestsGetHandler',
+    msg_type=MEDIATION_REQUESTS_GET,
+    schema={
+        'state': fields.Str(required=True),
+        'connection_id': fields.Str(required=False)
+    }
+)
+
+MediationRequests, MediationRequestsSchema = generate_model_schema(
+    name='MediationRequests',
+    handler='acapy_plugin_toolbox.util.PassHandler',
+    msg_type=MEDIATION_REQUESTS,
+    schema={
+        'requests': fields.List(fields.Nested(MediationRecordSchema))
+    }
+)
+
+
+class MediationRequestsGetHandler(BaseHandler):
+    """Handler for received mediation requests get messages."""
+
+    @admin_only
+    async def handle(self, context: RequestContext, responder: BaseResponder):
+        """Handle mediation requests get message."""
+        tag_filter = dict(
+            filter(lambda item: item[1] is not None, {
+                'state': context.message.state,
+                'connection_id': context.message.connection_id
+            })
+        )
+        records = MediationRecord.query(context, tag_filter=tag_filter)
+        response = MediationRequests(requests=records)
+        response.assign_thread_from(context.message)
+        await responder.send_reply(response)
 
 
 RoutesListGet, RoutesListGetSchema = generate_model_schema(
@@ -62,6 +100,11 @@ RoutesList, RoutesListSchema = generate_model_schema(
 )
 
 
+# TODO: Convert this to use coordinate-mediation models
+# TODO: Change this to keylists-get as outlined in
+#       docs/admin-mediator/1.0/README
+# TODO: Prefer using RouteRecord directly over using the RoutingManager (it's
+#       effectively the same thing)
 class RoutesListHandler(BaseHandler):
     """Handler for received get cred list request."""
 
@@ -85,8 +128,7 @@ class RoutesListHandler(BaseHandler):
             'recipient_key': r.recipient_key,
             'connection_id': r.connection_id,
             'created_at': r.created_at,
-
-        } for r in routes] #await V10PresentationExchange.query(context, {}, post_filter_positive)
+        } for r in routes]
         list = RoutesList(results=records)
         list.assign_thread_from(context.message)
         await responder.send_reply(list)
