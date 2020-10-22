@@ -2,6 +2,8 @@
 
 # pylint: disable=invalid-name
 # pylint: disable=too-few-public-methods
+from functools import reduce
+
 from marshmallow import fields
 
 from aries_cloudagent.config.injection_context import InjectionContext
@@ -21,26 +23,33 @@ from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from .util import generate_model_schema, admin_only
 PROTOCOL = 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-mediator/0.1'
 
-KEYLISTS_GET = f'{PROTOCOL}/keylists-get'
-KEYLISTS = f'{PROTOCOL}/keylists'
+ROUTES_GET = f'{PROTOCOL}/routes-get'
+ROUTES = f'{PROTOCOL}/routes'
 MEDIATION_REQUESTS_GET = f'{PROTOCOL}/mediation-requests-get'
 MEDIATION_REQUESTS = f'{PROTOCOL}/mediation-requests'
 MEDIATION_GRANT = f'{PROTOCOL}/mediate-grant'
+MEDIATION_GRANTED = f'{PROTOCOL}/mediate-granted'
 MEDIATION_DENY = f'{PROTOCOL}/mediate-deny'
+MEDIATION_DENIED = f'{PROTOCOL}/mediate-denied'
 
 MESSAGE_TYPES = {
-    MEDIATION_REQUESTS_GET: # get all mediation records
-        'acapy_plugin_toolbox.mediator.MediationRequestsGet',
-    MEDIATION_REQUESTS: # return type for get all mediation records for a connection
-        'acapy_plugin_toolbox.mediator.MediationRequests',
-    KEYLISTS: # get all keylists used for mediation
-        'acapy_plugin_toolbox.mediator.Keylists',
-    KEYLISTS_GET: # return type for get all keylists
-        'acapy_plugin_toolbox.mediator.KeylistsGet',
-    MEDIATION_GRANT: # return type for request
-        'acapy_plugin_toolbox.mediator.MediationGrant',
-    MEDIATION_DENY: # return type for request
-        'acapy_plugin_toolbox.mediator.MediationDeny',
+    # get all mediation records
+    MEDIATION_REQUESTS_GET: 'acapy_plugin_toolbox.mediator.MediationRequestsGet',
+
+    # return type for get all mediation records for a connection
+    MEDIATION_REQUESTS: 'acapy_plugin_toolbox.mediator.MediationRequests',
+
+    # get all routes used for mediation
+    ROUTES: 'acapy_plugin_toolbox.mediator.Routes',
+
+    # return type for get all routes
+    ROUTES_GET: 'acapy_plugin_toolbox.mediator.RoutesGet',
+
+    MEDIATION_GRANT: 'acapy_plugin_toolbox.mediator.MediationGrant',
+    MEDIATION_GRANTED: 'acapy_plugin_toolbox.mediator.MediationGranted',
+
+    MEDIATION_DENY: 'acapy_plugin_toolbox.mediator.MediationDeny',
+    MEDIATION_DENIED: 'acapy_plugin_toolbox.mediator.MediationDenied'
 }
 
 
@@ -93,40 +102,41 @@ class MediationRequestsGetHandler(BaseHandler):
         await responder.send_reply(response)
 
 
-KeylistsGet, KeylistsGetSchema = generate_model_schema(
-    name='KeylistsGet',
-    handler='acapy_plugin_toolbox.mediator.KeylistsGetHandler',
-    msg_type=KEYLISTS_GET,
+RoutesGet, RoutesGetSchema = generate_model_schema(
+    name='RoutesGet',
+    handler='acapy_plugin_toolbox.mediator.RoutesGetHandler',
+    msg_type=ROUTES_GET,
     schema={
         'connection_id': fields.Str(required=False)
     }
 )
 
-Keylists, KeylistsSchema = generate_model_schema(
-    name='Keylists',
+Routes, RoutesSchema = generate_model_schema(
+    name='Routes',
     handler='acapy_plugin_toolbox.util.PassHandler',
-    msg_type=KEYLISTS,
+    msg_type=ROUTES,
     schema={
-        'keylists': fields.List(fields.Nested(RouteRecordSchema))
+        'routes': fields.List(fields.Dict())
     }
 )
 
 
-class KeylistsGetHandler(BaseHandler):
-    """Handler for keylist get request."""
+class RoutesGetHandler(BaseHandler):
+    """Handler for route get request."""
 
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
-        """Handle received get Keylist get request."""
+        """Handle received get Route get request."""
         tag_filter = dict(
             filter(lambda item: item[1] is not None, {
                 'connection_id': context.message.connection_id
             })
         )
         records = RouteRecord.query(context, tag_filter=tag_filter)
-        response = KeyLists(requests=records)
+        response = Routes(routes=records)
         response.assign_thread_from(context.message)
         await responder.send_reply(response)
+
 
 MediationGrant, MediationGrantSchema = generate_model_schema(
     name='MediationGrant',

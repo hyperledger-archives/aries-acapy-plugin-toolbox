@@ -12,7 +12,6 @@ from aries_cloudagent.messaging.base_handler import (
 )
 from aries_cloudagent.protocols.coordinate_mediation.v1_0.messages.mediate_request import MediationRequest
 from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
-from aries_cloudagent.protocols.routing.v1_0.messages.route_query_request import RouteQueryRequest
 from aries_cloudagent.protocols.routing.v1_0.messages.route_update_request import RouteUpdateRequest
 from aries_cloudagent.protocols.routing.v1_0.models.route_update import RouteUpdate
 from aries_cloudagent.storage.error import StorageNotFoundError
@@ -25,8 +24,8 @@ MEDIATION_REQUEST_SEND = f"{ADMIN_PROTOCOL_URI}/mediation-request-send"
 MEDIATION_REQUEST_SENT = f"{ADMIN_PROTOCOL_URI}/mediation-request-sent"
 KEYLIST_UPDATE_SEND = f"{ADMIN_PROTOCOL_URI}/keylist-update-send"
 KEYLIST_UPDATE_SENT = f"{ADMIN_PROTOCOL_URI}/keylist-update-sent"
-KEYLISTS_GET = f"{ADMIN_PROTOCOL_URI}/keylists-get"
-KEYLISTS = f"{ADMIN_PROTOCOL_URI}/keylists"
+ROUTES_GET = f"{ADMIN_PROTOCOL_URI}/routes-get"
+ROUTES = f"{ADMIN_PROTOCOL_URI}/routes"
 
 MESSAGE_TYPES = {
     SEND_UPDATE: 'acapy_plugin_toolbox.routing.SendUpdate',
@@ -34,8 +33,8 @@ MESSAGE_TYPES = {
     MEDIATION_REQUEST_SENT: 'acapy_plugin_toolbox.routing.MediationRequestSent',
     KEYLIST_UPDATE_SEND: 'acapy_plugin_toolbox.routing.KeylistUpdateSend',
     KEYLIST_UPDATE_SENT: 'acapy_plugin_toolbox.routing.KeylistUpdateSent',
-    KEYLISTS_GET: 'acapy_plugin_toolbox.routing.KeylistsGet',
-    KEYLISTS: 'acapy_plugin_toolbox.routing.Keylists'
+    ROUTES_GET: 'acapy_plugin_toolbox.routing.RoutesGet',
+    ROUTES: 'acapy_plugin_toolbox.routing.Routes'
 }
 
 
