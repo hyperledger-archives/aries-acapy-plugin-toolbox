@@ -1,46 +1,41 @@
 """BasicMessage Plugin."""
 # pylint: disable=invalid-name, too-few-public-methods
 
-from typing import Union
-from datetime import datetime
-
 from marshmallow import fields
 
+from .util import generate_model_schema, admin_only
 from aries_cloudagent.config.injection_context import InjectionContext
+from aries_cloudagent.connections.models.connection_record import ConnectionRecord
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
-
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler, BaseResponder, RequestContext
 )
-from aries_cloudagent.messaging.decorators.localization_decorator import (
-    LocalizationDecorator
-)
-from aries_cloudagent.messaging.models.base_record import (
-    BaseRecord, BaseRecordSchema
-)
-from aries_cloudagent.messaging.valid import INDY_ISO8601_DATETIME
+from aries_cloudagent.protocols.coordinate_mediation.v1_0.messages.mediate_request import MediationRequest
 from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
-from aries_cloudagent.storage.error import StorageNotFoundError
-
+from aries_cloudagent.protocols.routing.v1_0.messages.route_query_request import RouteQueryRequest
 from aries_cloudagent.protocols.routing.v1_0.messages.route_update_request import RouteUpdateRequest
 from aries_cloudagent.protocols.routing.v1_0.models.route_update import RouteUpdate
-from aries_cloudagent.protocols.routing.v1_0.messages.route_query_request import RouteQueryRequest
-
-from aries_cloudagent.protocols.coordinate_mediation.v1_0.messages.mediate_request import MediationRequest
-
-from .util import (
-    generate_model_schema, admin_only, timestamp_utc_iso, datetime_from_iso
-)
+from aries_cloudagent.storage.error import StorageNotFoundError
 
 ADMIN_PROTOCOL_URI = "https://github.com/hyperledger/" \
     "aries-toolbox/tree/master/docs/admin-routing/0.1"
 
 SEND_UPDATE = f"{ADMIN_PROTOCOL_URI}/send_update"
-SEND_MEDIATION_REQUEST = f"{ADMIN_PROTOCOL_URI}/send_mediation_request"
+MEDIATION_REQUEST_SEND = f"{ADMIN_PROTOCOL_URI}/mediation-request-send"
+MEDIATION_REQUEST_SENT = f"{ADMIN_PROTOCOL_URI}/mediation-request-sent"
+KEYLIST_UPDATE_SEND = f"{ADMIN_PROTOCOL_URI}/keylist-update-send"
+KEYLIST_UPDATE_SENT = f"{ADMIN_PROTOCOL_URI}/keylist-update-sent"
+KEYLISTS_GET = f"{ADMIN_PROTOCOL_URI}/keylists-get"
+KEYLISTS = f"{ADMIN_PROTOCOL_URI}/keylists"
 
 MESSAGE_TYPES = {
     SEND_UPDATE: 'acapy_plugin_toolbox.routing.SendUpdate',
-    SEND_MEDIATION_REQUEST: 'acapy_plugin_toolbox.routing.SendMediationRequest',
+    MEDIATION_REQUEST_SEND: 'acapy_plugin_toolbox.routing.MediationRequestSend',
+    MEDIATION_REQUEST_SENT: 'acapy_plugin_toolbox.routing.MediationRequestSent',
+    KEYLIST_UPDATE_SEND: 'acapy_plugin_toolbox.routing.KeylistUpdateSend',
+    KEYLIST_UPDATE_SENT: 'acapy_plugin_toolbox.routing.KeylistUpdateSent',
+    KEYLISTS_GET: 'acapy_plugin_toolbox.routing.KeylistsGet',
+    KEYLISTS: 'acapy_plugin_toolbox.routing.Keylists'
 }
 
 
@@ -89,14 +84,22 @@ class SendUpdateHandler(BaseHandler):
         )
 
 
-SendMediationRequest, SendMediationRequestSchema = generate_model_schema(
-    name='SendMediationRequest',
+MediationRequestSend, MediationRequestSendSchema = generate_model_schema(
+    name='MediationRequestSend',
     handler='acapy_plugin_toolbox.routing.SendMediationRequestHandler',
-    msg_type=SEND_MEDIATION_REQUEST,
+    msg_type=MEDIATION_REQUEST_SEND,
     schema={
         'connection_id': fields.Str(required=True),
         'mediator_terms': fields.List(fields.Str(), required=False),
         'recipient_terms': fields.List(fields.Str(), required=False),
+    }
+)
+MediationRequestSent, MediationRequestSentSchema = generate_model_schema(
+    name="MediationRequestSent",
+    handler="acapy_plugin_toolbox.util.PassHandler",
+    msg_type=MEDIATION_REQUEST_SENT,
+    schema={
+        'connection_id': fields.Str(required=True)
     }
 )
 
@@ -106,13 +109,33 @@ class SendMediationRequestHandler(BaseHandler):
 
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
-        mediation_requests = MediationRequest(
-            mediator_terms = context.message.mediator_terms,
-            recipient_terms = context.message.recipient_terms,
+        # Construct message
+        mediation_request = MediationRequest(
+            mediator_terms=context.message.mediator_terms,
+            recipient_terms=context.message.recipient_terms,
         )
-        
-        # TODO make sure connection_id is valid, fail gracefully
+
+        # Verify connection exists
+        try:
+            connection = await ConnectionRecord.retrieve_by_id(
+                context,
+                context.message.connection_id
+            )
+        except StorageNotFoundError:
+            report = ProblemReport(
+                explain_ltxt='Connection not found.',
+                who_retries='none'
+            )
+            report.assign_thread_from(context.message)
+            await responder.send_reply(report)
+
+        # Send mediation request
         await responder.send(
-            mediation_requests,
-            connection_id=context.message.connection_id,
+            mediation_request,
+            connection_id=connection.connection_id,
         )
+
+        # Send notification of mediation request sent
+        sent = MediationRequestSent(connection_id=connection.connection_id)
+        sent.assign_thread_from(context.message)
+        await responder.send_reply(sent)
