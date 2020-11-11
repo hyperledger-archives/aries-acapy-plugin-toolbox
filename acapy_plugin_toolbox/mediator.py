@@ -12,6 +12,7 @@ from aries_cloudagent.messaging.base_handler import (
     BaseHandler, BaseResponder, RequestContext
 )
 from aries_cloudagent.protocols.routing.v1_0.manager import RoutingManager
+from aries_cloudagent.protocols.coordinate_mediation.v1_0.manager import MediationManager
 from aries_cloudagent.protocols.routing.v1_0.models.route_record import (
     RouteRecord, RouteRecordSchema
 )
@@ -69,7 +70,7 @@ MediationRequestsGet, MediationRequestsGetSchema = generate_model_schema(
     handler='acapy_plugin_toolbox.mediator.MediationRequestsGetHandler',
     msg_type=MEDIATION_REQUESTS_GET,
     schema={
-        'state': fields.Str(required=True),
+        'state': fields.Str(required=False),
         'connection_id': fields.Str(required=False)
     }
 )
@@ -93,13 +94,95 @@ class MediationRequestsGetHandler(BaseHandler):
         tag_filter = dict(
             filter(lambda item: item[1] is not None, {
                 'state': context.message.state,
+                'role': MediationRecord.ROLE_SERVER,
                 'connection_id': context.message.connection_id
-            })
+            }.items())
         )
-        records = MediationRecord.query(context, tag_filter=tag_filter)
+        records = await MediationRecord.query(context, tag_filter=tag_filter)
         response = MediationRequests(requests=records)
         response.assign_thread_from(context.message)
         await responder.send_reply(response)
+
+
+MediationGrant, MediationGrantSchema = generate_model_schema(
+    name='MediationGrant',
+    handler='acapy_plugin_toolbox.mediator.MediationGrantHandler',
+    msg_type=MEDIATION_GRANT,
+    schema={
+        'mediation_id': fields.Str(required=True)
+    }
+)
+
+
+MediationGranted, MediationGrantedSchema = generate_model_schema(
+    name='MediationGranted',
+    handler='acapy_plugin_toolbox.util.PassHandler',
+    msg_type=MEDIATION_GRANTED,
+    schema={
+        'mediation_id': fields.Str(required=True)
+    }
+)
+
+
+class MediationGrantHandler(BaseHandler):
+    """
+    Handler for MediationGrant messages (granting a received mediation
+    request).
+    """
+    async def handle(self, context: RequestContext, responder: BaseResponder):
+        """Handle mediation grant request."""
+        manager = MediationManager(context)
+        record = await MediationRecord.retrieve_by_id(
+            context, context.message.mediation_id
+        )
+
+        grant = await manager.grant_request(record)
+        await responder.send(grant, connection_id=record.connection_id)
+
+        granted = MediationGranted(mediation_id=record.mediation_id)
+        granted.assign_thread_from(context.message)
+        await responder.send_reply(granted)
+
+
+MediationDeny, MediationDenySchema = generate_model_schema(
+    name='MediationDeny',
+    handler='acapy_plugin_toolbox.mediator.MediationDenyHandler',
+    msg_type=MEDIATION_DENY,
+    schema={
+        'mediation_id': fields.Str(required=True)
+    }
+)
+
+
+MediationDenied, MediationDeniedSchema = generate_model_schema(
+    name='MediationDenied',
+    handler='acapy_plugin_toolbox.util.PassHandler',
+    msg_type=MEDIATION_DENIED,
+    schema={
+        'mediation_id': fields.Str(required=True)
+    }
+)
+
+
+class MediationDenyHandler(BaseHandler):
+    """
+    Handler for MediationDeny messages (denying a received mediation
+    request).
+    """
+
+    async def handle(self, context: RequestContext, responder: BaseResponder):
+        """Handle mediation deny request."""
+        manager = MediationManager(context)
+        record = await MediationRecord.retrieve_by_id(
+            context, context.message.mediation_id
+        )
+
+        deny = await manager.deny_request(record)
+        await responder.send(deny, connection_id=record.connection_id)
+
+        denied = MediationDenied(mediation_id=record.mediation_id)
+        denied.assign_thread_from(context.message)
+        await responder.send_reply(denied)
 
 
 RoutesGet, RoutesGetSchema = generate_model_schema(
@@ -116,7 +199,7 @@ Routes, RoutesSchema = generate_model_schema(
     handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=ROUTES,
     schema={
-        'routes': fields.List(fields.Dict())
+        'routes': fields.List(fields.Nested(RouteRecordSchema))
     }
 )
 
@@ -130,28 +213,9 @@ class RoutesGetHandler(BaseHandler):
         tag_filter = dict(
             filter(lambda item: item[1] is not None, {
                 'connection_id': context.message.connection_id
-            })
+            }.items())
         )
-        records = RouteRecord.query(context, tag_filter=tag_filter)
+        records = await RouteRecord.query(context, tag_filter=tag_filter)
         response = Routes(routes=records)
         response.assign_thread_from(context.message)
         await responder.send_reply(response)
-
-
-MediationGrant, MediationGrantSchema = generate_model_schema(
-    name='MediationGrant',
-    handler='acapy_plugin_toolbox.util.PassHandler',
-    msg_type=MEDIATION_GRANT,
-    schema={
-        'connection_id': fields.Str(required=False)
-    }
-)
-
-MediationDeny, MediationDenySchema = generate_model_schema(
-    name='MediationDeny',
-    handler='acapy_plugin_toolbox.util.PassHandler',
-    msg_type=MEDIATION_DENY,
-    schema={
-        'connection_id': fields.Str(required=False)
-    }
-)
