@@ -4,6 +4,7 @@ from aiohttp import web
 from aries_cloudagent.transport.inbound.base import BaseInboundTransport
 from aries_cloudagent.transport.inbound import http, ws
 
+
 class HttpWsTransport(BaseInboundTransport):
     """Http+Ws Transport class."""
 

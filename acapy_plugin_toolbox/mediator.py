@@ -41,10 +41,10 @@ MESSAGE_TYPES = {
     MEDIATION_REQUESTS: 'acapy_plugin_toolbox.mediator.MediationRequests',
 
     # get all routes used for mediation
-    ROUTES: 'acapy_plugin_toolbox.mediator.Routes',
+    ROUTES_GET: 'acapy_plugin_toolbox.mediator.RoutesGet',
 
     # return type for get all routes
-    ROUTES_GET: 'acapy_plugin_toolbox.mediator.RoutesGet',
+    ROUTES: 'acapy_plugin_toolbox.mediator.Routes',
 
     MEDIATION_GRANT: 'acapy_plugin_toolbox.mediator.MediationGrant',
     MEDIATION_GRANTED: 'acapy_plugin_toolbox.mediator.MediationGranted',
@@ -212,7 +212,8 @@ class RoutesGetHandler(BaseHandler):
         """Handle received get Route get request."""
         tag_filter = dict(
             filter(lambda item: item[1] is not None, {
-                'connection_id': context.message.connection_id
+                'connection_id': context.message.connection_id,
+                'role': MediationRecord.ROLE_SERVER
             }.items())
         )
         records = await RouteRecord.query(context, tag_filter=tag_filter)
