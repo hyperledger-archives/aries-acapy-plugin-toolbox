@@ -4,7 +4,9 @@ services:
     image: wernight/ngrok
     command: ngrok http agent:3000 --log stdout
   agent:
-    build: .
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile
     environment:
       NGROK_NAME: ngrok
       AGENT_NAME: MyAgent

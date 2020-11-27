@@ -15,17 +15,18 @@ Requirements:
 - Docker Compose
 
 ### Disclaimer regarding the use of ngrok
-Both compose setups use the ngrok tunneling service to make your agent available
-to the outside world. One caveat of this, however, is that connections made from
-your docker agent will expire within 8 hours as a limitation of the ngrok
-free-tier. Therefore, **these setups are intended for demonstration purposes
-only** and should not be relied upon as is for production environments.
+Two of the docker compose setups use the ngrok tunneling service to make your
+agent available to the outside world. One caveat of this, however, is that
+connections made from your docker agent will expire within 8 hours as a
+limitation of the ngrok free-tier. Therefore, **these setups are intended for
+demonstration purposes only** and should not be relied upon as is for production
+environments.
 
-### One Agent demo
+### One Agent Demo
 To start the single agent demo:
 
 ```sh
-$ docker-compose -f docker-compose.yml up --build
+$ docker-compose -f docker/docker-compose.yml up --build
 ```
 
 This will start two containers, one for the ngrok tunnel and one for the agent.
@@ -35,15 +36,22 @@ starting up. The agent container will emit a fair amount of logs, including
 of starting up it will print an invitation to the screen that can then be pasted
 into the toolbox to connect to and remotely administer your docker agent.
 
-### Two Agent demo
-To start up an Alice and Bob demo:
+### Two Agent Demos
+To start up an Alice and Bob demo **with** ngrok:
 
 ```sh
-$ docker-compose -f docker-compose_alice_bob.yml up --build
+$ docker-compose -f docker/docker-compose-a-b-ngrok.yml up --build
 ```
+This will start four containers, two ngrok tunnels and two agent containers.
 
-This will start four containers, two ngrok tunnels and two agent containers. Two
-invitations will be printed to the screen corresponding to Alice and Bob.
+To start up an Alice and Bob demo **without** ngrok:
+
+```sh
+$ docker-compose -f docker/docker-compose-a-b.yml up --build
+```
+This will start only the two agent containers.
+
+Two invitations will be printed to the screen corresponding to Alice and Bob.
 Pasting these invitations into the toolbox will result in "Alice (Admin)" and
 "Bob (Admin)" connections. Using the toolbox, you can then cause these two
 agents to interact with each other in various ways.
