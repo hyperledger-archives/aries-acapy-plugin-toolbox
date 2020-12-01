@@ -44,11 +44,19 @@ $ docker-compose -f docker/docker-compose-a-b-ngrok.yml up --build
 ```
 This will start four containers, two ngrok tunnels and two agent containers.
 
-To start up an Alice and Bob demo **without** ngrok:
+To start up an Alice and Bob demo **without** ngrok (**Windows** and **Mac**):
 
 ```sh
 $ docker-compose -f docker/docker-compose-a-b.yml up --build
 ```
+
+Due to differences in how networking is handled on Windows and Mac docker when
+compared to Linux docker, use the following if you are on **Linux**:
+
+```sh
+$ docker-compose -f docker/docker-compose-a-b-linux.yml up --build
+```
+
 This will start only the two agent containers.
 
 Two invitations will be printed to the screen corresponding to Alice and Bob.
@@ -108,10 +116,10 @@ $ pip install git+https://github.com/hyperledger/aries-acapy-plugin-toolbox.git@
 Start up ACA-Py with the plugin parameter:
 ```sh
 $ aca-py start \
-	-it http localhost 3000 -it ws localhost 3001 \
-	-ot http \
-	-e http://localhost:3000 ws://localhost:3001 \
-	--plugin acapy_plugin_toolbox
+    -it http localhost 3000 -it ws localhost 3001 \
+    -ot http \
+    -e http://localhost:3000 ws://localhost:3001 \
+    --plugin acapy_plugin_toolbox
 ```
 
 Passing the whole package `acapy_plugin_toolbox` will load all protocol
@@ -142,11 +150,11 @@ Available groups include:
 To load the "connections" group and the "basicmessage" module:
 ```sh
 $ aca-py start \
-	-it http localhost 3000 -it ws localhost 3001 \
-	-ot http \
-	-e http://localhost:3000 ws://localhost:3001 \
-	--plugin acapy_plugin_toolbox.group.connections
-	--plugin acapy_plugin_toolbox.basicmessage
+    -it http localhost 3000 -it ws localhost 3001 \
+    -ot http \
+    -e http://localhost:3000 ws://localhost:3001 \
+    --plugin acapy_plugin_toolbox.group.connections
+    --plugin acapy_plugin_toolbox.basicmessage
 ```
 
 ### Generating an invitation for use with the Toolbox
@@ -158,11 +166,11 @@ can then be loaded into the Aries Toolbox:
 
 ```sh
 $ aca-py start \
-	-it http localhost 3000 -it ws localhost 3001 \
-	-ot http \
-	-e http://localhost:3000 ws://localhost:3001 \
-	--plugin acapy_plugin_toolbox \
-	--invite --invite-label "My agent admin connection" --invite-role admin
+    -it http localhost 3000 -it ws localhost 3001 \
+    -ot http \
+    -e http://localhost:3000 ws://localhost:3001 \
+    --plugin acapy_plugin_toolbox \
+    --invite --invite-label "My agent admin connection" --invite-role admin
 ```
 
 The invitation will be printed to the screen after the agent has started up and
@@ -186,8 +194,8 @@ and a start up command similar to the following (with environment variables
 replaced with your appropriate values or available in the environment):
 ```sh
 $ aca-py start \
-	-it http localhost 3000 -it ws localhost 3001 \
-	-ot http \
+    -it http localhost 3000 -it ws localhost 3001 \
+    -ot http \
     -e $ENDPOINT ${ENDPOINT/http/ws} \
     --label $AGENT_NAME \
     --auto-accept-requests --auto-ping-connection \
@@ -208,9 +216,9 @@ that generally provides only one port-to-port tunnel at a time.
 To use the HTTP+WS transport:
 ```sh
 $ aca-py start \
-	-it acapy_plugin_toolbox.http_ws localhost 3000 \
-	-ot http \
-	-e http://localhost:3000 ws://localhost:3000
+    -it acapy_plugin_toolbox.http_ws localhost 3000 \
+    -ot http \
+    -e http://localhost:3000 ws://localhost:3000
 ```
 
 Note that you do not need to load any other plugins for this transport but you

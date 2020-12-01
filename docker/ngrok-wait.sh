@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -n "$NO_NGROK" ]; then
-    export ENDPOINT="http://localhost:$PORT"
+    export ENDPOINT=${ENDPOINT:-"http://localhost:$PORT"}
     exec "$@"
 fi
 
