@@ -8,8 +8,8 @@ from marshmallow import fields
 
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
-from aries_cloudagent.connections.models.connection_record import (
-    ConnectionRecord
+from aries_cloudagent.connections.models.conn_record import (
+    ConnRecord
 )
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler, BaseResponder, RequestContext

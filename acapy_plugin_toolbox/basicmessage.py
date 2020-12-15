@@ -8,8 +8,8 @@ from marshmallow import fields
 
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
-from aries_cloudagent.connections.models.connection_record import (
-    ConnectionRecord
+from aries_cloudagent.connections.models.conn_record import (
+    ConnRecord
 )
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler, BaseResponder, RequestContext
@@ -237,7 +237,7 @@ class BasicMessageHandler(BaseHandler):
         )
 
         connection_mgr = ConnectionManager(context)
-        admins = await ConnectionRecord.query(
+        admins = await ConnRecord.query(
             context, post_filter_positive={'their_role': 'admin'}
         )
 
@@ -376,7 +376,7 @@ class SendHandler(BaseHandler):
         """Handle received send requests."""
         # pylint: disable=protected-access
         try:
-            connection = await ConnectionRecord.retrieve_by_id(
+            connection = await ConnRecord.retrieve_by_id(
                 context, context.message.connection_id
             )
         except StorageNotFoundError:

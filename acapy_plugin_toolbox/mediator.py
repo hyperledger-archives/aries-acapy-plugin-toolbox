@@ -16,7 +16,7 @@ from aries_cloudagent.messaging.credential_definitions.util import CRED_DEF_TAGS
 from aries_cloudagent.protocols.routing.v1_0.manager import RoutingManager
 from aries_cloudagent.protocols.routing.v1_0.models.route_record import RouteRecord, RouteRecordSchema
 
-from aries_cloudagent.connections.models.connection_record import ConnectionRecord
+from aries_cloudagent.connections.models.con import ConnectionRecord
 from aries_cloudagent.storage.error import StorageNotFoundError
 from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 

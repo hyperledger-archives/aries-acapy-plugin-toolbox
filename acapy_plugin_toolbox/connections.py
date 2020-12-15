@@ -11,8 +11,8 @@ from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
 from aries_cloudagent.protocols.connections.v1_0.manager import ConnectionManager
-from aries_cloudagent.connections.models.connection_record import (
-    ConnectionRecord
+from aries_cloudagent.connections.models.conn_record import (
+    ConnRecord
 )
 from aries_cloudagent.protocols.connections.v1_0.messages.connection_invitation import (
     ConnectionInvitation,
@@ -87,8 +87,8 @@ Connection, ConnectionSchema = generate_model_schema(
 )
 
 
-def conn_record_to_message_repr(conn: ConnectionRecord) -> Dict[str, Any]:
-    """Map ConnectionRecord onto Connection."""
+def conn_record_to_message_repr(conn: ConnRecord) -> Dict[str, Any]:
+    """Map ConnRecord onto Connection."""
     def _state_map(state: str) -> str:
         if state in ('active', 'response'):
             return 'active'
@@ -160,7 +160,7 @@ class GetListHandler(BaseHandler):
             }.items()
         ))
         # TODO: Filter on state (needs mapping back to ACA-Py connection states)
-        records = await ConnectionRecord.query(
+        records = await ConnRecord.query(
             context, tag_filter, post_filter_positive
         )
         results = [
@@ -191,7 +191,7 @@ class UpdateHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle update connection request."""
         try:
-            connection = await ConnectionRecord.retrieve_by_id(
+            connection = await ConnRecord.retrieve_by_id(
                 context,
                 context.message.connection_id
             )
@@ -252,7 +252,7 @@ class DeleteHandler(BaseHandler):
             return
 
         try:
-            connection = await ConnectionRecord.retrieve_by_id(
+            connection = await ConnRecord.retrieve_by_id(
                 context,
                 context.message.connection_id
             )

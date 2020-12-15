@@ -11,8 +11,8 @@ from aries_cloudagent.messaging.base_handler import (
     BaseHandler, BaseResponder, RequestContext
 )
 from aries_cloudagent.protocols.connections.v1_0.manager import ConnectionManager
-from aries_cloudagent.connections.models.connection_record import (
-    ConnectionRecord
+from aries_cloudagent.connections.models.conn_record import (
+    ConnRecord
 )
 # ProblemReport will probably be needed when a delete message is implemented
 # from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
@@ -133,10 +133,10 @@ class CreateInvitationHandler(BaseHandler):
             label=invitation.label,
             alias=connection.alias,
             role=connection.their_role,
-            auto_accept=connection.accept == ConnectionRecord.ACCEPT_AUTO,
+            auto_accept=connection.accept == ConnRecord.ACCEPT_AUTO,
             multi_use=(
                 connection.invitation_mode ==
-                ConnectionRecord.INVITATION_MODE_MULTI
+                ConnRecord.INVITATION_MODE_MULTI
             ),
             invitation_url=invitation.to_url(),
             created_date=connection.created_at,
@@ -169,7 +169,7 @@ class InvitationGetListHandler(BaseHandler):
                 # 'their_role': context.message.their_role
             }.items()
         ))
-        records = await ConnectionRecord.query(
+        records = await ConnRecord.query(
             context, tag_filter, post_filter_positive
         )
         results = []
@@ -185,11 +185,11 @@ class InvitationGetListHandler(BaseHandler):
                 'alias': connection.alias,
                 'role': connection.their_role,
                 'auto_accept': (
-                    connection.accept == ConnectionRecord.ACCEPT_AUTO
+                    connection.accept == ConnRecord.ACCEPT_AUTO
                 ),
                 'multi_use': (
                     connection.invitation_mode ==
-                    ConnectionRecord.INVITATION_MODE_MULTI
+                    ConnRecord.INVITATION_MODE_MULTI
                 ),
                 'invitation_url': invitation.to_url(),
                 'created_date': connection.created_at,

@@ -39,7 +39,7 @@ from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange 
 from aries_cloudagent.protocols.present_proof.v1_0.messages.presentation_request import PresentationRequest
 from aries_cloudagent.protocols.present_proof.v1_0.manager import PresentationManager
 from aries_cloudagent.protocols.issue_credential.v1_0.manager import CredentialManager
-from aries_cloudagent.connections.models.connection_record import ConnectionRecord
+from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.storage.error import StorageNotFoundError
 from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 
@@ -108,7 +108,7 @@ class SendCredHandler(BaseHandler):
         preview_spec = context.message.credential_proposal
 
         try:
-            connection_record = await ConnectionRecord.retrieve_by_id(
+            conn_record = await ConnRecord.retrieve_by_id(
                 context,
                 connection_id
             )
@@ -121,7 +121,7 @@ class SendCredHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
-        if not connection_record.is_ready:
+        if not conn_record.is_ready:
             report = ProblemReport(
                 explain_ltxt='Connection invalid.',
                 who_retries='none'
@@ -180,7 +180,7 @@ class RequestPresHandler(BaseHandler):
 
         connection_id = str(context.message.connection_id)
         try:
-            connection_record = await ConnectionRecord.retrieve_by_id(
+            conn_record = await ConnRecord.retrieve_by_id(
                 context,
                 connection_id
             )
@@ -193,7 +193,7 @@ class RequestPresHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
-        if not connection_record.is_ready:
+        if not conn_record.is_ready:
             report = ProblemReport(
                 explain_ltxt='Connection invalid.',
                 who_retries='none'

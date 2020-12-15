@@ -36,7 +36,7 @@ from aries_cloudagent.protocols.present_proof.v1_0.messages.presentation_proposa
 )
 from aries_cloudagent.protocols.present_proof.v1_0.manager import PresentationManager
 
-from aries_cloudagent.connections.models.connection_record import ConnectionRecord
+from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.storage.error import StorageNotFoundError
 from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 
@@ -108,7 +108,7 @@ class SendCredProposalHandler(BaseHandler):
         credential_manager = CredentialManager(context)
 
         try:
-            connection_record = await ConnectionRecord.retrieve_by_id(
+            conn_record = await ConnRecord.retrieve_by_id(
                 context,
                 connection_id
             )
@@ -121,7 +121,7 @@ class SendCredProposalHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
-        if not connection_record.is_ready:
+        if not conn_record.is_ready:
             report = ProblemReport(
                 explain_ltxt='Connection invalid.',
                 who_retries='none'
@@ -174,7 +174,7 @@ class SendPresProposalHandler(BaseHandler):
 
         connection_id = str(context.message.connection_id)
         try:
-            connection_record = await ConnectionRecord.retrieve_by_id(
+            conn_record = await ConnRecord.retrieve_by_id(
                 context,
                 connection_id
             )
@@ -187,7 +187,7 @@ class SendPresProposalHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
-        if not connection_record.is_ready:
+        if not conn_record.is_ready:
             report = ProblemReport(
                 explain_ltxt='Connection invalid.',
                 who_retries='none'

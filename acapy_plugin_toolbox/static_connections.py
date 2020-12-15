@@ -10,7 +10,7 @@ from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.wallet.base import BaseWallet
 from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
 from aries_cloudagent.protocols.connections.v1_0.manager import ConnectionManager
-from aries_cloudagent.connections.models.connection_record import ConnectionRecord
+from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.connections.models.diddoc import (
     DIDDoc, PublicKey, PublicKeyType, Service
 )
@@ -97,14 +97,14 @@ class CreateStaticConnectionHandler(BaseHandler):
         my_info = await wallet.create_local_did()
 
         # Create connection record
-        connection = ConnectionRecord(
-            initiator=ConnectionRecord.INITIATOR_SELF,
+        connection = ConnRecord(
+            initiator=ConnRecord.INITIATOR_SELF,
             my_did=my_info.did,
             their_did=context.message.static_did,
             their_label=context.message.label,
             their_role=context.message.role if context.message.role else None,
-            state=ConnectionRecord.STATE_ACTIVE,
-            invitation_mode=ConnectionRecord.INVITATION_MODE_STATIC
+            state=ConnRecord.STATE_ACTIVE,
+            invitation_mode=ConnRecord.INVITATION_MODE_STATIC
         )
 
         # Construct their did doc from the basic components in message
@@ -205,11 +205,11 @@ class StaticConnectionGetListHandler(BaseHandler):
                 filter(lambda item: item[1] is not None, {
                     'initiator': context.message.initiator,
                     'invitation_key': context.message.invitation_key,
-                    'invitation_mode': ConnectionRecord.INVITATION_MODE_STATIC,
+                    'invitation_mode': ConnRecord.INVITATION_MODE_STATIC,
                     'their_role': context.message.their_role
                 }.items())
             )
-            records = await ConnectionRecord.query(context, tag_filter, post_filter_positive)
+            records = await ConnRecord.query(context, tag_filter, post_filter_positive)
         except StorageNotFoundError:
             report = ProblemReport(
                 explain_ltxt='Connection not found.',
