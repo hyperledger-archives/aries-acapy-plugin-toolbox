@@ -8,7 +8,7 @@ import json
 
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
-from aries_cloudagent.holder.base import BaseHolder
+from aries_cloudagent.indy.holder import IndyHolder
 from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
 from aries_cloudagent.protocols.issue_credential.v1_0.routes import (
     V10CredentialExchangeListResultSchema,
@@ -268,7 +268,7 @@ class CredGetListHandler(BaseHandler):
         #start = int(start) if isinstance(start, str) else 0
         #count = int(count) if isinstance(count, str) else 10
 
-        holder: BaseHolder = await context.inject(BaseHolder)
+        holder: IndyHolder = await context.inject(IndyHolder)
         credentials = await holder.get_credentials(start, count, wql)
 
         # post_filter_positive = dict(
