@@ -1,4 +1,4 @@
-FROM bcgovimages/von-image:py36-1.14-0
+FROM bcgovimages/von-image:py36-1.15-0
 
 USER root
 RUN apt-get update
