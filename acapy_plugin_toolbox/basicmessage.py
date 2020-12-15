@@ -6,7 +6,7 @@ from datetime import datetime
 
 from marshmallow import fields
 
-from aries_cloudagent.config.injection_context import InjectionContext
+from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.connections.models.conn_record import (
     ConnRecord
@@ -48,12 +48,12 @@ MESSAGE_TYPES = {
 
 
 async def setup(
-        context: InjectionContext,
+        session: ProfileSession,
         protocol_registry: ProblemReport = None
 ):
     """Setup the basicmessage plugin."""
     if not protocol_registry:
-        protocol_registry = await context.inject(ProtocolRegistry)
+        protocol_registry = session.inject(ProtocolRegistry)
     protocol_registry.register_message_types(
         MESSAGE_TYPES
     )
@@ -122,11 +122,11 @@ class BasicMessageRecord(BaseRecord):
     @classmethod
     async def retrieve_by_message_id(
             cls,
-            context: InjectionContext,
+            session: ProfileSession,
             message_id: str) -> "BasicMessageRecord":
         """Retrieve a basic message record by message id."""
         return await cls.retrieve_by_tag_filter(
-            context,
+            session,
             {'message_id': message_id}
         )
 
