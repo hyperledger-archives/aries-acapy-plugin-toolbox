@@ -13,7 +13,7 @@ from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, 
 from aries_cloudagent.messaging.models.base_record import BaseRecord, BaseRecordSchema
 from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from aries_cloudagent.ledger.base import BaseLedger
-from aries_cloudagent.issuer.base import BaseIssuer
+from aries_cloudagent.indy.issuer import IndyIssuer
 from aries_cloudagent.storage.error import StorageNotFoundError
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.messaging.util import canon
@@ -169,7 +169,7 @@ class SendCredDefHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received send cred def request."""
         ledger: BaseLedger = await context.inject(BaseLedger)
-        issuer: BaseIssuer = await context.inject(BaseIssuer)
+        issuer: IndyIssuer = await context.inject(IndyIssuer)
         # If no schema record, make one
         try:
             schema_record = await SchemaRecord.retrieve_by_schema_id(
