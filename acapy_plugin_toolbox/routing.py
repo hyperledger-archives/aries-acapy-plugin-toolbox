@@ -96,6 +96,7 @@ class MediationRequestsGetHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle mediation requests get message."""
+        session = await context.session()
         tag_filter = dict(
             filter(lambda item: item[1] is not None, {
                 'state': context.message.state,
@@ -103,7 +104,7 @@ class MediationRequestsGetHandler(BaseHandler):
                 'connection_id': context.message.connection_id
             }.items())
         )
-        records = await MediationRecord.query(context, tag_filter=tag_filter)
+        records = await MediationRecord.query(session, tag_filter=tag_filter)
         response = MediationRequests(requests=records)
         response.assign_thread_from(context.message)
         await responder.send_reply(response)
@@ -210,7 +211,8 @@ class KeylistUpdateSendHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle KeylistUpdateSend messages."""
-        manager = MediationManager(context)
+        session = await context.session()
+        manager = MediationManager(session)
         if context.message.action == KeylistUpdateRule.RULE_ADD:
             update = await manager.add_key(
                 context.message.verkey,
@@ -262,7 +264,8 @@ class RoutesGetHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle RotuesGet."""
-        manager = MediationManager(context)
+        session = await context.session()
+        manager = MediationManager(session)
         routes = Routes(routes=await manager.get_my_keylist(context.message.connection_id))
         routes.assign_thread_from(context.message)
         await responder.send_reply(routes)
