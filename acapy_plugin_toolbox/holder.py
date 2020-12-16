@@ -268,7 +268,8 @@ class CredGetListHandler(BaseHandler):
         #start = int(start) if isinstance(start, str) else 0
         #count = int(count) if isinstance(count, str) else 10
 
-        holder: IndyHolder = await context.inject(IndyHolder)
+        session = await context.session()
+        holder: IndyHolder = session.inject(IndyHolder)
         credentials = await holder.get_credentials(start, count, wql)
 
         # post_filter_positive = dict(

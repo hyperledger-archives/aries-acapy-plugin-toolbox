@@ -226,7 +226,8 @@ class CreateDidHandler(BaseHandler):
 
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
-        wallet: BaseWallet = await context.inject(BaseWallet)
+        session = await context.session()
+        wallet: BaseWallet = session.inject(BaseWallet)
 
         did = context.message.did if context.message.did else None
         seed = context.message.seed if context.message.seed else None
@@ -244,7 +245,8 @@ class ListDidHandler(BaseHandler):
 
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
-        wallet: BaseWallet = await context.inject(BaseWallet)
+        session = await context.session()
+        wallet: BaseWallet = session.inject(BaseWallet)
 
         # Get list of all DIDs in the wallet
         results = []
@@ -273,7 +275,8 @@ class GetPublicDidHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Look for the public DID"""
-        wallet: BaseWallet = await context.inject(BaseWallet)
+        session = await context.session()
+        wallet: BaseWallet = session.inject(BaseWallet)
 
         did_info = await wallet.get_public_did()
         result = get_reply_did(did_info)
@@ -287,7 +290,8 @@ class SetPublicDidHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """"Set the public DID"""
-        wallet: BaseWallet = await context.inject(BaseWallet)
+        session = await context.session()
+        wallet: BaseWallet = session.inject(BaseWallet)
 
         await wallet.set_public_did(context.message.did)
         did_info = await wallet.get_public_did()
@@ -302,7 +306,8 @@ class SetDidMetadataHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """"Set the metadata"""
-        wallet: BaseWallet = await context.inject(BaseWallet)
+        session = await context.session()
+        wallet: BaseWallet = session.inject(BaseWallet)
 
         await wallet.replace_local_did_metadata(context.message.did,
                                                 context.message.metadata if context.message.metadata else None)

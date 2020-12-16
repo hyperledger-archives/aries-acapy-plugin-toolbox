@@ -79,7 +79,8 @@ class GetHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received get request."""
-        ledger: BaseLedger = await context.inject(BaseLedger, required=False)
+        session = await context.session()
+        ledger: BaseLedger = session.inject(BaseLedger, required=False)
         if not ledger or ledger.LEDGER_TYPE != 'indy':
             report = ProblemReport(
                 explain_ltxt='Invalid ledger.',
@@ -143,7 +144,8 @@ class AcceptHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle taa acceptance messages."""
-        ledger: BaseLedger = await context.inject(BaseLedger, required=False)
+        session = await context.session()
+        ledger: BaseLedger = session.inject(BaseLedger, required=False)
         if not ledger or ledger.LEDGER_TYPE != 'indy':
             report = ProblemReport(
                 explain_ltxt='Invalid ledger.',
@@ -221,7 +223,8 @@ class GetAcceptanceHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received get acceptance request."""
-        ledger: BaseLedger = await context.inject(BaseLedger, required=False)
+        session = await context.session()
+        ledger: BaseLedger = session.inject(BaseLedger, required=False)
         if not ledger or ledger.LEDGER_TYPE != 'indy':
             report = ProblemReport(
                 explain_ltxt='Invalid ledger.',

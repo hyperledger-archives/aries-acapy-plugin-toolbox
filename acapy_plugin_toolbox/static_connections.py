@@ -91,7 +91,8 @@ class CreateStaticConnectionHandler(BaseHandler):
         """Handle static connection creation request."""
 
         connection_mgr = ConnectionManager(context)
-        wallet: BaseWallet = await context.inject(BaseWallet)
+        session = await context.session()
+        wallet: BaseWallet = session.inject(BaseWallet)
 
         # Make our info for the connection
         my_info = await wallet.create_local_did()
@@ -193,7 +194,8 @@ class StaticConnectionGetListHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle static connection get list request."""
         connection_mgr = ConnectionManager(context)
-        wallet: BaseWallet = await context.inject(BaseWallet)
+        session = await context.session()
+        wallet: BaseWallet = session.inject(BaseWallet)
         try:
             tag_filter = dict(
                 filter(lambda item: item[1] is not None, {

@@ -179,8 +179,9 @@ class SendSchemaHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received send schema request."""
-        ledger: BaseLedger = await context.inject(BaseLedger)
-        issuer: IndyIssuer = await context.inject(IndyIssuer)
+        session = await context.session()
+        ledger: BaseLedger = session.inject(BaseLedger)
+        issuer: IndyIssuer = session.inject(IndyIssuer)
         async with ledger:
             schema_id, schema_def = await shield(
                 ledger.create_and_send_schema(
@@ -240,7 +241,8 @@ class SchemaGetHandler(BaseHandler):
         except StorageNotFoundError:
             pass
 
-        ledger: BaseLedger = await context.inject(BaseLedger)
+        session = await context.session()
+        ledger: BaseLedger = session.inject(BaseLedger)
         async with ledger:
             schema = await ledger.get_schema(context.message.schema_id)
 

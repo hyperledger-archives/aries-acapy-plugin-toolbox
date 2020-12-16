@@ -168,8 +168,9 @@ class SendCredDefHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received send cred def request."""
-        ledger: BaseLedger = await context.inject(BaseLedger)
-        issuer: IndyIssuer = await context.inject(IndyIssuer)
+        session = await context.session()
+        ledger: BaseLedger = session.inject(BaseLedger)
+        issuer: IndyIssuer = session.inject(IndyIssuer)
         # If no schema record, make one
         try:
             schema_record = await SchemaRecord.retrieve_by_schema_id(
@@ -267,7 +268,8 @@ class CredDefGetHandler(BaseHandler):
         except StorageNotFoundError:
             pass
 
-        ledger: BaseLedger = await context.inject(BaseLedger)
+        session = await context.session()
+        ledger: BaseLedger = session.inject(BaseLedger)
         async with ledger:
             credential_definition = await ledger.get_credential_definition(
                 context.message.cred_def_id

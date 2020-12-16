@@ -179,7 +179,8 @@ class GetAddressListHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
-        ledger: BaseLedger = await context.inject(BaseLedger)
+        session = await context.session()
+        ledger: BaseLedger = session.inject(BaseLedger)
         try:
             addresses = json.loads(
                 await payment.list_payment_addresses(ledger.wallet.handle)
@@ -250,8 +251,9 @@ class CreateAddressHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received create address requests."""
-        wallet: BaseWallet = await context.inject(BaseWallet)
-        ledger: BaseLedger = await context.inject(BaseLedger)
+        session = await context.session()
+        wallet: BaseWallet = session.inject(BaseWallet)
+        ledger: BaseLedger = session.inject(BaseLedger)
         if context.message.method != SOV_METHOD:
             report = ProblemReport(
                 explain_ltxt=(
@@ -404,7 +406,8 @@ class GetFeesHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle get fees."""
-        ledger: BaseLedger = await context.inject(BaseLedger)
+        session = await context.session()
+        ledger: BaseLedger = session.inject(BaseLedger)
         if context.message.method != SOV_METHOD:
             report = ProblemReport(
                 explain_ltxt=(
@@ -605,7 +608,8 @@ class TransferHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle payment"""
-        ledger: BaseLedger = await context.inject(BaseLedger)
+        session = await context.session()
+        ledger: BaseLedger = session.inject(BaseLedger)
         if context.message.method != SOV_METHOD:
             report = ProblemReport(
                 explain_ltxt=(
