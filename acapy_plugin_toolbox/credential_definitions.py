@@ -7,13 +7,13 @@ from asyncio import shield
 
 from marshmallow import fields
 
-from aries_cloudagent.config.injection_context import InjectionContext
+from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
 from aries_cloudagent.messaging.models.base_record import BaseRecord, BaseRecordSchema
 from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from aries_cloudagent.ledger.base import BaseLedger
-from aries_cloudagent.issuer.base import BaseIssuer
+from aries_cloudagent.indy.issuer import IndyIssuer
 from aries_cloudagent.storage.error import StorageNotFoundError
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.messaging.util import canon
@@ -48,12 +48,12 @@ MESSAGE_TYPES = {
 
 
 async def setup(
-        context: InjectionContext,
+        session: ProfileSession,
         protocol_registry: ProblemReport = None
 ):
     """Setup the cred def plugin."""
     if not protocol_registry:
-        protocol_registry = await context.inject(ProtocolRegistry)
+        protocol_registry = session.inject(ProtocolRegistry)
     protocol_registry.register_message_types(
         MESSAGE_TYPES
     )
@@ -168,8 +168,9 @@ class SendCredDefHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received send cred def request."""
-        ledger: BaseLedger = await context.inject(BaseLedger)
-        issuer: BaseIssuer = await context.inject(BaseIssuer)
+        session = await context.session()
+        ledger: BaseLedger = session.inject(BaseLedger)
+        issuer: IndyIssuer = session.inject(IndyIssuer)
         # If no schema record, make one
         try:
             schema_record = await SchemaRecord.retrieve_by_schema_id(
@@ -267,7 +268,8 @@ class CredDefGetHandler(BaseHandler):
         except StorageNotFoundError:
             pass
 
-        ledger: BaseLedger = await context.inject(BaseLedger)
+        session = await context.session()
+        ledger: BaseLedger = session.inject(BaseLedger)
         async with ledger:
             credential_definition = await ledger.get_credential_definition(
                 context.message.cred_def_id
@@ -341,7 +343,8 @@ class CredDefGetListHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle get schema list request."""
-        records = await CredDefRecord.query(context, {})
+        session = await context.session()
+        records = await CredDefRecord.query(session, {})
         cred_def_list = CredDefList(results=records)
         cred_def_list.assign_thread_from(context.message)
         await responder.send_reply(cred_def_list)

@@ -6,7 +6,7 @@
 from typing import Dict
 from marshmallow import fields
 
-from aries_cloudagent.config.injection_context import InjectionContext
+from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
 from aries_cloudagent.messaging.models.base_record import BaseRecord, BaseRecordSchema
@@ -62,12 +62,12 @@ MESSAGE_TYPES = {
 
 
 async def setup(
-        context: InjectionContext,
+        session: ProfileSession,
         protocol_registry: ProtocolRegistry = None
 ):
     """Setup the dids plugin."""
     if not protocol_registry:
-        protocol_registry = await context.inject(ProtocolRegistry)
+        protocol_registry = session.inject(ProtocolRegistry)
     protocol_registry.register_message_types(
         MESSAGE_TYPES
     )
@@ -226,7 +226,8 @@ class CreateDidHandler(BaseHandler):
 
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
-        wallet: BaseWallet = await context.inject(BaseWallet)
+        session = await context.session()
+        wallet: BaseWallet = session.inject(BaseWallet)
 
         did = context.message.did if context.message.did else None
         seed = context.message.seed if context.message.seed else None
@@ -244,7 +245,8 @@ class ListDidHandler(BaseHandler):
 
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
-        wallet: BaseWallet = await context.inject(BaseWallet)
+        session = await context.session()
+        wallet: BaseWallet = session.inject(BaseWallet)
 
         # Get list of all DIDs in the wallet
         results = []
@@ -273,7 +275,8 @@ class GetPublicDidHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Look for the public DID"""
-        wallet: BaseWallet = await context.inject(BaseWallet)
+        session = await context.session()
+        wallet: BaseWallet = session.inject(BaseWallet)
 
         did_info = await wallet.get_public_did()
         result = get_reply_did(did_info)
@@ -287,7 +290,8 @@ class SetPublicDidHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """"Set the public DID"""
-        wallet: BaseWallet = await context.inject(BaseWallet)
+        session = await context.session()
+        wallet: BaseWallet = session.inject(BaseWallet)
 
         await wallet.set_public_did(context.message.did)
         did_info = await wallet.get_public_did()
@@ -302,7 +306,8 @@ class SetDidMetadataHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """"Set the metadata"""
-        wallet: BaseWallet = await context.inject(BaseWallet)
+        session = await context.session()
+        wallet: BaseWallet = session.inject(BaseWallet)
 
         await wallet.replace_local_did_metadata(context.message.did,
                                                 context.message.metadata if context.message.metadata else None)

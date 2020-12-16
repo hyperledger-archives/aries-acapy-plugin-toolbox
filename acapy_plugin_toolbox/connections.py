@@ -7,12 +7,12 @@ from typing import Dict, Any
 
 from marshmallow import Schema, fields, validate
 
-from aries_cloudagent.config.injection_context import InjectionContext
+from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
 from aries_cloudagent.protocols.connections.v1_0.manager import ConnectionManager
-from aries_cloudagent.connections.models.connection_record import (
-    ConnectionRecord
+from aries_cloudagent.connections.models.conn_record import (
+    ConnRecord
 )
 from aries_cloudagent.protocols.connections.v1_0.messages.connection_invitation import (
     ConnectionInvitation,
@@ -50,12 +50,12 @@ MESSAGE_TYPES = {
 
 
 async def setup(
-        context: InjectionContext,
+        session: ProfileSession,
         protocol_registry: ProtocolRegistry = None
 ):
     """Setup the connections plugin."""
     if not protocol_registry:
-        protocol_registry = await context.inject(ProtocolRegistry)
+        protocol_registry = session.inject(ProtocolRegistry)
 
     protocol_registry.register_message_types(
         MESSAGE_TYPES
@@ -87,8 +87,8 @@ Connection, ConnectionSchema = generate_model_schema(
 )
 
 
-def conn_record_to_message_repr(conn: ConnectionRecord) -> Dict[str, Any]:
-    """Map ConnectionRecord onto Connection."""
+def conn_record_to_message_repr(conn: ConnRecord) -> Dict[str, Any]:
+    """Map ConnRecord onto Connection."""
     def _state_map(state: str) -> str:
         if state in ('active', 'response'):
             return 'active'
@@ -147,6 +147,7 @@ class GetListHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle get connection list request."""
 
+        session = await context.session()
         tag_filter = dict(
             filter(lambda item: item[1] is not None, {
                 'my_did': context.message.my_did,
@@ -160,8 +161,8 @@ class GetListHandler(BaseHandler):
             }.items()
         ))
         # TODO: Filter on state (needs mapping back to ACA-Py connection states)
-        records = await ConnectionRecord.query(
-            context, tag_filter, post_filter_positive
+        records = await ConnRecord.query(
+            session, tag_filter, post_filter_positive=post_filter_positive
         )
         results = [
             Connection(**conn_record_to_message_repr(record))
@@ -190,9 +191,10 @@ class UpdateHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle update connection request."""
+        session = await context.session()
         try:
-            connection = await ConnectionRecord.retrieve_by_id(
-                context,
+            connection = await ConnRecord.retrieve_by_id(
+                session,
                 context.message.connection_id
             )
         except StorageNotFoundError:
@@ -251,9 +253,10 @@ class DeleteHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
+        session = await context.session()
         try:
-            connection = await ConnectionRecord.retrieve_by_id(
-                context,
+            connection = await ConnRecord.retrieve_by_id(
+                session,
                 context.message.connection_id
             )
         except StorageNotFoundError:
