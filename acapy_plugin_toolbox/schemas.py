@@ -287,7 +287,8 @@ class SchemaGetListHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle get schema list request."""
-        records = await SchemaRecord.query(context, {})
+        session = await context.session(0)
+        records = await SchemaRecord.query(session, {})
         schema_list = SchemaList(results=records)
         schema_list.assign_thread_from(context.message)
         await responder.send_reply(schema_list)

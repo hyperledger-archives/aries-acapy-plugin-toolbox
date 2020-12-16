@@ -237,8 +237,9 @@ class BasicMessageHandler(BaseHandler):
         )
 
         connection_mgr = ConnectionManager(context)
+        session = await context.session()
         admins = await ConnRecord.query(
-            context, post_filter_positive={'their_role': 'admin'}
+            session, post_filter_positive={'their_role': 'admin'}
         )
 
         if not admins:
@@ -301,12 +302,13 @@ class GetHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received get requests."""
+        session = await context.session()
         tag_filter = dict(filter(lambda item: item[1] is not None, {
             'connection_id': context.message.connection_id,
         }.items()))
         msgs = sorted(
             await BasicMessageRecord.query(
-                context,
+                session,
                 tag_filter
             ),
             key=lambda msg: datetime_from_iso(msg.sent_time),
@@ -442,12 +444,13 @@ class DeleteHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received delete requests."""
+        session = await context.session()
         tag_filter = dict(filter(lambda item: item[1] is not None, {
             'connection_id': context.message.connection_id,
             'message_id': context.message.message_id,
         }.items()))
         msgs = await BasicMessageRecord.query(
-            context,
+            session,
             tag_filter
         )
         if context.message.before_date:

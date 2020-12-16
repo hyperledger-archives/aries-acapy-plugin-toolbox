@@ -343,7 +343,8 @@ class CredDefGetListHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle get schema list request."""
-        records = await CredDefRecord.query(context, {})
+        session = await context.session()
+        records = await CredDefRecord.query(session, {})
         cred_def_list = CredDefList(results=records)
         cred_def_list.assign_thread_from(context.message)
         await responder.send_reply(cred_def_list)

@@ -211,7 +211,9 @@ class StaticConnectionGetListHandler(BaseHandler):
                     'their_role': context.message.their_role
                 }.items())
             )
-            records = await ConnRecord.query(context, tag_filter, post_filter_positive)
+            records = await ConnRecord.query(
+                session, tag_filter, post_filter_positive=post_filter_positive
+            )
         except StorageNotFoundError:
             report = ProblemReport(
                 explain_ltxt='Connection not found.',

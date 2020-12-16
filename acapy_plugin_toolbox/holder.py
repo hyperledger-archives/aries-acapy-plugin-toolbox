@@ -314,6 +314,7 @@ class PresGetListHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received get cred list request."""
 
+        session = await context.session()
         post_filter_positive = dict(
             filter(lambda item: item[1] is not None, {
                 # 'state': V10PresentialExchange.STATE_CREDENTIAL_RECEIVED,
@@ -322,6 +323,8 @@ class PresGetListHandler(BaseHandler):
                 'verified': context.message.verified,
             }.items())
         )
-        records = await V10PresentationExchange.query(context, {}, post_filter_positive)
+        records = await V10PresentationExchange.query(
+            session, {}, post_filter_positive=post_filter_positive
+        )
         cred_list = PresList(results=records)
         await responder.send_reply(cred_list)

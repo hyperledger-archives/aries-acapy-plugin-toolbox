@@ -169,8 +169,9 @@ class InvitationGetListHandler(BaseHandler):
                 # 'their_role': context.message.their_role
             }.items()
         ))
+        session = await context.session()
         records = await ConnRecord.query(
-            context, tag_filter, post_filter_positive
+            session, tag_filter, post_filter_positive=post_filter_positive
         )
         results = []
         for connection in records:

@@ -269,7 +269,10 @@ class CredGetListHandler(BaseHandler):
                 'schema_id': context.message.schema_id
             }.items())
         )
-        records = await V10CredentialExchange.query(context, {}, post_filter_positive)
+        session = await context.session()
+        records = await V10CredentialExchange.query(
+            session, {}, post_filter_positive=post_filter_positive
+        )
         cred_list = CredList(results=records)
         await responder.send_reply(cred_list)
 
@@ -310,6 +313,9 @@ class PresGetListHandler(BaseHandler):
                 'verified': context.message.verified,
             }.items())
         )
-        records = await V10PresentationExchange.query(context, {}, post_filter_positive)
+        session = await context.session()
+        records = await V10PresentationExchange.query(
+            session, {}, post_filter_positive=post_filter_positive
+        )
         cred_list = PresList(results=records)
         await responder.send_reply(cred_list)
