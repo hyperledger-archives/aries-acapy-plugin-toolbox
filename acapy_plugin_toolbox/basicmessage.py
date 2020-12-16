@@ -219,6 +219,7 @@ class BasicMessageHandler(BaseHandler):
 
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received basic message."""
+        session = await context.session()
         msg = BasicMessageRecord(
             connection_id=context.connection_record.connection_id,
             message_id=context.message._id,
@@ -226,7 +227,7 @@ class BasicMessageHandler(BaseHandler):
             content=context.message.content,
             state=BasicMessageRecord.STATE_RECV
         )
-        await msg.save(context, reason='New message received.')
+        await msg.save(session, reason='New message received.')
 
         await responder.send_webhook(
             "basicmessages",
@@ -385,9 +386,10 @@ class SendHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received send requests."""
         # pylint: disable=protected-access
+        session = await context.session()
         try:
             connection = await ConnRecord.retrieve_by_id(
-                context, context.message.connection_id
+                session, context.message.connection_id
             )
         except StorageNotFoundError:
             report = ProblemReport(
@@ -412,7 +414,7 @@ class SendHandler(BaseHandler):
             content=msg.content,
             state=BasicMessageRecord.STATE_SENT
         )
-        await record.save(context, reason='Message sent.')
+        await record.save(session, reason='Message sent.')
         sent_msg = Sent(connection_id=connection.connection_id, message=record)
         sent_msg.assign_thread_from(context.message)
         await responder.send_reply(sent_msg)

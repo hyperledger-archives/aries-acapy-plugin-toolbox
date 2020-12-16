@@ -209,7 +209,7 @@ class UpdateHandler(BaseHandler):
         connection.their_label = new_label
         new_role = context.message.role or connection.their_role
         connection.their_role = new_role
-        await connection.save(context, reason="Update request received.")
+        await connection.save(session, reason="Update request received.")
         conn_response = Connection(
             **conn_record_to_message_repr(connection)
         )

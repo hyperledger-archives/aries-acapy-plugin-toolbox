@@ -136,9 +136,11 @@ class SendMediationRequestHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         # Verify connection exists
+        session = await context.session()
+        manager = MediationManager(session)
         try:
-            connection = await ConnectionRecord.retrieve_by_id(
-                context,
+            connection = await ConnRecord.retrieve_by_id(
+                session,
                 context.message.connection_id
             )
         except StorageNotFoundError:
@@ -150,22 +152,10 @@ class SendMediationRequestHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
-        # Create record
-        record = MediationRecord(
-            role=MediationRecord.ROLE_CLIENT,
-            connection_id=connection.connection_id
-        )
-        await record.save(context, reason="Sending new mediation request")
-
-        # Construct message
-        mediation_request = MediationRequest(
-            mediator_terms=context.message.mediator_terms,
-            recipient_terms=context.message.recipient_terms,
-        )
-
+        request = await manager.prepare_request(connection.connection_id)
         # Send mediation request
         await responder.send(
-            mediation_request,
+            request,
             connection_id=connection.connection_id,
         )
 
