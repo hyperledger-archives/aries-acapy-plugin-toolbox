@@ -176,7 +176,7 @@ class InvitationGetListHandler(BaseHandler):
         results = []
         for connection in records:
             try:
-                invitation = await connection.retrieve_invitation(context)
+                invitation = await connection.retrieve_invitation(session)
             except StorageNotFoundError:
                 continue
 
