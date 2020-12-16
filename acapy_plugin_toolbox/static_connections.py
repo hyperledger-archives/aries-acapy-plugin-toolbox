@@ -90,8 +90,8 @@ class CreateStaticConnectionHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle static connection creation request."""
 
-        connection_mgr = ConnectionManager(context)
         session = await context.session()
+        connection_mgr = ConnectionManager(session)
         wallet: BaseWallet = session.inject(BaseWallet)
 
         # Make our info for the connection
@@ -193,8 +193,8 @@ class StaticConnectionGetListHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle static connection get list request."""
-        connection_mgr = ConnectionManager(context)
         session = await context.session()
+        connection_mgr = ConnectionManager(session)
         wallet: BaseWallet = session.inject(BaseWallet)
         try:
             tag_filter = dict(

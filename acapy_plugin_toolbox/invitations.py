@@ -119,7 +119,8 @@ class CreateInvitationHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle create invitation request."""
-        connection_mgr = ConnectionManager(context)
+        session = await context.session()
+        connection_mgr = ConnectionManager(session)
         connection, invitation = await connection_mgr.create_invitation(
             my_label=context.message.label,
             their_role=context.message.role,

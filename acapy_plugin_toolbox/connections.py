@@ -293,7 +293,8 @@ class ReceiveInvitationHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle recieve invitation request."""
-        connection_mgr = ConnectionManager(context)
+        session = await context.session()
+        connection_mgr = ConnectionManager(session)
         invitation = ConnectionInvitation.from_url(context.message.invitation)
         connection = await connection_mgr.receive_invitation(
             invitation,
