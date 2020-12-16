@@ -49,22 +49,26 @@ def require_role(role):
     def _require_role(func):
         @functools.wraps(func)
         async def _wrapped(
-                handler,
-                context: RequestContext,
-                responder: BaseResponder):
-
-            if not context.connection_record \
-                    or context.connection_record.their_role != role:
-                report = ProblemReport(
-                    explain_ltxt='This connection is not authorized to perform'
-                                 ' the requested action.',
-                    who_retries='none'
+            handler,
+            context: RequestContext,
+            responder: BaseResponder
+        ):
+            if context.connection_record:
+                session = await context.session()
+                group = await context.connection_record.metadata_get(
+                    session, 'group'
                 )
-                report.assign_thread_from(context.message)
-                await responder.send_reply(report)
-                return
+                if group == role:
+                    return await func(handler, context, responder)
 
-            return await func(handler, context, responder)
+            report = ProblemReport(
+                explain_ltxt='This connection is not authorized to perform'
+                             ' the requested action.',
+                who_retries='none'
+            )
+            report.assign_thread_from(context.message)
+            await responder.send_reply(report)
+
         return _wrapped
     return _require_role
 
