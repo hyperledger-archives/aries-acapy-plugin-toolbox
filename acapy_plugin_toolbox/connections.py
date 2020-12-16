@@ -147,6 +147,7 @@ class GetListHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle get connection list request."""
 
+        session = await context.session()
         tag_filter = dict(
             filter(lambda item: item[1] is not None, {
                 'my_did': context.message.my_did,
@@ -161,7 +162,7 @@ class GetListHandler(BaseHandler):
         ))
         # TODO: Filter on state (needs mapping back to ACA-Py connection states)
         records = await ConnRecord.query(
-            context, tag_filter, post_filter_positive
+            session, tag_filter, post_filter_positive=post_filter_positive
         )
         results = [
             Connection(**conn_record_to_message_repr(record))
@@ -190,9 +191,10 @@ class UpdateHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle update connection request."""
+        session = await context.session()
         try:
             connection = await ConnRecord.retrieve_by_id(
-                context,
+                session,
                 context.message.connection_id
             )
         except StorageNotFoundError:
@@ -251,9 +253,10 @@ class DeleteHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
+        session = await context.session()
         try:
             connection = await ConnRecord.retrieve_by_id(
-                context,
+                session,
                 context.message.connection_id
             )
         except StorageNotFoundError:
