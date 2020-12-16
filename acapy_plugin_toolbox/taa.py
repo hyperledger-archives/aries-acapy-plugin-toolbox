@@ -81,7 +81,7 @@ class GetHandler(BaseHandler):
         """Handle received get request."""
         session = await context.session()
         ledger: BaseLedger = session.inject(BaseLedger, required=False)
-        if not ledger or ledger.LEDGER_TYPE != 'indy':
+        if not ledger or ledger.BACKEND_NAME != 'indy':
             report = ProblemReport(
                 explain_ltxt='Invalid ledger.',
                 who_retries='none'
@@ -146,7 +146,7 @@ class AcceptHandler(BaseHandler):
         """Handle taa acceptance messages."""
         session = await context.session()
         ledger: BaseLedger = session.inject(BaseLedger, required=False)
-        if not ledger or ledger.LEDGER_TYPE != 'indy':
+        if not ledger or ledger.BACKEND_NAME != 'indy':
             report = ProblemReport(
                 explain_ltxt='Invalid ledger.',
                 who_retries='none'
@@ -225,7 +225,7 @@ class GetAcceptanceHandler(BaseHandler):
         """Handle received get acceptance request."""
         session = await context.session()
         ledger: BaseLedger = session.inject(BaseLedger, required=False)
-        if not ledger or ledger.LEDGER_TYPE != 'indy':
+        if not ledger or ledger.BACKEND_NAME != 'indy':
             report = ProblemReport(
                 explain_ltxt='Invalid ledger.',
                 who_retries='none'
