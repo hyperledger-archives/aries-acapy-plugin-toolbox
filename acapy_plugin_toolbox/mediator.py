@@ -98,7 +98,8 @@ class MediationRequestsGetHandler(BaseHandler):
                 'connection_id': context.message.connection_id
             }.items())
         )
-        records = await MediationRecord.query(context, tag_filter=tag_filter)
+        session = await context.session()
+        records = await MediationRecord.query(session, tag_filter=tag_filter)
         response = MediationRequests(requests=records)
         response.assign_thread_from(context.message)
         await responder.send_reply(response)
@@ -131,9 +132,10 @@ class MediationGrantHandler(BaseHandler):
     """
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle mediation grant request."""
-        manager = MediationManager(context)
+        session = await context.session()
+        manager = MediationManager(session)
         record = await MediationRecord.retrieve_by_id(
-            context, context.message.mediation_id
+            session, context.message.mediation_id
         )
 
         grant = await manager.grant_request(record)
@@ -172,9 +174,10 @@ class MediationDenyHandler(BaseHandler):
 
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle mediation deny request."""
-        manager = MediationManager(context)
+        session = await context.session()
+        manager = MediationManager(session)
         record = await MediationRecord.retrieve_by_id(
-            context, context.message.mediation_id
+            session, context.message.mediation_id
         )
 
         deny = await manager.deny_request(record)
@@ -210,13 +213,14 @@ class RoutesGetHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received get Route get request."""
+        session = await context.session()
         tag_filter = dict(
             filter(lambda item: item[1] is not None, {
                 'connection_id': context.message.connection_id,
                 'role': MediationRecord.ROLE_SERVER
             }.items())
         )
-        records = await RouteRecord.query(context, tag_filter=tag_filter)
+        records = await RouteRecord.query(session, tag_filter=tag_filter)
         response = Routes(routes=records)
         response.assign_thread_from(context.message)
         await responder.send_reply(response)
