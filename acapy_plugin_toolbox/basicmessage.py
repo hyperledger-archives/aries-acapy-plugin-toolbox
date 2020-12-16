@@ -1,6 +1,7 @@
 """BasicMessage Plugin."""
 # pylint: disable=invalid-name, too-few-public-methods
 
+import json
 from datetime import datetime
 from typing import Union
 
@@ -245,21 +246,26 @@ class BasicMessageHandler(BaseHandler):
         admin_ids = map(
             lambda record: record.tags['connection_id'],
             filter(
-                lambda record: record.value == 'admin',
+                lambda record: json.loads(record.value) == 'admin',
                 await storage.find_all_records(
                     ConnRecord.RECORD_TYPE_METADATA, {'key': 'group'}
                 )
             )
         )
+        admins = [
+            await ConnRecord.retrieve_by_id(session, id)
+            for id in admin_ids
+        ]
 
-        if not admin_ids:
+        if not admins:
             return
 
+        admins = filter(lambda admin: admin.state == 'active', admins)
         admin_verkeys = [
             target.recipient_keys[0]
-            for admin_id in admin_ids
+            for admin in admins
             for target in await connection_mgr.get_connection_targets(
-                connection_id=admin_id
+                connection=admin
             )
         ]
 
