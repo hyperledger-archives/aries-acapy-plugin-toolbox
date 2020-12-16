@@ -1,16 +1,12 @@
 """BasicMessage Plugin."""
 # pylint: disable=invalid-name, too-few-public-methods
 
-from typing import Union
 from datetime import datetime
+from typing import Union
 
-from marshmallow import fields
-
+from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
-from aries_cloudagent.connections.models.conn_record import (
-    ConnRecord
-)
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler, BaseResponder, RequestContext
 )
@@ -21,12 +17,18 @@ from aries_cloudagent.messaging.models.base_record import (
     BaseRecord, BaseRecordSchema
 )
 from aries_cloudagent.messaging.valid import INDY_ISO8601_DATETIME
-from aries_cloudagent.protocols.connections.v1_0.manager import ConnectionManager
-from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
+from aries_cloudagent.protocols.connections.v1_0.manager import (
+    ConnectionManager
+)
+from aries_cloudagent.protocols.problem_report.v1_0.message import (
+    ProblemReport
+)
+from aries_cloudagent.storage.base import BaseStorage
 from aries_cloudagent.storage.error import StorageNotFoundError
+from marshmallow import fields
 
 from .util import (
-    generate_model_schema, admin_only, timestamp_utc_iso, datetime_from_iso
+    admin_only, datetime_from_iso, generate_model_schema, timestamp_utc_iso
 )
 
 PROTOCOL_URI = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0"
@@ -236,21 +238,27 @@ class BasicMessageHandler(BaseHandler):
             },
         )
 
-        connection_mgr = ConnectionManager(context)
         session = await context.session()
-        admins = await ConnRecord.query(
-            session, post_filter_positive={'their_role': 'admin'}
+        connection_mgr = ConnectionManager(session)
+        storage = session.inject(BaseStorage)
+        admin_ids = map(
+            lambda record: record.tags['connection_id'],
+            filter(
+                lambda record: record.value == 'admin',
+                await storage.find_all_records(
+                    ConnRecord.RECORD_TYPE_METADATA, {'key': 'group'}
+                )
+            )
         )
 
-        if not admins:
+        if not admin_ids:
             return
 
-        admins = filter(lambda admin: admin.state == 'active', admins)
         admin_verkeys = [
             target.recipient_keys[0]
-            for admin in admins
+            for admin_id in admin_ids
             for target in await connection_mgr.get_connection_targets(
-                connection=admin
+                connection_id=admin_id
             )
         ]
 
