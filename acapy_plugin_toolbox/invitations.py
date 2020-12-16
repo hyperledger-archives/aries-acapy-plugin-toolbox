@@ -75,7 +75,7 @@ CreateInvitation, CreateInvitationSchema = generate_model_schema(
     schema={
         'label': fields.Str(required=False),
         'alias': fields.Str(required=False),  # default?
-        'role': fields.Str(required=False),
+        'group': fields.Str(required=False),
         'auto_accept': fields.Boolean(missing=False),
         'multi_use': fields.Boolean(missing=False),
     }
@@ -85,7 +85,7 @@ BaseInvitationSchema = Schema.from_dict({
     'id': fields.Str(required=True),
     'label': fields.Str(required=False),
     'alias': fields.Str(required=False),  # default?
-    'role': fields.Str(required=False),
+    'group': fields.Str(required=False),
     'auto_accept': fields.Boolean(missing=False),
     'multi_use': fields.Boolean(missing=False),
     'invitation_url': fields.Str(required=True),
@@ -123,17 +123,20 @@ class CreateInvitationHandler(BaseHandler):
         connection_mgr = ConnectionManager(session)
         connection, invitation = await connection_mgr.create_invitation(
             my_label=context.message.label,
-            their_role=context.message.role,
             auto_accept=context.message.auto_accept,
             multi_use=bool(context.message.multi_use),
             public=False,
             alias=context.message.alias,
         )
+        if context.message.group:
+            await connection.metadata_set(
+                session, "group", context.message.group
+            )
         invite_response = Invitation(
             id=connection.connection_id,
             label=invitation.label,
             alias=connection.alias,
-            role=connection.their_role,
+            group=context.message.group,
             auto_accept=connection.accept == ConnRecord.ACCEPT_AUTO,
             multi_use=(
                 connection.invitation_mode ==
@@ -180,12 +183,13 @@ class InvitationGetListHandler(BaseHandler):
                 invitation = await connection.retrieve_invitation(session)
             except StorageNotFoundError:
                 continue
+            group = await connection.metadata_get(session, 'group')
 
             invite = {
                 'id': connection.connection_id,
                 'label': invitation.label,
                 'alias': connection.alias,
-                'role': connection.their_role,
+                'group': group,
                 'auto_accept': (
                     connection.accept == ConnRecord.ACCEPT_AUTO
                 ),
