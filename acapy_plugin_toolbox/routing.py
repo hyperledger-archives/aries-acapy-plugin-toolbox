@@ -152,7 +152,9 @@ class SendMediationRequestHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
-        request = await manager.prepare_request(connection.connection_id)
+        _record, request = await manager.prepare_request(
+            connection.connection_id
+        )
         # Send mediation request
         await responder.send(
             request,
