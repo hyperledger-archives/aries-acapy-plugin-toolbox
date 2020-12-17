@@ -7,6 +7,8 @@ $CMD start \
     --label "$AGENT_NAME" \
     --wallet-name "$AGENT_NAME" \
     --auto-accept-requests --auto-ping-connection \
+    --auto-send-keylist-update-in-create-invitation \
+    --auto-send-keylist-update-in-requests \
     --auto-respond-credential-proposal --auto-respond-credential-offer --auto-respond-credential-request --auto-store-credential \
     --auto-respond-presentation-proposal --auto-respond-presentation-request --auto-verify-presentation \
     --preserve-exchange-records \

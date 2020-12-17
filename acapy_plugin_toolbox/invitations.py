@@ -78,6 +78,7 @@ CreateInvitation, CreateInvitationSchema = generate_model_schema(
         'group': fields.Str(required=False),
         'auto_accept': fields.Boolean(missing=False),
         'multi_use': fields.Boolean(missing=False),
+        'mediation_id': fields.Str(required=False)
     }
 )
 
@@ -93,6 +94,7 @@ BaseInvitationSchema = Schema.from_dict({
         required=False, description="Time of record creation",
         **INDY_ISO8601_DATETIME
     ),
+    'mediation_id': fields.Str(required=False),
     'raw_repr': fields.Dict(required=False),
 })
 
@@ -127,6 +129,7 @@ class CreateInvitationHandler(BaseHandler):
             multi_use=bool(context.message.multi_use),
             public=False,
             alias=context.message.alias,
+            mediation_id=context.message.mediation_id,
         )
         if context.message.group:
             await connection.metadata_set(
@@ -142,6 +145,7 @@ class CreateInvitationHandler(BaseHandler):
                 connection.invitation_mode ==
                 ConnRecord.INVITATION_MODE_MULTI
             ),
+            mediation_id=context.message.mediation_id,
             invitation_url=invitation.to_url(),
             created_date=connection.created_at,
             raw_repr={

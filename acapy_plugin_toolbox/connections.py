@@ -282,7 +282,8 @@ ReceiveInvitation, ReceiveInvitationSchema = generate_model_schema(
         'invitation': fields.Str(required=True),
         'auto_accept': fields.Bool(
             missing=False
-        )
+        ),
+        'mediation_id': fields.Str(required=False),
     }
 )
 
@@ -298,7 +299,8 @@ class ReceiveInvitationHandler(BaseHandler):
         invitation = ConnectionInvitation.from_url(context.message.invitation)
         connection = await connection_mgr.receive_invitation(
             invitation,
-            auto_accept=context.message.auto_accept
+            auto_accept=context.message.auto_accept,
+            mediation_id=context.message.mediation_id,
         )
         connection_resp = Connection(**conn_record_to_message_repr(connection))
         await responder.send_reply(connection_resp)
