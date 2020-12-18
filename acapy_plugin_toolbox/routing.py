@@ -1,33 +1,29 @@
 """BasicMessage Plugin."""
 # pylint: disable=invalid-name, too-few-public-methods
 
-from typing import Union
-from datetime import datetime
 
-from marshmallow import fields
-
+from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
-from aries_cloudagent.connections.models.conn_record import (
-    ConnRecord
-)
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler, BaseResponder, RequestContext
 )
-from aries_cloudagent.protocols.coordinate_mediation.v1_0.manager import MediationManager
-from aries_cloudagent.protocols.coordinate_mediation.v1_0.messages.mediate_request import \
-    MediationRequest
+from aries_cloudagent.protocols.coordinate_mediation.v1_0.manager import (
+    MediationManager
+)
+from aries_cloudagent.protocols.coordinate_mediation.v1_0.messages.inner.keylist_update_rule import (
+    KeylistUpdateRule
+)
 from aries_cloudagent.protocols.coordinate_mediation.v1_0.models.mediation_record import (
     MediationRecord, MediationRecordSchema
 )
-from aries_cloudagent.protocols.routing.v1_0.models.route_record import RouteRecordSchema
-from aries_cloudagent.protocols.problem_report.v1_0.message import \
+from aries_cloudagent.protocols.problem_report.v1_0.message import (
     ProblemReport
-from aries_cloudagent.protocols.coordinate_mediation.v1_0.messages.keylist_update import KeylistUpdate
-from aries_cloudagent.protocols.coordinate_mediation.v1_0.messages.inner.keylist_update_rule import KeylistUpdateRule
+)
+from aries_cloudagent.protocols.routing.v1_0.models.route_record import (
+    RouteRecordSchema
+)
 from aries_cloudagent.storage.error import StorageNotFoundError
-from aries_cloudagent.protocols.coordinate_mediation.v1_0.message_types import KEYLIST
-from aries_cloudagent.protocols.coordinate_mediation.v1_0.messages.keylist import KeylistSchema
 from marshmallow import fields
 from marshmallow.validate import OneOf
 

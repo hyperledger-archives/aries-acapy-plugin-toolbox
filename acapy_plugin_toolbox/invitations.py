@@ -174,7 +174,6 @@ class InvitationGetListHandler(BaseHandler):
             {
                 'state': 'invitation',
                 # 'initiator': context.message.initiator,
-                # 'their_role': context.message.their_role
             }.items()
         ))
         session = await context.session()

@@ -75,7 +75,6 @@ BaseConnectionSchema = Schema.from_dict({
         required=True
     ),
     'their_did': fields.Str(required=False),  # May be missing if pending
-    'role': fields.Str(required=False),
     'raw_repr': fields.Dict(required=False)
 })
 
@@ -101,7 +100,6 @@ def conn_record_to_message_repr(conn: ConnRecord) -> Dict[str, Any]:
         'my_did': conn.my_did,
         'their_did': conn.their_did,
         'state': _state_map(conn.state),
-        'role': conn.their_role,
         'connection_id': conn.connection_id,
         'raw_repr': conn.serialize()
     }
@@ -122,7 +120,6 @@ GetList, GetListSchema = generate_model_schema(
             required=False
         ),
         'their_did': fields.Str(required=False),
-        'role': fields.Str(required=False)
     }
 )
 
@@ -154,15 +151,9 @@ class GetListHandler(BaseHandler):
                 'their_did': context.message.their_did,
             }.items())
         )
-        post_filter_positive = dict(filter(
-            lambda item: item[1] is not None,
-            {
-                'their_role': context.message.role
-            }.items()
-        ))
         # TODO: Filter on state (needs mapping back to ACA-Py connection states)
         records = await ConnRecord.query(
-            session, tag_filter, post_filter_positive=post_filter_positive
+            session, tag_filter
         )
         results = [
             Connection(**conn_record_to_message_repr(record))
@@ -180,7 +171,6 @@ Update, UpdateSchema = generate_model_schema(
     schema={
         'connection_id': fields.Str(required=True),
         'label': fields.Str(required=False),
-        'role': fields.Str(required=False)
     }
 )
 
@@ -207,9 +197,7 @@ class UpdateHandler(BaseHandler):
 
         new_label = context.message.label or connection.their_label
         connection.their_label = new_label
-        new_role = context.message.role or connection.their_role
-        connection.their_role = new_role
-        await connection.save(session, reason="Update request received.")
+        await connection.save(context, reason="Update request received.")
         conn_response = Connection(
             **conn_record_to_message_repr(connection)
         )

@@ -2,26 +2,27 @@
 
 # pylint: disable=invalid-name
 # pylint: disable=too-few-public-methods
-from functools import reduce
-
-from marshmallow import fields
-
 from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler, BaseResponder, RequestContext
 )
-from aries_cloudagent.protocols.routing.v1_0.manager import RoutingManager
-from aries_cloudagent.protocols.coordinate_mediation.v1_0.manager import MediationManager
-from aries_cloudagent.protocols.routing.v1_0.models.route_record import (
-    RouteRecord, RouteRecordSchema
+from aries_cloudagent.protocols.coordinate_mediation.v1_0.manager import (
+    MediationManager
 )
 from aries_cloudagent.protocols.coordinate_mediation.v1_0.models.mediation_record import (
     MediationRecord, MediationRecordSchema
 )
-from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
+from aries_cloudagent.protocols.problem_report.v1_0.message import (
+    ProblemReport
+)
+from aries_cloudagent.protocols.routing.v1_0.models.route_record import (
+    RouteRecord, RouteRecordSchema
+)
+from marshmallow import fields
 
-from .util import generate_model_schema, admin_only
+from .util import admin_only, generate_model_schema
+
 PROTOCOL = 'https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-mediator/0.1'
 
 ROUTES_GET = f'{PROTOCOL}/routes-get'
