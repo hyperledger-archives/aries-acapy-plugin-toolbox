@@ -200,7 +200,7 @@ class SendSchemaHandler(BaseHandler):
             state=SchemaRecord.STATE_WRITTEN,
             author=SchemaRecord.AUTHOR_SELF,
         )
-        await schema.save(context, reason="Committed to ledger")
+        await schema.save(session, reason="Committed to ledger")
 
         result = SchemaID(schema_id=schema_id)
         result.assign_thread_from(context.message)
@@ -254,7 +254,7 @@ class SchemaGetHandler(BaseHandler):
             state=SchemaRecord.STATE_WRITTEN,
             author=SchemaRecord.AUTHOR_OTHER
         )
-        await schema_record.save(context, reason='Retrieved from ledger')
+        await schema_record.save(session, reason='Retrieved from ledger')
 
         schema_msg = Schema(**schema_record.serialize())
         schema_msg.assign_thread_from(context.message)

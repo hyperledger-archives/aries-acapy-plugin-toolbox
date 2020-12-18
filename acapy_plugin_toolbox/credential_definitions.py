@@ -192,7 +192,7 @@ class SendCredDefHandler(BaseHandler):
                 state=SchemaRecord.STATE_WRITTEN,
                 author=SchemaRecord.AUTHOR_OTHER
             )
-            await schema_record.save(context, reason='Retrieved from ledger')
+            await schema_record.save(session, reason='Retrieved from ledger')
 
         try:
             async with ledger:
@@ -296,7 +296,7 @@ class CredDefGetHandler(BaseHandler):
                 state=SchemaRecord.STATE_WRITTEN,
                 author=SchemaRecord.AUTHOR_OTHER
             )
-            await schema_record.save(context, reason='Retrieved from ledger')
+            await schema_record.save(session, reason='Retrieved from ledger')
 
         cred_def_record = CredDefRecord(
             cred_def_id=credential_definition['id'],

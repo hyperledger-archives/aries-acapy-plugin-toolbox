@@ -107,9 +107,10 @@ class SendCredProposalHandler(BaseHandler):
 
         credential_manager = CredentialManager(context)
 
+        session = await context.session()
         try:
             conn_record = await ConnRecord.retrieve_by_id(
-                context,
+                session,
                 connection_id
             )
         except StorageNotFoundError:
@@ -173,9 +174,10 @@ class SendPresProposalHandler(BaseHandler):
         """Handle received send presentation proposal request."""
 
         connection_id = str(context.message.connection_id)
+        session = await context.session()
         try:
             conn_record = await ConnRecord.retrieve_by_id(
-                context,
+                session,
                 connection_id
             )
         except StorageNotFoundError:

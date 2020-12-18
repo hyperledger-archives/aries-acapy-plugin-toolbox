@@ -37,15 +37,16 @@ RUN tar xzvf libsovtoken.tar.gz; \
         cd libsovtoken-1.0.1/libsovtoken; \
         cargo build
 ENV LIBSOVTOKEN=/home/indy/libsovtoken-1.0.1/libsovtoken/target/debug/libsovtoken.so
-ADD . .
-
-RUN pip3 install --no-cache-dir -e .
 
 ADD https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 ./jq
 RUN chmod +x ./jq
-COPY startup.sh startup.sh
+
+ADD . .
+RUN pip3 install --no-cache-dir -e .
+
+COPY docker/startup.sh startup.sh
 RUN chmod +x ./startup.sh
-COPY ngrok-wait.sh wait.sh
+COPY docker/ngrok-wait.sh wait.sh
 RUN chmod +x ./wait.sh
 
 USER $user

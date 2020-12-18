@@ -75,9 +75,10 @@ CreateInvitation, CreateInvitationSchema = generate_model_schema(
     schema={
         'label': fields.Str(required=False),
         'alias': fields.Str(required=False),  # default?
-        'role': fields.Str(required=False),
+        'group': fields.Str(required=False),
         'auto_accept': fields.Boolean(missing=False),
         'multi_use': fields.Boolean(missing=False),
+        'mediation_id': fields.Str(required=False)
     }
 )
 
@@ -85,7 +86,7 @@ BaseInvitationSchema = Schema.from_dict({
     'id': fields.Str(required=True),
     'label': fields.Str(required=False),
     'alias': fields.Str(required=False),  # default?
-    'role': fields.Str(required=False),
+    'group': fields.Str(required=False),
     'auto_accept': fields.Boolean(missing=False),
     'multi_use': fields.Boolean(missing=False),
     'invitation_url': fields.Str(required=True),
@@ -93,6 +94,7 @@ BaseInvitationSchema = Schema.from_dict({
         required=False, description="Time of record creation",
         **INDY_ISO8601_DATETIME
     ),
+    'mediation_id': fields.Str(required=False),
     'raw_repr': fields.Dict(required=False),
 })
 
@@ -119,23 +121,31 @@ class CreateInvitationHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle create invitation request."""
-        connection_mgr = ConnectionManager(context)
+        session = await context.session()
+        connection_mgr = ConnectionManager(session)
         connection, invitation = await connection_mgr.create_invitation(
             my_label=context.message.label,
             auto_accept=context.message.auto_accept,
             multi_use=bool(context.message.multi_use),
             public=False,
             alias=context.message.alias,
+            mediation_id=context.message.mediation_id,
         )
+        if context.message.group:
+            await connection.metadata_set(
+                session, "group", context.message.group
+            )
         invite_response = Invitation(
             id=connection.connection_id,
             label=invitation.label,
             alias=connection.alias,
+            group=context.message.group,
             auto_accept=connection.accept == ConnRecord.ACCEPT_AUTO,
             multi_use=(
                 connection.invitation_mode ==
                 ConnRecord.INVITATION_MODE_MULTI
             ),
+            mediation_id=context.message.mediation_id,
             invitation_url=invitation.to_url(),
             created_date=connection.created_at,
             raw_repr={
@@ -176,11 +186,13 @@ class InvitationGetListHandler(BaseHandler):
                 invitation = await connection.retrieve_invitation(session)
             except StorageNotFoundError:
                 continue
+            group = await connection.metadata_get(session, 'group')
 
             invite = {
                 'id': connection.connection_id,
                 'label': invitation.label,
                 'alias': connection.alias,
+                'group': group,
                 'auto_accept': (
                     connection.accept == ConnRecord.ACCEPT_AUTO
                 ),

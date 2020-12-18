@@ -1,16 +1,13 @@
 """BasicMessage Plugin."""
 # pylint: disable=invalid-name, too-few-public-methods
 
-from typing import Union
+import json
 from datetime import datetime
+from typing import Union
 
-from marshmallow import fields
-
+from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
-from aries_cloudagent.connections.models.conn_record import (
-    ConnRecord
-)
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler, BaseResponder, RequestContext
 )
@@ -21,12 +18,18 @@ from aries_cloudagent.messaging.models.base_record import (
     BaseRecord, BaseRecordSchema
 )
 from aries_cloudagent.messaging.valid import INDY_ISO8601_DATETIME
-from aries_cloudagent.protocols.connections.v1_0.manager import ConnectionManager
-from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
+from aries_cloudagent.protocols.connections.v1_0.manager import (
+    ConnectionManager
+)
+from aries_cloudagent.protocols.problem_report.v1_0.message import (
+    ProblemReport
+)
+from aries_cloudagent.storage.base import BaseStorage
 from aries_cloudagent.storage.error import StorageNotFoundError
+from marshmallow import fields
 
 from .util import (
-    generate_model_schema, admin_only, timestamp_utc_iso, datetime_from_iso
+    admin_only, datetime_from_iso, generate_model_schema, timestamp_utc_iso
 )
 
 PROTOCOL_URI = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0"
@@ -217,6 +220,7 @@ class BasicMessageHandler(BaseHandler):
 
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received basic message."""
+        session = await context.session()
         msg = BasicMessageRecord(
             connection_id=context.connection_record.connection_id,
             message_id=context.message._id,
@@ -224,7 +228,7 @@ class BasicMessageHandler(BaseHandler):
             content=context.message.content,
             state=BasicMessageRecord.STATE_RECV
         )
-        await msg.save(context, reason='New message received.')
+        await msg.save(session, reason='New message received.')
 
         await responder.send_webhook(
             "basicmessages",
@@ -236,11 +240,22 @@ class BasicMessageHandler(BaseHandler):
             },
         )
 
-        connection_mgr = ConnectionManager(context)
         session = await context.session()
-        admins = await ConnRecord.query(
-            session, post_filter_positive={'their_role': 'admin'}
+        connection_mgr = ConnectionManager(session)
+        storage = session.inject(BaseStorage)
+        admin_ids = map(
+            lambda record: record.tags['connection_id'],
+            filter(
+                lambda record: json.loads(record.value) == 'admin',
+                await storage.find_all_records(
+                    ConnRecord.RECORD_TYPE_METADATA, {'key': 'group'}
+                )
+            )
         )
+        admins = [
+            await ConnRecord.retrieve_by_id(session, id)
+            for id in admin_ids
+        ]
 
         if not admins:
             return
@@ -377,9 +392,10 @@ class SendHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received send requests."""
         # pylint: disable=protected-access
+        session = await context.session()
         try:
             connection = await ConnRecord.retrieve_by_id(
-                context, context.message.connection_id
+                session, context.message.connection_id
             )
         except StorageNotFoundError:
             report = ProblemReport(
@@ -404,7 +420,7 @@ class SendHandler(BaseHandler):
             content=msg.content,
             state=BasicMessageRecord.STATE_SENT
         )
-        await record.save(context, reason='Message sent.')
+        await record.save(session, reason='Message sent.')
         sent_msg = Sent(connection_id=connection.connection_id, message=record)
         sent_msg.assign_thread_from(context.message)
         await responder.send_reply(sent_msg)

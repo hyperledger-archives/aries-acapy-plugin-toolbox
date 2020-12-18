@@ -4,7 +4,9 @@ services:
     image: wernight/ngrok
     command: ngrok http agent-alice:3000 --log stdout
   agent-alice:
-    build: .
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile
     environment:
       NGROK_NAME: ngrok-alice
       AGENT_NAME: Alice
@@ -17,7 +19,9 @@ services:
     image: wernight/ngrok
     command: ngrok http agent-bob:3000 --log stdout
   agent-bob:
-    build: .
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile
     environment:
       NGROK_NAME: ngrok-bob
       AGENT_NAME: Bob
