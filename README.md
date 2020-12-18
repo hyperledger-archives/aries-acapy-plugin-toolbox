@@ -54,13 +54,19 @@ Quickstart Guide - Running locally
 
 Requirements:
 - Python 3.6 or higher
-- ACA-Py @ master
+- ACA-Py
 
-> **Note:** This plugin is currently compatible only with the master branch of
-> ACA-Py. Once a release including the new plugin interface is published to
-> PyPI, these instructions will be updated accordingly.
+### ACA-Py Version Compatibility
 
-> TODO: Add instructions for payment plugin loading
+To avoid a confusing pseudo-lock-step release, this plugin is
+versioned independent of ACA-Py. Plugin releases will follow standard
+[semver](semver.org) but each release will also be tagged with a mapping to an
+ACA-Py version with the format `acapy-X.Y.Z-J` where `X.Y.Z` corresponds to the
+ACA-Py version supported and `J` is an incrementing number for each new plugin
+release that targets the same version of ACA-Py.
+
+You should look for the most recent release tagged with the version of ACA-Py
+you are using (with the highest value for `J`).
 
 ### Setup Aries Cloud Agent - Python
 
@@ -93,8 +99,11 @@ $ pip install -e .[indy]
 
 Install this plugin into the virtual environment:
 ```sh
-$ pip install git+https://github.com/hyperledger/aries-acapy-plugin-toolbox.git@master#egg=acapy-plugin-toolbox
+$ pip install git+https://github.com/hyperledger/aries-acapy-plugin-toolbox.git@master#egg=acapy_plugin_toolbox
 ```
+
+**Note:** Depending on your version of `pip`, you may need to drop the
+`#egg=...` to install the plugin with the above command.
 
 ### Plugin Loading
 Start up ACA-Py with the plugin parameter:
