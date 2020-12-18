@@ -7,12 +7,12 @@ from asyncio import shield
 
 from marshmallow import fields
 
-from aries_cloudagent.config.injection_context import InjectionContext
+from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
 from aries_cloudagent.messaging.models.base_record import BaseRecord, BaseRecordSchema
 from aries_cloudagent.ledger.base import BaseLedger
-from aries_cloudagent.issuer.base import BaseIssuer
+from aries_cloudagent.indy.issuer import IndyIssuer
 from aries_cloudagent.storage.error import StorageNotFoundError
 from aries_cloudagent.config.injection_context import InjectionContext
 
@@ -50,12 +50,12 @@ MESSAGE_TYPES = {
 
 
 async def setup(
-        context: InjectionContext,
+        session: ProfileSession,
         protocol_registry: ProtocolRegistry = None
 ):
     """Setup the schemas plugin."""
     if not protocol_registry:
-        protocol_registry = await context.inject(ProtocolRegistry)
+        protocol_registry = session.inject(ProtocolRegistry)
     protocol_registry.register_message_types(
         MESSAGE_TYPES
     )
@@ -179,8 +179,9 @@ class SendSchemaHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received send schema request."""
-        ledger: BaseLedger = await context.inject(BaseLedger)
-        issuer: BaseIssuer = await context.inject(BaseIssuer)
+        session = await context.session()
+        ledger: BaseLedger = session.inject(BaseLedger)
+        issuer: IndyIssuer = session.inject(IndyIssuer)
         async with ledger:
             schema_id, schema_def = await shield(
                 ledger.create_and_send_schema(
@@ -240,7 +241,8 @@ class SchemaGetHandler(BaseHandler):
         except StorageNotFoundError:
             pass
 
-        ledger: BaseLedger = await context.inject(BaseLedger)
+        session = await context.session()
+        ledger: BaseLedger = session.inject(BaseLedger)
         async with ledger:
             schema = await ledger.get_schema(context.message.schema_id)
 
@@ -285,7 +287,8 @@ class SchemaGetListHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle get schema list request."""
-        records = await SchemaRecord.query(context, {})
+        session = await context.session()
+        records = await SchemaRecord.query(session, {})
         schema_list = SchemaList(results=records)
         schema_list.assign_thread_from(context.message)
         await responder.send_reply(schema_list)

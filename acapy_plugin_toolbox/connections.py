@@ -7,12 +7,12 @@ from typing import Dict, Any
 
 from marshmallow import Schema, fields, validate
 
-from aries_cloudagent.config.injection_context import InjectionContext
+from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
 from aries_cloudagent.protocols.connections.v1_0.manager import ConnectionManager
-from aries_cloudagent.connections.models.connection_record import (
-    ConnectionRecord
+from aries_cloudagent.connections.models.conn_record import (
+    ConnRecord
 )
 from aries_cloudagent.protocols.connections.v1_0.messages.connection_invitation import (
     ConnectionInvitation,
@@ -50,12 +50,12 @@ MESSAGE_TYPES = {
 
 
 async def setup(
-        context: InjectionContext,
+        session: ProfileSession,
         protocol_registry: ProtocolRegistry = None
 ):
     """Setup the connections plugin."""
     if not protocol_registry:
-        protocol_registry = await context.inject(ProtocolRegistry)
+        protocol_registry = session.inject(ProtocolRegistry)
 
     protocol_registry.register_message_types(
         MESSAGE_TYPES
@@ -75,7 +75,6 @@ BaseConnectionSchema = Schema.from_dict({
         required=True
     ),
     'their_did': fields.Str(required=False),  # May be missing if pending
-    'role': fields.Str(required=False),
     'raw_repr': fields.Dict(required=False)
 })
 
@@ -87,8 +86,8 @@ Connection, ConnectionSchema = generate_model_schema(
 )
 
 
-def conn_record_to_message_repr(conn: ConnectionRecord) -> Dict[str, Any]:
-    """Map ConnectionRecord onto Connection."""
+def conn_record_to_message_repr(conn: ConnRecord) -> Dict[str, Any]:
+    """Map ConnRecord onto Connection."""
     def _state_map(state: str) -> str:
         if state in ('active', 'response'):
             return 'active'
@@ -101,7 +100,6 @@ def conn_record_to_message_repr(conn: ConnectionRecord) -> Dict[str, Any]:
         'my_did': conn.my_did,
         'their_did': conn.their_did,
         'state': _state_map(conn.state),
-        'role': conn.their_role,
         'connection_id': conn.connection_id,
         'raw_repr': conn.serialize()
     }
@@ -122,7 +120,6 @@ GetList, GetListSchema = generate_model_schema(
             required=False
         ),
         'their_did': fields.Str(required=False),
-        'role': fields.Str(required=False)
     }
 )
 
@@ -147,21 +144,16 @@ class GetListHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle get connection list request."""
 
+        session = await context.session()
         tag_filter = dict(
             filter(lambda item: item[1] is not None, {
                 'my_did': context.message.my_did,
                 'their_did': context.message.their_did,
             }.items())
         )
-        post_filter_positive = dict(filter(
-            lambda item: item[1] is not None,
-            {
-                'their_role': context.message.role
-            }.items()
-        ))
         # TODO: Filter on state (needs mapping back to ACA-Py connection states)
-        records = await ConnectionRecord.query(
-            context, tag_filter, post_filter_positive
+        records = await ConnRecord.query(
+            session, tag_filter
         )
         results = [
             Connection(**conn_record_to_message_repr(record))
@@ -179,7 +171,6 @@ Update, UpdateSchema = generate_model_schema(
     schema={
         'connection_id': fields.Str(required=True),
         'label': fields.Str(required=False),
-        'role': fields.Str(required=False)
     }
 )
 
@@ -190,9 +181,10 @@ class UpdateHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle update connection request."""
+        session = await context.session()
         try:
-            connection = await ConnectionRecord.retrieve_by_id(
-                context,
+            connection = await ConnRecord.retrieve_by_id(
+                session,
                 context.message.connection_id
             )
         except StorageNotFoundError:
@@ -205,8 +197,6 @@ class UpdateHandler(BaseHandler):
 
         new_label = context.message.label or connection.their_label
         connection.their_label = new_label
-        new_role = context.message.role or connection.their_role
-        connection.their_role = new_role
         await connection.save(context, reason="Update request received.")
         conn_response = Connection(
             **conn_record_to_message_repr(connection)
@@ -251,9 +241,10 @@ class DeleteHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
+        session = await context.session()
         try:
-            connection = await ConnectionRecord.retrieve_by_id(
-                context,
+            connection = await ConnRecord.retrieve_by_id(
+                session,
                 context.message.connection_id
             )
         except StorageNotFoundError:

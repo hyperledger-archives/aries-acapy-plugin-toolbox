@@ -16,7 +16,7 @@ from indy.error import IndyError
 from aries_cloudagent.ledger.base import BaseLedger
 from aries_cloudagent.ledger.error import LedgerError
 from aries_cloudagent.ledger.indy import IndyErrorHandler
-from aries_cloudagent.config.injection_context import InjectionContext
+from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler, BaseResponder, RequestContext
@@ -69,7 +69,7 @@ def file_ext():
 
 
 async def setup(
-        context: InjectionContext,
+        session: ProfileSession,
         protocol_registry: ProblemReport = None
 ):
     """Load plugin."""
@@ -78,7 +78,7 @@ async def setup(
     cdll.LoadLibrary(LIBRARY).sovtoken_init()
 
     if not protocol_registry:
-        protocol_registry = await context.inject(ProtocolRegistry)
+        protocol_registry = session.inject(ProtocolRegistry)
     protocol_registry.register_message_types(
         MESSAGE_TYPES
     )
@@ -179,7 +179,8 @@ class GetAddressListHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
-        ledger: BaseLedger = await context.inject(BaseLedger)
+        session = await context.session()
+        ledger: BaseLedger = session.inject(BaseLedger)
         try:
             addresses = json.loads(
                 await payment.list_payment_addresses(ledger.wallet.handle)
@@ -250,8 +251,9 @@ class CreateAddressHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received create address requests."""
-        wallet: BaseWallet = await context.inject(BaseWallet)
-        ledger: BaseLedger = await context.inject(BaseLedger)
+        session = await context.session()
+        wallet: BaseWallet = session.inject(BaseWallet)
+        ledger: BaseLedger = session.inject(BaseLedger)
         if context.message.method != SOV_METHOD:
             report = ProblemReport(
                 explain_ltxt=(
@@ -404,7 +406,8 @@ class GetFeesHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle get fees."""
-        ledger: BaseLedger = await context.inject(BaseLedger)
+        session = await context.session()
+        ledger: BaseLedger = session.inject(BaseLedger)
         if context.message.method != SOV_METHOD:
             report = ProblemReport(
                 explain_ltxt=(
@@ -605,7 +608,8 @@ class TransferHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle payment"""
-        ledger: BaseLedger = await context.inject(BaseLedger)
+        session = await context.session()
+        ledger: BaseLedger = session.inject(BaseLedger)
         if context.message.method != SOV_METHOD:
             report = ProblemReport(
                 explain_ltxt=(

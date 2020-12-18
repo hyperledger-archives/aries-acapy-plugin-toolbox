@@ -8,7 +8,7 @@ from uuid import uuid4
 
 from marshmallow import fields
 
-from aries_cloudagent.config.injection_context import InjectionContext
+from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
 from aries_cloudagent.messaging.decorators.attach_decorator import AttachDecorator
@@ -39,7 +39,7 @@ from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange 
 from aries_cloudagent.protocols.present_proof.v1_0.messages.presentation_request import PresentationRequest
 from aries_cloudagent.protocols.present_proof.v1_0.manager import PresentationManager
 from aries_cloudagent.protocols.issue_credential.v1_0.manager import CredentialManager
-from aries_cloudagent.connections.models.connection_record import ConnectionRecord
+from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.storage.error import StorageNotFoundError
 from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 
@@ -72,12 +72,12 @@ MESSAGE_TYPES = {
 
 
 async def setup(
-        context: InjectionContext,
+        session: ProfileSession,
         protocol_registry: ProblemReport = None
 ):
     """Setup the issuer plugin."""
     if not protocol_registry:
-        protocol_registry = await context.inject(ProtocolRegistry)
+        protocol_registry = session.inject(ProtocolRegistry)
     protocol_registry.register_message_types(
         MESSAGE_TYPES
     )
@@ -108,7 +108,7 @@ class SendCredHandler(BaseHandler):
         preview_spec = context.message.credential_proposal
 
         try:
-            connection_record = await ConnectionRecord.retrieve_by_id(
+            conn_record = await ConnRecord.retrieve_by_id(
                 context,
                 connection_id
             )
@@ -121,7 +121,7 @@ class SendCredHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
-        if not connection_record.is_ready:
+        if not conn_record.is_ready:
             report = ProblemReport(
                 explain_ltxt='Connection invalid.',
                 who_retries='none'
@@ -180,7 +180,7 @@ class RequestPresHandler(BaseHandler):
 
         connection_id = str(context.message.connection_id)
         try:
-            connection_record = await ConnectionRecord.retrieve_by_id(
+            conn_record = await ConnRecord.retrieve_by_id(
                 context,
                 connection_id
             )
@@ -193,7 +193,7 @@ class RequestPresHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
-        if not connection_record.is_ready:
+        if not conn_record.is_ready:
             report = ProblemReport(
                 explain_ltxt='Connection invalid.',
                 who_retries='none'
@@ -269,7 +269,10 @@ class CredGetListHandler(BaseHandler):
                 'schema_id': context.message.schema_id
             }.items())
         )
-        records = await V10CredentialExchange.query(context, {}, post_filter_positive)
+        session = await context.session()
+        records = await V10CredentialExchange.query(
+            session, {}, post_filter_positive=post_filter_positive
+        )
         cred_list = CredList(results=records)
         await responder.send_reply(cred_list)
 
@@ -310,6 +313,9 @@ class PresGetListHandler(BaseHandler):
                 'verified': context.message.verified,
             }.items())
         )
-        records = await V10PresentationExchange.query(context, {}, post_filter_positive)
+        session = await context.session()
+        records = await V10PresentationExchange.query(
+            session, {}, post_filter_positive=post_filter_positive
+        )
         cred_list = PresList(results=records)
         await responder.send_reply(cred_list)

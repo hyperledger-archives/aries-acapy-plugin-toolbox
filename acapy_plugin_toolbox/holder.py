@@ -6,9 +6,9 @@
 from marshmallow import fields
 import json
 
-from aries_cloudagent.config.injection_context import InjectionContext
+from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
-from aries_cloudagent.holder.base import BaseHolder
+from aries_cloudagent.indy.holder import IndyHolder
 from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
 from aries_cloudagent.protocols.issue_credential.v1_0.routes import (
     V10CredentialExchangeListResultSchema,
@@ -36,7 +36,7 @@ from aries_cloudagent.protocols.present_proof.v1_0.messages.presentation_proposa
 )
 from aries_cloudagent.protocols.present_proof.v1_0.manager import PresentationManager
 
-from aries_cloudagent.connections.models.connection_record import ConnectionRecord
+from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.storage.error import StorageNotFoundError
 from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 
@@ -69,12 +69,12 @@ MESSAGE_TYPES = {
 
 
 async def setup(
-        context: InjectionContext,
+        session: ProfileSession,
         protocol_registry: ProblemReport = None
 ):
     """Setup the holder plugin."""
     if not protocol_registry:
-        protocol_registry = await context.inject(ProtocolRegistry)
+        protocol_registry = session.inject(ProtocolRegistry)
     protocol_registry.register_message_types(
         MESSAGE_TYPES
     )
@@ -108,7 +108,7 @@ class SendCredProposalHandler(BaseHandler):
         credential_manager = CredentialManager(context)
 
         try:
-            connection_record = await ConnectionRecord.retrieve_by_id(
+            conn_record = await ConnRecord.retrieve_by_id(
                 context,
                 connection_id
             )
@@ -121,7 +121,7 @@ class SendCredProposalHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
-        if not connection_record.is_ready:
+        if not conn_record.is_ready:
             report = ProblemReport(
                 explain_ltxt='Connection invalid.',
                 who_retries='none'
@@ -174,7 +174,7 @@ class SendPresProposalHandler(BaseHandler):
 
         connection_id = str(context.message.connection_id)
         try:
-            connection_record = await ConnectionRecord.retrieve_by_id(
+            conn_record = await ConnRecord.retrieve_by_id(
                 context,
                 connection_id
             )
@@ -187,7 +187,7 @@ class SendPresProposalHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
-        if not connection_record.is_ready:
+        if not conn_record.is_ready:
             report = ProblemReport(
                 explain_ltxt='Connection invalid.',
                 who_retries='none'
@@ -268,7 +268,8 @@ class CredGetListHandler(BaseHandler):
         #start = int(start) if isinstance(start, str) else 0
         #count = int(count) if isinstance(count, str) else 10
 
-        holder: BaseHolder = await context.inject(BaseHolder)
+        session = await context.session()
+        holder: IndyHolder = session.inject(IndyHolder)
         credentials = await holder.get_credentials(start, count, wql)
 
         # post_filter_positive = dict(
@@ -313,6 +314,7 @@ class PresGetListHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received get cred list request."""
 
+        session = await context.session()
         post_filter_positive = dict(
             filter(lambda item: item[1] is not None, {
                 # 'state': V10PresentialExchange.STATE_CREDENTIAL_RECEIVED,
@@ -321,6 +323,8 @@ class PresGetListHandler(BaseHandler):
                 'verified': context.message.verified,
             }.items())
         )
-        records = await V10PresentationExchange.query(context, {}, post_filter_positive)
+        records = await V10PresentationExchange.query(
+            session, {}, post_filter_positive=post_filter_positive
+        )
         cred_list = PresList(results=records)
         await responder.send_reply(cred_list)

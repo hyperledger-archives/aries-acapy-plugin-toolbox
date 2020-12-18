@@ -1,36 +1,25 @@
 """BasicMessage Plugin."""
 # pylint: disable=invalid-name, too-few-public-methods
 
-from typing import Union
-from datetime import datetime
 
-from marshmallow import fields
-
-from aries_cloudagent.config.injection_context import InjectionContext
+from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
-from aries_cloudagent.connections.models.connection_record import (
-    ConnectionRecord
-)
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler, BaseResponder, RequestContext
 )
-from aries_cloudagent.messaging.decorators.localization_decorator import (
-    LocalizationDecorator
+from aries_cloudagent.protocols.problem_report.v1_0.message import (
+    ProblemReport
 )
-from aries_cloudagent.messaging.models.base_record import (
-    BaseRecord, BaseRecordSchema
+from aries_cloudagent.protocols.routing.v1_0.messages.route_update_request import (
+    RouteUpdateRequest
 )
-from aries_cloudagent.messaging.valid import INDY_ISO8601_DATETIME
-from aries_cloudagent.protocols.connections.v1_0.manager import ConnectionManager
-from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
-from aries_cloudagent.storage.error import StorageNotFoundError
-
-from aries_cloudagent.protocols.routing.v1_0.messages.route_update_request import RouteUpdateRequest
-from aries_cloudagent.protocols.routing.v1_0.models.route_update import RouteUpdate
-from aries_cloudagent.protocols.routing.v1_0.messages.route_query_request import RouteQueryRequest
+from aries_cloudagent.protocols.routing.v1_0.models.route_update import (
+    RouteUpdate
+)
+from marshmallow import fields
 
 from .util import (
-    generate_model_schema, admin_only, timestamp_utc_iso, datetime_from_iso
+    admin_only, generate_model_schema
 )
 
 ADMIN_PROTOCOL_URI = "https://github.com/hyperledger/" \
@@ -43,12 +32,12 @@ MESSAGE_TYPES = {
 
 
 async def setup(
-        context: InjectionContext,
+        session: ProfileSession,
         protocol_registry: ProblemReport = None
 ):
     """Setup the basicmessage plugin."""
     if not protocol_registry:
-        protocol_registry = await context.inject(ProtocolRegistry)
+        protocol_registry = session.inject(ProtocolRegistry)
     protocol_registry.register_message_types(
         MESSAGE_TYPES
     )

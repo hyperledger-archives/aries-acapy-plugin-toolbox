@@ -6,10 +6,10 @@ from datetime import datetime
 
 from marshmallow import fields
 
-from aries_cloudagent.config.injection_context import InjectionContext
+from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
-from aries_cloudagent.connections.models.connection_record import (
-    ConnectionRecord
+from aries_cloudagent.connections.models.conn_record import (
+    ConnRecord
 )
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler, BaseResponder, RequestContext
@@ -48,12 +48,12 @@ MESSAGE_TYPES = {
 
 
 async def setup(
-        context: InjectionContext,
+        session: ProfileSession,
         protocol_registry: ProblemReport = None
 ):
     """Setup the basicmessage plugin."""
     if not protocol_registry:
-        protocol_registry = await context.inject(ProtocolRegistry)
+        protocol_registry = session.inject(ProtocolRegistry)
     protocol_registry.register_message_types(
         MESSAGE_TYPES
     )
@@ -122,11 +122,11 @@ class BasicMessageRecord(BaseRecord):
     @classmethod
     async def retrieve_by_message_id(
             cls,
-            context: InjectionContext,
+            session: ProfileSession,
             message_id: str) -> "BasicMessageRecord":
         """Retrieve a basic message record by message id."""
         return await cls.retrieve_by_tag_filter(
-            context,
+            session,
             {'message_id': message_id}
         )
 
@@ -237,8 +237,9 @@ class BasicMessageHandler(BaseHandler):
         )
 
         connection_mgr = ConnectionManager(context)
-        admins = await ConnectionRecord.query(
-            context, post_filter_positive={'their_role': 'admin'}
+        session = await context.session()
+        admins = await ConnRecord.query(
+            session, post_filter_positive={'their_role': 'admin'}
         )
 
         if not admins:
@@ -301,12 +302,13 @@ class GetHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received get requests."""
+        session = await context.session()
         tag_filter = dict(filter(lambda item: item[1] is not None, {
             'connection_id': context.message.connection_id,
         }.items()))
         msgs = sorted(
             await BasicMessageRecord.query(
-                context,
+                session,
                 tag_filter
             ),
             key=lambda msg: datetime_from_iso(msg.sent_time),
@@ -376,7 +378,7 @@ class SendHandler(BaseHandler):
         """Handle received send requests."""
         # pylint: disable=protected-access
         try:
-            connection = await ConnectionRecord.retrieve_by_id(
+            connection = await ConnRecord.retrieve_by_id(
                 context, context.message.connection_id
             )
         except StorageNotFoundError:
@@ -442,12 +444,13 @@ class DeleteHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received delete requests."""
+        session = await context.session()
         tag_filter = dict(filter(lambda item: item[1] is not None, {
             'connection_id': context.message.connection_id,
             'message_id': context.message.message_id,
         }.items()))
         msgs = await BasicMessageRecord.query(
-            context,
+            session,
             tag_filter
         )
         if context.message.before_date:
