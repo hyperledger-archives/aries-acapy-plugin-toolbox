@@ -122,7 +122,6 @@ class CreateInvitationHandler(BaseHandler):
         connection_mgr = ConnectionManager(context)
         connection, invitation = await connection_mgr.create_invitation(
             my_label=context.message.label,
-            their_role=context.message.role,
             auto_accept=context.message.auto_accept,
             multi_use=bool(context.message.multi_use),
             public=False,
@@ -132,7 +131,6 @@ class CreateInvitationHandler(BaseHandler):
             id=connection.connection_id,
             label=invitation.label,
             alias=connection.alias,
-            role=connection.their_role,
             auto_accept=connection.accept == ConnRecord.ACCEPT_AUTO,
             multi_use=(
                 connection.invitation_mode ==
@@ -166,7 +164,6 @@ class InvitationGetListHandler(BaseHandler):
             {
                 'state': 'invitation',
                 # 'initiator': context.message.initiator,
-                # 'their_role': context.message.their_role
             }.items()
         ))
         session = await context.session()
@@ -184,7 +181,6 @@ class InvitationGetListHandler(BaseHandler):
                 'id': connection.connection_id,
                 'label': invitation.label,
                 'alias': connection.alias,
-                'role': connection.their_role,
                 'auto_accept': (
                     connection.accept == ConnRecord.ACCEPT_AUTO
                 ),
