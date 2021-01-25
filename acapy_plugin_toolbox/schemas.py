@@ -14,7 +14,6 @@ from aries_cloudagent.messaging.models.base_record import BaseRecord, BaseRecord
 from aries_cloudagent.ledger.base import BaseLedger
 from aries_cloudagent.indy.issuer import IndyIssuer
 from aries_cloudagent.storage.error import StorageNotFoundError
-from aries_cloudagent.config.injection_context import InjectionContext
 
 from .util import generate_model_schema, admin_only
 
@@ -129,11 +128,11 @@ class SchemaRecord(BaseRecord):
     @classmethod
     async def retrieve_by_schema_id(
             cls,
-            context: InjectionContext,
+            session: ProfileSession,
             schema_id: str) -> "SchemaRecord":
         """Retrieve a schema record by schema_id."""
         return await cls.retrieve_by_tag_filter(
-            context,
+            session,
             {'schema_id': schema_id}
         )
 
@@ -230,8 +229,9 @@ class SchemaGetHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received schema get request."""
         try:
+            session = await context.session()
             schema_record = await SchemaRecord.retrieve_by_schema_id(
-                context,
+                session,
                 context.message.schema_id
             )
             schema_msg = Schema(**schema_record.serialize())

@@ -197,7 +197,7 @@ class UpdateHandler(BaseHandler):
 
         new_label = context.message.label or connection.their_label
         connection.their_label = new_label
-        await connection.save(context, reason="Update request received.")
+        await connection.save(session, reason="Update request received.")
         conn_response = Connection(
             **conn_record_to_message_repr(connection)
         )
@@ -256,7 +256,7 @@ class DeleteHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
-        await connection.delete_record(context)
+        await connection.delete_record(session)
         deleted = Deleted(connection_id=connection.connection_id)
         deleted.assign_thread_from(context.message)
         await responder.send_reply(deleted)

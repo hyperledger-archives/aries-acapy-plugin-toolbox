@@ -105,7 +105,7 @@ class SendCredProposalHandler(BaseHandler):
         credential_definition_id = context.message.credential_definition_id
         comment = context.message.comment
 
-        credential_manager = CredentialManager(context)
+        credential_manager = CredentialManager(context.profile)
 
         session = await context.session()
         try:
@@ -135,7 +135,7 @@ class SendCredProposalHandler(BaseHandler):
             connection_id,
             comment=comment,
             credential_preview=context.message.credential_proposal,
-            credential_definition_id=credential_definition_id
+            cred_def_id=credential_definition_id
         )
 
         await responder.send(
@@ -209,7 +209,7 @@ class SendPresProposalHandler(BaseHandler):
             context.settings.get("debug.auto_respond_presentation_request")
         )
 
-        presentation_manager = PresentationManager(context)
+        presentation_manager = PresentationManager(session)
 
         presentation_exchange_record = (
             await presentation_manager.create_exchange_for_proposal(
