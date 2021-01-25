@@ -2,9 +2,6 @@
 
 # pylint: disable=invalid-name
 # pylint: disable=too-few-public-methods
-import asyncio
-from uuid import uuid4
-
 from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
