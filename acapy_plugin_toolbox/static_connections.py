@@ -131,7 +131,7 @@ class CreateStaticConnectionHandler(BaseHandler):
         # Save
         await connection_mgr.store_did_document(diddoc)
         await connection.save(
-            context,
+            session,
             reason='Created new static connection'
         )
 

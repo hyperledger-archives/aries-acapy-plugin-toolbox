@@ -2,48 +2,55 @@
 
 # pylint: disable=invalid-name
 # pylint: disable=too-few-public-methods
-import asyncio
-
-from uuid import uuid4
-
-from marshmallow import fields
-
+from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
-from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
-from aries_cloudagent.messaging.decorators.attach_decorator import AttachDecorator
-from aries_cloudagent.messaging.credential_definitions.util import CRED_DEF_TAGS
-from aries_cloudagent.protocols.issue_credential.v1_0.routes import (
-    V10CredentialExchangeListResultSchema,
-    V10CredentialProposalRequestMandSchema
+from aries_cloudagent.indy.util import generate_pr_nonce
+from aries_cloudagent.messaging.base_handler import (
+    BaseHandler, BaseResponder, RequestContext
 )
-from aries_cloudagent.protocols.issue_credential.v1_0.models.credential_exchange import (
-    V10CredentialExchange,
-    V10CredentialExchangeSchema,
+from aries_cloudagent.messaging.credential_definitions.util import (
+    CRED_DEF_TAGS
+)
+from aries_cloudagent.messaging.decorators.attach_decorator import (
+    AttachDecorator
+)
+from aries_cloudagent.protocols.issue_credential.v1_0.manager import (
+    CredentialManager
 )
 from aries_cloudagent.protocols.issue_credential.v1_0.messages.credential_proposal import (
     CredentialProposal
 )
-from aries_cloudagent.protocols.issue_credential.v1_0.messages.inner.credential_preview import (
-    CredentialPreview,
-    CredentialPreviewSchema,
+from aries_cloudagent.protocols.issue_credential.v1_0.models.credential_exchange import (
+    V10CredentialExchange, V10CredentialExchangeSchema
 )
-from aries_cloudagent.protocols.present_proof.v1_0.routes import (
-    V10PresentationExchangeListSchema,
-    V10PresentationSendRequestRequestSchema
+from aries_cloudagent.protocols.issue_credential.v1_0.routes import (
+    V10CredentialExchangeListResultSchema,
+    V10CredentialProposalRequestMandSchema
+)
+from aries_cloudagent.protocols.present_proof.v1_0.manager import (
+    PresentationManager
+)
+from aries_cloudagent.protocols.present_proof.v1_0.message_types import (
+    ATTACH_DECO_IDS, PRESENTATION_REQUEST
+)
+from aries_cloudagent.protocols.present_proof.v1_0.messages.presentation_request import (
+    PresentationRequest
 )
 from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import (
-    V10PresentationExchange,
-    V10PresentationExchangeSchema,
+    V10PresentationExchange, V10PresentationExchangeSchema
 )
-from aries_cloudagent.protocols.present_proof.v1_0.messages.presentation_request import PresentationRequest
-from aries_cloudagent.protocols.present_proof.v1_0.manager import PresentationManager
-from aries_cloudagent.protocols.issue_credential.v1_0.manager import CredentialManager
-from aries_cloudagent.connections.models.conn_record import ConnRecord
+from aries_cloudagent.protocols.present_proof.v1_0.routes import (
+    V10PresentationExchangeListSchema, V10PresentationSendRequestRequestSchema
+)
+from aries_cloudagent.protocols.problem_report.v1_0.message import (
+    ProblemReport
+)
 from aries_cloudagent.storage.error import StorageNotFoundError
-from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
+from marshmallow import fields
 
-from .util import generate_model_schema, admin_only
+from .util import admin_only, generate_model_schema
+
 PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1'
 
 SEND_CREDENTIAL = '{}/send-credential'.format(PROTOCOL)
@@ -140,8 +147,7 @@ class SendCredHandler(BaseHandler):
             },
         )
 
-        credential_manager = CredentialManager(context)
-
+        credential_manager = CredentialManager(context.profile)
 
         cred_exchange_record, cred_offer_message = \
             await credential_manager.prepare_send(
@@ -208,16 +214,19 @@ class RequestPresHandler(BaseHandler):
 
         indy_proof_request = context.message.proof_request
         if not indy_proof_request.get('nonce'):
-            indy_proof_request['nonce'] = str(uuid4().int)
+            indy_proof_request['nonce'] = await generate_pr_nonce()
 
         presentation_request_message = PresentationRequest(
             comment=comment,
             request_presentations_attach=[
-                AttachDecorator.from_indy_dict(indy_proof_request)
+                AttachDecorator.from_indy_dict(
+                    indy_dict=indy_proof_request,
+                    ident=ATTACH_DECO_IDS[PRESENTATION_REQUEST]
+                )
             ]
         )
 
-        presentation_manager = PresentationManager(context)
+        presentation_manager = PresentationManager(session)
 
         presentation_exchange_record = (
             await presentation_manager.create_exchange_for_request(

@@ -477,7 +477,7 @@ class DeleteHandler(BaseHandler):
             ))
 
         for msg in msgs:
-            await msg.delete_record(context)
+            await msg.delete_record(session)
 
         ack = Deleted(
             connection_id=context.message.connection_id,

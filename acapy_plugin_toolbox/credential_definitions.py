@@ -3,23 +3,28 @@
 # pylint: disable=invalid-name
 # pylint: disable=too-few-public-methods
 
+import logging
 from asyncio import shield
-
-from marshmallow import fields
 
 from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
-from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
-from aries_cloudagent.messaging.models.base_record import BaseRecord, BaseRecordSchema
-from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
-from aries_cloudagent.ledger.base import BaseLedger
 from aries_cloudagent.indy.issuer import IndyIssuer
-from aries_cloudagent.storage.error import StorageNotFoundError
-from aries_cloudagent.config.injection_context import InjectionContext
+from aries_cloudagent.ledger.base import BaseLedger
+from aries_cloudagent.messaging.base_handler import (
+    BaseHandler, BaseResponder, RequestContext
+)
+from aries_cloudagent.messaging.models.base_record import (
+    BaseRecord, BaseRecordSchema
+)
 from aries_cloudagent.messaging.util import canon
+from aries_cloudagent.protocols.problem_report.v1_0.message import (
+    ProblemReport
+)
+from aries_cloudagent.storage.error import StorageNotFoundError
+from marshmallow import fields
 
-from .util import generate_model_schema, admin_only
 from .schemas import SchemaRecord
+from .util import admin_only, generate_model_schema
 
 PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1'
 
@@ -45,6 +50,7 @@ MESSAGE_TYPES = {
         'acapy_plugin_toolbox.credential_definitions.CredDefList',
 }
 
+LOGGER = logging.getLogger(__name__)
 
 
 async def setup(
@@ -119,11 +125,11 @@ class CredDefRecord(BaseRecord):
     @classmethod
     async def retrieve_by_cred_def_id(
             cls,
-            context: InjectionContext,
+            session: ProfileSession,
             cred_def_id: str) -> "CredDefRecord":
         """Retrieve a schema record by cred_def_id."""
         return await cls.retrieve_by_tag_filter(
-            context,
+            session,
             {'cred_def_id': cred_def_id}
         )
 
@@ -174,7 +180,7 @@ class SendCredDefHandler(BaseHandler):
         # If no schema record, make one
         try:
             schema_record = await SchemaRecord.retrieve_by_schema_id(
-                context,
+                session,
                 schema_id=context.message.schema_id
             )
         except StorageNotFoundError:
@@ -196,7 +202,7 @@ class SendCredDefHandler(BaseHandler):
 
         try:
             async with ledger:
-                credential_definition_id, credential_definition = await shield(
+                credential_definition_id, *_ = await shield(
                     ledger.create_and_send_credential_definition(
                         issuer,
                         context.message.schema_id,
@@ -211,6 +217,7 @@ class SendCredDefHandler(BaseHandler):
                 explain_ltxt='Failed to send to ledger; Error: {}'.format(err),
                 who_retries='none'
             )
+            LOGGER.exception("Failed to send cred def to ledger: %s", err)
             await responder.send_reply(report)
             return
 
@@ -223,7 +230,7 @@ class SendCredDefHandler(BaseHandler):
             author=CredDefRecord.AUTHOR_SELF
         )
         await cred_def_record.save(
-            context,
+            session,
             reason="Committed credential definition to ledger"
         )
 
@@ -256,9 +263,10 @@ class CredDefGetHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received cred def get requests."""
+        session = await context.session()
         try:
             cred_def_record = await CredDefRecord.retrieve_by_cred_def_id(
-                context,
+                session,
                 context.message.cred_def_id
             )
             cred_def = CredDef(**cred_def_record.serialize())
@@ -268,7 +276,6 @@ class CredDefGetHandler(BaseHandler):
         except StorageNotFoundError:
             pass
 
-        session = await context.session()
         ledger: BaseLedger = session.inject(BaseLedger)
         async with ledger:
             credential_definition = await ledger.get_credential_definition(
@@ -280,7 +287,7 @@ class CredDefGetHandler(BaseHandler):
 
         try:
             schema_record = await SchemaRecord.retrieve_by_schema_id(
-                context,
+                session,
                 schema_id
             )
         except StorageNotFoundError:
@@ -306,7 +313,7 @@ class CredDefGetHandler(BaseHandler):
             author=CredDefRecord.AUTHOR_OTHER
         )
         await cred_def_record.save(
-            context,
+            session,
             reason='Retrieved from ledger'
         )
 
