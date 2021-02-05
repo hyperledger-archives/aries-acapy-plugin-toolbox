@@ -35,6 +35,7 @@ CONNECTION = '{}/connection'.format(PROTOCOL)
 DELETE = '{}/delete'.format(PROTOCOL)
 DELETED = '{}/deleted'.format(PROTOCOL)
 RECEIVE_INVITATION = '{}/receive-invitation'.format(PROTOCOL)
+CONNECTED = '{}/connected'.format(PROTOCOL)
 
 # Message Type string to Message Class map
 MESSAGE_TYPES = {
