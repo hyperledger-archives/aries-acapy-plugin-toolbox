@@ -29,7 +29,8 @@ from aries_cloudagent.storage.error import StorageNotFoundError
 from marshmallow import fields
 
 from .util import (
-    admin_only, datetime_from_iso, generate_model_schema, timestamp_utc_iso
+    admin_only, datetime_from_iso, generate_model_schema, send_to_admins,
+    timestamp_utc_iso
 )
 
 PROTOCOL_URI = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0"
@@ -240,46 +241,17 @@ class BasicMessageHandler(BaseHandler):
             },
         )
 
-        session = await context.session()
-        connection_mgr = ConnectionManager(session)
-        storage = session.inject(BaseStorage)
-        admin_ids = map(
-            lambda record: record.tags['connection_id'],
-            filter(
-                lambda record: json.loads(record.value) == 'admin',
-                await storage.find_all_records(
-                    ConnRecord.RECORD_TYPE_METADATA, {'key': 'group'}
-                )
-            )
-        )
-        admins = [
-            await ConnRecord.retrieve_by_id(session, id)
-            for id in admin_ids
-        ]
-
-        if not admins:
-            return
-
-        admins = filter(lambda admin: admin.state == 'active', admins)
-        admin_verkeys = [
-            target.recipient_keys[0]
-            for admin in admins
-            for target in await connection_mgr.get_connection_targets(
-                connection=admin
-            )
-        ]
-
         notification = New(
             connection_id=context.connection_record.connection_id,
             message=msg
         )
 
-        for verkey in admin_verkeys:
-            await responder.send(
-                notification,
-                reply_to_verkey=verkey,
-                to_session_only=True
-            )
+        await send_to_admins(
+            session,
+            notification,
+            responder,
+            to_session_only=True
+        )
 
 
 Get, GetSchema = generate_model_schema(

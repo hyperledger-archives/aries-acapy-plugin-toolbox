@@ -5,9 +5,14 @@
 import sys
 import logging
 import functools
+import json
 from datetime import datetime, timezone
 from dateutil.parser import isoparse
 
+from aries_cloudagent.connections.models.conn_record import ConnRecord
+from aries_cloudagent.protocols.connections.v1_0.manager import ConnectionManager
+from aries_cloudagent.storage.base import BaseStorage
+from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.messaging.agent_message import (
     AgentMessage, AgentMessageSchema
 )
@@ -173,4 +178,49 @@ class PassHandler(BaseHandler):
         logger.debug(
             "Pass: Not handling message of type %s",
             context.message._type
+        )
+
+
+async def admin_connections(session: ProfileSession):
+    """Return admin connections."""
+    storage = session.inject(BaseStorage)
+    admin_ids = map(
+        lambda record: record.tags['connection_id'],
+        filter(
+            lambda record: json.loads(record.value) == 'admin',
+            await storage.find_all_records(
+                ConnRecord.RECORD_TYPE_METADATA, {'key': 'group'}
+            )
+        )
+    )
+    admins = [
+        await ConnRecord.retrieve_by_id(session, id)
+        for id in admin_ids
+    ]
+    return admins
+
+
+async def send_to_admins(
+    session: ProfileSession,
+    message: AgentMessage,
+    responder: BaseResponder,
+    to_session_only: bool = False
+):
+    """Send a message to all admin connections."""
+    admins = await admin_connections(session)
+    admins = list(filter(lambda admin: admin.state == 'active', admins))
+    connection_mgr = ConnectionManager(session)
+    admin_verkeys = [
+        target.recipient_keys[0]
+        for admin in admins
+        for target in await connection_mgr.get_connection_targets(
+            connection=admin
+        )
+    ]
+
+    for verkey in admin_verkeys:
+        await responder.send(
+            message,
+            reply_to_verkey=verkey,
+            to_session_only=to_session_only
         )
