@@ -3,6 +3,7 @@
 # pylint: disable=too-few-public-methods
 
 import sys
+from typing import Type
 import logging
 import functools
 import json
@@ -12,6 +13,7 @@ from dateutil.parser import isoparse
 from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.protocols.connections.v1_0.manager import ConnectionManager
 from aries_cloudagent.storage.base import BaseStorage
+from aries_cloudagent.storage.error import StorageNotFoundError
 from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.messaging.agent_message import (
     AgentMessage, AgentMessageSchema
@@ -313,3 +315,45 @@ async def send_to_admins(
             reply_to_verkey=verkey,
             to_session_only=to_session_only
         )
+
+
+class InvalidConnection(Exception):
+    """Raised if no connection or connection is not ready."""
+
+
+async def get_connection(session: ProfileSession, connection_id: str):
+    """Get connection record or raise error if not found or conn is not ready."""
+    try:
+        conn_record = await ConnRecord.retrieve_by_id(
+            session,
+            connection_id
+        )
+        if not conn_record.is_ready:
+            raise InvalidConnection("Connection is not ready.")
+
+        return conn_record
+    except StorageNotFoundError as err:
+        raise InvalidConnection("Connection not found.") from err
+
+
+class ExceptionReporter:
+    def __init__(
+        self,
+        responder: BaseResponder,
+        exception: Type[Exception],
+        original_message: AgentMessage = None
+    ):
+        self.responder = responder
+        self.exception = exception
+        self.original_message = original_message
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, err_type, err_value, err_traceback):
+        """Exit the context manager."""
+        if isinstance(err_value, self.exception):
+            report = ProblemReport(explain_ltxt=str(err_value))
+            if self.original_message:
+                report.assign_thread_from(self.original_message)
+            await self.responder.send_reply(report)
