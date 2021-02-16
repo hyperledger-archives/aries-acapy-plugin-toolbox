@@ -83,6 +83,54 @@ def admin_only(func):
     return require_role('admin')(func)
 
 
+def expand_message_class(cls):
+    """Class decorator for removing boilerplate of AgentMessages."""
+    if not hasattr(cls, "message_type"):
+        raise ValueError(
+            "Expected value message_type not found on class {}"
+            .format(cls.__name__)
+        )
+    if not hasattr(cls, "handler"):
+        raise ValueError(
+            "Expected value handler value not found on class {}"
+            .format(cls.__name__)
+        )
+    if not hasattr(cls, "Fields") and not hasattr(cls, "fields_from"):
+        raise ValueError(
+            "Class {} must have nested class Fields or schema defining expected fields"
+            .format(cls.__name__)
+        )
+
+    cls.Meta = type(cls.__name__ + ".Meta", (), {
+        "__module__": cls.__module__,
+        "handler_class": cls.handler,
+        "message_type": cls.message_type,
+        "schema_class": cls.__name__ + ".Schema"
+    })
+
+    fields = {}
+    if hasattr(cls, "Fields"):
+        fields.update({var: getattr(cls.Fields, var) for var in vars(cls.Fields)})
+    if hasattr(cls, "fields_from"):
+        fields.update(cls.fields_from._declared_fields)
+
+    cls.Schema = type(cls.__name__ + ".Schema", (AgentMessageSchema,), {
+        "__module__": cls.__module__,
+        **fields
+    })
+    cls.Schema.Meta = type(cls.Schema.__name__ + ".Meta", (), {
+        "__module__": cls.__module__,
+        "model_class": cls
+    })
+    cls._get_schema_class = lambda: cls.Schema
+
+    if hasattr(cls, "protocol") and cls.protocol:
+        cls.Meta.message_type = "{}/{}".format(cls.protocol, cls.message_type)
+        cls._type = property(fget=lambda self: self.Meta.message_type)
+
+    return cls
+
+
 def generic_init(instance, **kwargs):
     """Initialize from kwargs into slots."""
     for slot in instance.__slots__:
