@@ -19,6 +19,7 @@ from aries_cloudagent.messaging.agent_message import (
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler, BaseResponder, RequestContext
 )
+from aries_cloudagent.messaging.models.base import BaseModel, BaseModelSchema
 from aries_cloudagent.protocols.problem_report.v1_0.message import (
     ProblemReport
 )
@@ -129,6 +130,46 @@ def expand_message_class(cls):
         cls._type = property(fget=lambda self: self.Meta.message_type)
 
     return cls
+
+
+def expand_model_class(cls):
+    """Class decorator for removing boilerplate from BaseModels."""
+    if not hasattr(cls, "Fields") and not hasattr(cls, "fields_from"):
+        raise ValueError(
+            "Class {} must have nested class Fields or schema defining expected fields"
+            .format(cls.__name__)
+        )
+
+    if hasattr(cls, "Meta") and cls.Meta != BaseModel.Meta:
+        cls.Meta.schema_class = cls.__name__ + ".Schema"
+    else:
+        cls.Meta = type(cls.__name__ + ".Meta", (), {
+            "__module__": cls.__module__,
+            "schema_class": cls.__name__ + ".Schema"
+        })
+
+    fields = {}
+    if hasattr(cls, "Fields"):
+        fields.update({var: getattr(cls.Fields, var) for var in vars(cls.Fields)})
+    if hasattr(cls, "fields_from"):
+        fields.update(cls.fields_from._declared_fields)
+
+    cls.Schema = type(cls.__name__ + ".Schema", (BaseModelSchema,), {
+        "__module__": cls.__module__,
+        **fields
+    })
+    cls.Schema.Meta = type(cls.Schema.__name__ + ".Meta", (), {
+        "__module__": cls.__module__,
+        "model_class": cls
+    })
+
+    if hasattr(cls, "unknown"):
+        cls.Schema.Meta.unknown = cls.unknown
+
+    cls._get_schema_class = lambda: cls.Schema
+
+    return cls
+
 
 
 def generic_init(instance, **kwargs):
