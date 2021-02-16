@@ -3,44 +3,47 @@
 # pylint: disable=invalid-name
 # pylint: disable=too-few-public-methods
 
-from marshmallow import fields
 import json
 
+from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.indy.holder import IndyHolder
-from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
-from aries_cloudagent.protocols.issue_credential.v1_0.routes import (
-    V10CredentialExchangeListResultSchema,
-    V10CredentialProposalRequestMandSchema
+from aries_cloudagent.messaging.base_handler import (
+    BaseHandler, BaseResponder, RequestContext
 )
-from aries_cloudagent.protocols.issue_credential.v1_0.models.credential_exchange import (
-    V10CredentialExchange,
-    V10CredentialExchangeSchema
+from aries_cloudagent.protocols.issue_credential.v1_0.manager import (
+    CredentialManager
 )
 from aries_cloudagent.protocols.issue_credential.v1_0.messages.credential_proposal import (
-    CredentialProposal,
+    CredentialProposal
 )
-from aries_cloudagent.protocols.issue_credential.v1_0.manager import CredentialManager
-
-from aries_cloudagent.protocols.present_proof.v1_0.routes import (
-    V10PresentationExchangeListSchema,
-    V10PresentationProposalRequestSchema
+from aries_cloudagent.protocols.issue_credential.v1_0.models.credential_exchange import (
+    V10CredentialExchangeSchema
 )
-from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import (
-    V10PresentationExchange,
-    V10PresentationExchangeSchema
+from aries_cloudagent.protocols.issue_credential.v1_0.routes import (
+    V10CredentialProposalRequestMandSchema
+)
+from aries_cloudagent.protocols.present_proof.v1_0.manager import (
+    PresentationManager
 )
 from aries_cloudagent.protocols.present_proof.v1_0.messages.presentation_proposal import (
-    PresentationProposal,
+    PresentationProposal
 )
-from aries_cloudagent.protocols.present_proof.v1_0.manager import PresentationManager
-
-from aries_cloudagent.connections.models.conn_record import ConnRecord
+from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import (
+    V10PresentationExchange, V10PresentationExchangeSchema
+)
+from aries_cloudagent.protocols.present_proof.v1_0.routes import (
+    V10PresentationExchangeListSchema, V10PresentationProposalRequestSchema
+)
+from aries_cloudagent.protocols.problem_report.v1_0.message import (
+    ProblemReport
+)
 from aries_cloudagent.storage.error import StorageNotFoundError
-from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
+from marshmallow import fields
 
-from .util import generate_model_schema, admin_only
+from ..util import admin_only, generate_model_schema
+
 PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1'
 
 SEND_CRED_PROPOSAL = '{}/send-credential-proposal'.format(PROTOCOL)
@@ -54,17 +57,17 @@ PRESENTATIONS_LIST = '{}/presentations-list'.format(PROTOCOL)
 
 MESSAGE_TYPES = {
     SEND_CRED_PROPOSAL:
-        'acapy_plugin_toolbox.holder.SendCredProposal',
+        'acapy_plugin_toolbox.holder.v0_1.SendCredProposal',
     SEND_PRES_PROPOSAL:
-        'acapy_plugin_toolbox.holder.SendPresProposal',
+        'acapy_plugin_toolbox.holder.v0_1.SendPresProposal',
     CREDENTIALS_GET_LIST:
-        'acapy_plugin_toolbox.holder.CredGetList',
+        'acapy_plugin_toolbox.holder.v0_1.CredGetList',
     CREDENTIALS_LIST:
-        'acapy_plugin_toolbox.holder.CredList',
+        'acapy_plugin_toolbox.holder.v0_1.CredList',
     PRESENTATIONS_GET_LIST:
-        'acapy_plugin_toolbox.holder.PresGetList',
+        'acapy_plugin_toolbox.holder.v0_1.PresGetList',
     PRESENTATIONS_LIST:
-        'acapy_plugin_toolbox.holder.PresList',
+        'acapy_plugin_toolbox.holder.v0_1.PresList',
 }
 
 
@@ -82,7 +85,7 @@ async def setup(
 
 SendCredProposal, SendCredProposalSchema = generate_model_schema(
     name='SendCredProposal',
-    handler='acapy_plugin_toolbox.holder.SendCredProposalHandler',
+    handler='acapy_plugin_toolbox.holder.v0_1.SendCredProposalHandler',
     msg_type=SEND_CRED_PROPOSAL,
     schema=V10CredentialProposalRequestMandSchema
 )
@@ -153,7 +156,7 @@ class SendCredProposalHandler(BaseHandler):
 
 SendPresProposal, SendPresProposalSchema = generate_model_schema(
     name='SendPresProposal',
-    handler='acapy_plugin_toolbox.holder.SendPresProposalHandler',
+    handler='acapy_plugin_toolbox.holder.v0_1.SendPresProposalHandler',
     msg_type=SEND_PRES_PROPOSAL,
     schema=V10PresentationProposalRequestSchema
 )
@@ -227,7 +230,7 @@ class SendPresProposalHandler(BaseHandler):
 
 CredGetList, CredGetListSchema = generate_model_schema(
     name='CredGetList',
-    handler='acapy_plugin_toolbox.holder.CredGetListHandler',
+    handler='acapy_plugin_toolbox.holder.v0_1.CredGetListHandler',
     msg_type=CREDENTIALS_GET_LIST,
     schema={
         'connection_id': fields.Str(required=False),
@@ -290,7 +293,7 @@ class CredGetListHandler(BaseHandler):
 
 PresGetList, PresGetListSchema = generate_model_schema(
     name='PresGetList',
-    handler='acapy_plugin_toolbox.holder.PresGetListHandler',
+    handler='acapy_plugin_toolbox.holder.v0_1.PresGetListHandler',
     msg_type=PRESENTATIONS_GET_LIST,
     schema={
         'connection_id': fields.Str(required=False),

@@ -4,7 +4,7 @@ from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 
 from ..credential_definitions import setup as cred_def_setup
-from ..holder import setup as holder_setup
+from ..holder.v0_1 import setup as holder_setup
 
 
 async def setup(session: ProfileSession):

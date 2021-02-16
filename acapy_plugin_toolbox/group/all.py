@@ -8,7 +8,7 @@ from ..credential_definitions import setup as cred_def_setup
 from ..schemas import setup as schema_setup
 from ..dids import setup as did_setup
 from ..static_connections import setup as static_conn_setup
-from ..holder import setup as holder_setup
+from ..holder.v0_1 import setup as holder_setup
 from ..issuer import setup as issuer_setup
 from ..basicmessage import setup as basic_message_setup
 from ..taa import setup as taa_setup
