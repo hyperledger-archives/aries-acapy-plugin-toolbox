@@ -1,7 +1,6 @@
 """Decorators for Pagination."""
 
-from typing import Any, Sequence, Tuple, Iterator
-from functools import singledispatchmethod
+from typing import Any, Sequence, Tuple
 
 from aries_cloudagent.messaging.models.base import BaseModel
 from marshmallow import fields
@@ -35,38 +34,17 @@ class Paginate(BaseModel):
     class Fields:
         """Fields of paginate decorator."""
         limit = fields.Int(required=True)
-        offset = fields.Int(required=True, missing=0)
+        offset = fields.Int(required=False, missing=0)
 
     def __init__(self, limit: int = 0, offset: int = 0, **kwargs):
         super().__init__(**kwargs)
         self.limit = limit
         self.offset = offset
 
-    @singledispatchmethod
-    def apply(self, items) -> Tuple[Sequence[Any], Page]:
-        """Apply pagination, returning paginated results and Page decorator."""
-        raise NotImplementedError(
-            "Paginate.apply is not implemented for type {}".format(type(items))
-        )
-
-    @apply.register
     def apply(self, items: list) -> Tuple[Sequence[Any], Page]:
         """Apply pagination to list."""
         end = self.offset + self.limit
         result = items[self.offset:end]
         remaining = len(items[end:])
         page = Page(len(result), self.offset, remaining)
-        return result, page
-
-    @apply.register
-    def apply(self, items: Iterator) -> Tuple[Sequence[Any], Page]:
-        """Apply pagination to iterator."""
-        for _, _ in zip(range(self.offset), items):
-            pass
-
-        result = []
-        for _idx, item in zip(range(self.offset, self.offset + self.limit), items):
-            result.append(item)
-
-        page = Page(len(result), self.offset)
         return result, page
