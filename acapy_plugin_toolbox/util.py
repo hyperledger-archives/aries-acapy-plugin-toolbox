@@ -343,18 +343,19 @@ async def send_to_admins(
     admins = await admin_connections(session)
     admins = list(filter(lambda admin: admin.state == 'active', admins))
     connection_mgr = ConnectionManager(session)
-    admin_verkeys = [
-        target.recipient_keys[0]
+    admin_targets = [
+        target
         for admin in admins
         for target in await connection_mgr.get_connection_targets(
             connection=admin
         )
     ]
 
-    for verkey in admin_verkeys:
+    for target in admin_targets:
         await responder.send(
             message,
-            reply_to_verkey=verkey,
+            reply_to_verkey=target.recipient_keys[0],
+            reply_from_verkey=target.sender_key,
             to_session_only=to_session_only
         )
 

@@ -8,7 +8,8 @@ from typing import Sequence
 
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.connections.models.conn_record import ConnRecord
-from aries_cloudagent.core.event_bus import Event, EventBus, EventContext
+from aries_cloudagent.core.event_bus import Event, EventBus
+from aries_cloudagent.core.profile import Profile
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.indy.holder import IndyHolder
 from aries_cloudagent.messaging.agent_message import AgentMessage
@@ -273,13 +274,13 @@ async def setup(
     )
 
 
-async def issue_credential_event_handler(context: EventContext, event: Event):
+async def issue_credential_event_handler(profile: Profile, event: Event):
     """Handle issue credential events."""
     record: CredExRecord = CredExRecord.deserialize(event.payload)
     if record.state == CredExRecord.STATE_OFFER_RECEIVED:
         offer_recv = CredOfferRecv(**record.serialize())
-        responder = context.inject(BaseResponder)
-        async with context.session() as session:
+        responder = profile.inject(BaseResponder)
+        async with profile.session() as session:
             await send_to_admins(
                 session,
                 offer_recv,

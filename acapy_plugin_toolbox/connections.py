@@ -7,9 +7,9 @@ import re
 from typing import Any, Dict
 
 from aries_cloudagent.connections.models.conn_record import ConnRecord
-from aries_cloudagent.core.profile import InjectionContext
+from aries_cloudagent.core.profile import InjectionContext, Profile
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
-from aries_cloudagent.core.event_bus import Event, EventBus, EventContext
+from aries_cloudagent.core.event_bus import Event, EventBus
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler, BaseResponder, RequestContext
 )
@@ -73,15 +73,15 @@ async def setup(
     event_bus.subscribe(EVENT_PATTERN, connections_event_handler)
 
 
-async def connections_event_handler(context: EventContext, event: Event):
+async def connections_event_handler(profile: Profile, event: Event):
     """Handle connection events.
 
     Send connected message to admins when connections reach active state.
     """
     record: ConnRecord = ConnRecord.deserialize(event.payload)
     if record.state == ConnRecord.State.RESPONSE:
-        responder = context.inject(BaseResponder)
-        async with context.session() as session:
+        responder = profile.inject(BaseResponder)
+        async with profile.session() as session:
             await send_to_admins(
                 session,
                 Connected(**conn_record_to_message_repr(record)),
