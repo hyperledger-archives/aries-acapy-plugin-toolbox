@@ -5,7 +5,7 @@ from marshmallow import fields
 from aries_cloudagent.messaging.agent_message import AgentMessage, AgentMessageSchema
 from aries_cloudagent.messaging.models.base import BaseModel, BaseModelSchema
 
-from ..util import expand_message_class, expand_model_class
+from ..util import expand_message_class, expand_model_class, PassHandler
 
 
 def test_expand_message_class():
@@ -31,6 +31,7 @@ def test_expand_message_class():
     test2 = TestMessage.deserialize(test.serialize())
     assert test.test == test2.test
     assert test._type == test2._type
+    assert test.__slots__ == ["test"]
 
 
 def test_expand_message_class_with_protocol():
@@ -63,15 +64,16 @@ def test_expand_message_class_x_missing_message_type():
                 test = fields.Str(required=True)
 
 
-def test_expand_message_class_x_missing_handler():
+def test_expand_message_class_missing_handler_uses_pass():
     """Test that missing handler raises error."""
-    with pytest.raises(ValueError):
-        @expand_message_class
-        class TestMessage(AgentMessage):
-            message_type = "test_type"
+    @expand_message_class
+    class TestMessage(AgentMessage):
+        message_type = "test_type"
 
-            class Fields:
-                test = fields.Str(required=True)
+        class Fields:
+            test = fields.Str(required=True)
+
+    assert TestMessage.Handler == PassHandler
 
 
 def test_expand_message_class_x_missing_fields():
