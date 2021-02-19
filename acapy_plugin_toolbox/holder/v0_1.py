@@ -14,11 +14,11 @@ from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.indy.holder import IndyHolder
 from aries_cloudagent.messaging.agent_message import AgentMessage
 from aries_cloudagent.messaging.base_handler import (
-    BaseHandler, BaseResponder, RequestContext
+    BaseResponder, RequestContext
 )
-from aries_cloudagent.messaging.models.base import BaseModel
+from aries_cloudagent.messaging.models.base import BaseModel, BaseModelError
 from aries_cloudagent.protocols.issue_credential.v1_0.manager import (
-    CredentialManager
+    CredentialManager, CredentialManagerError
 )
 from aries_cloudagent.protocols.issue_credential.v1_0.messages.credential_proposal import (
     CredentialProposal
@@ -46,7 +46,7 @@ from aries_cloudagent.protocols.present_proof.v1_0.routes import (
 from aries_cloudagent.protocols.problem_report.v1_0.message import (
     ProblemReport
 )
-from aries_cloudagent.storage.error import StorageNotFoundError
+from aries_cloudagent.storage.error import StorageError, StorageNotFoundError
 from marshmallow import fields
 
 from ..decorators.pagination import Page, Paginate
@@ -231,6 +231,67 @@ class CredOfferRecv(AdminHolderMessage):
 
 
 @expand_message_class
+class CredOfferAccept(AdminHolderMessage):
+    """Credential offer accept message."""
+    message_type = "credential-offer-accept"
+
+    class Fields:
+        """Fields of cred offer accept message."""
+        credential_exchange_id = fields.Str(required=True)
+
+    def __init__(self, credential_exchange_id: str = None, **kwargs):
+        super().__init__(**kwargs)
+        self.credential_exchange_id = credential_exchange_id
+
+    @admin_only
+    async def handle(self, context: RequestContext, responder: BaseResponder):
+        """Handle credential offer accept message."""
+
+        cred_ex_record = None
+        connection_record = None
+        async with context.session() as session:
+            async with ExceptionReporter(
+                responder,
+                (StorageError, CredentialManagerError, BaseModelError),
+                self
+            ):
+                cred_ex_record = await CredExRecord.retrieve_by_id(
+                    session, self.credential_exchange_id
+                )
+                connection_id = cred_ex_record.connection_id
+                connection_record = await get_connection(session, connection_id)
+
+        credential_manager = CredentialManager(context.profile)
+        (
+            cred_ex_record,
+            credential_request_message,
+        ) = await credential_manager.create_request(
+            cred_ex_record, connection_record.my_did
+        )
+
+        sent = CredRequestSent(**cred_ex_record.serialize())
+
+        await responder.send(credential_request_message, connection_id=connection_id)
+        await responder.send_reply(sent)
+
+
+@with_generic_init
+@expand_message_class
+class CredRequestSent(AdminHolderMessage):
+    """Credential offer acceptance received and credential request sent."""
+    message_type = "credential-request-sent"
+    fields_from = CredExRecordSchema
+
+
+@with_generic_init
+@expand_message_class
+class CredReceived(AdminHolderMessage):
+    """Credential received notification message."""
+    message_type = "credential-received"
+    fields_from = CredExRecordSchema
+
+
+@expand_message_class
 class PresGetList(AdminHolderMessage):
     """Presentation get list message."""
     message_type = 'presentations-get-list'
@@ -363,11 +424,11 @@ class PresExchange(AdminHolderMessage):
 
 
 MESSAGE_TYPES = {
-    msg_class.Meta.message_type: '{}.{}'.format(PACKAGE, msg_class.__name__)
+    msg_class.Meta.message_type: '{}.{}'.format(msg_class.__module__, msg_class.__name__)
     for msg_class in [
         PresGetList, PresList, SendPresProposal, PresExchange,
         CredGetList, CredList, SendCredProposal, CredExchange,
-        CredOfferRecv
+        CredOfferRecv, CredOfferAccept, CredRequestSent
     ]
 }
 
@@ -392,12 +453,24 @@ async def setup(
 async def issue_credential_event_handler(profile: Profile, event: Event):
     """Handle issue credential events."""
     record: CredExRecord = CredExRecord.deserialize(event.payload)
+
+    if record.state not in (
+        CredExRecord.STATE_OFFER_RECEIVED,
+        CredExRecord.STATE_CREDENTIAL_RECEIVED
+    ):
+        return
+
+    responder = profile.inject(BaseResponder)
+    message = None
     if record.state == CredExRecord.STATE_OFFER_RECEIVED:
-        offer_recv = CredOfferRecv(**record.serialize())
-        responder = profile.inject(BaseResponder)
-        async with profile.session() as session:
-            await send_to_admins(
-                session,
-                offer_recv,
-                responder
-            )
+        message = CredOfferRecv(**record.serialize())
+
+    if record.state == CredExRecord.STATE_CREDENTIAL_RECEIVED:
+        message = CredReceived(**record.serialize())
+
+    async with profile.session() as session:
+        await send_to_admins(
+            session,
+            message,
+            responder
+        )
