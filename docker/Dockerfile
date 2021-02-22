@@ -9,6 +9,9 @@ ADD docker/default.yml .
 RUN chown -R indy:indy aries-acapy-plugin-toolbox
 USER $user
 
+# Make ACA-Py Install location more accessible
+RUN ln -s /home/indy/.pyenv/versions/3.6.9/lib/python3.6/site-packages site-packages
+
 RUN pip3 install -e ./aries-acapy-plugin-toolbox
 
 ENTRYPOINT ["/bin/bash", "-c", "aca-py \"$@\"", "--"]
