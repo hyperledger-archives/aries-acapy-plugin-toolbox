@@ -1,41 +1,9 @@
-# General
 label: Bob
-endpoint:
-  - http://localhost:3004
-  - ws://localhost:3004
-inbound-transport:
-  - [acapy_plugin_toolbox.http_ws, 0.0.0.0, 3004]
-outbound-transport: http
-genesis-url: https://raw.githubusercontent.com/sovrin-foundation/sovrin/master/sovrin/pool_transactions_sandbox_genesis
-
-# Admin
-admin: [0.0.0.0, 3005]
-admin-insecure-mode: true
-
-# Connections
-debug-connections: true
-debug-credentials: true
-debug-presentations: true
-auto-accept-invites: true
-auto-accept-requests: true
-connections-invite: true
 invite-label: Bob (Admin)
-invite-metadata-json: '{"group": "admin"}'
-
-# Plugins
-plugin:
-    - acapy_plugin_toolbox
-
-wallet-type: indy
 wallet-name: bob
-wallet-key: insecure
-auto-provision: true
-
-# Creds
-auto-respond-credential-proposal: true
-#auto-respond-credential-offer: true
-auto-respond-credential-request: true
-auto-respond-presentation-proposal: true
-auto-respond-presentation-request: true
-auto-store-credential: true
-auto-verify-presentation: true
+endpoint:
+  - http://localhost:3002
+  - ws://localhost:3002
+inbound-transport:
+  - [acapy_plugin_toolbox.http_ws, 0.0.0.0, 3002]
+admin: [0.0.0.0, 3003]

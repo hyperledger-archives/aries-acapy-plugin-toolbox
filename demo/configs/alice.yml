@@ -1,42 +1,9 @@
-# General
 label: Alice
+invite-label: Alice (Admin)
+wallet-name: alice
 endpoint:
   - http://localhost:3000
   - ws://localhost:3000
 inbound-transport:
   - [acapy_plugin_toolbox.http_ws, 0.0.0.0, 3000]
-outbound-transport: ws
-genesis-url: https://raw.githubusercontent.com/sovrin-foundation/sovrin/master/sovrin/pool_transactions_sandbox_genesis
-
-# Admin
 admin: [0.0.0.0, 3001]
-admin-insecure-mode: true
-
-# Connections
-debug-connections: true
-debug-credentials: true
-debug-presentations: true
-auto-accept-invites: true
-auto-accept-requests: true
-connections-invite: true
-invite-label: Alice (Admin)
-invite-metadata-json: '{"group": "admin"}'
-
-# Creds
-preserve-exchange-records: true
-auto-respond-credential-proposal: true
-auto-respond-credential-offer: true
-auto-respond-credential-request: true
-auto-respond-presentation-proposal: true
-auto-respond-presentation-request: true
-auto-store-credential: true
-auto-verify-presentation: true
-
-# Plugins
-plugin:
-    - acapy_plugin_toolbox
-
-wallet-type: indy
-wallet-name: alice
-wallet-key: insecure
-auto-provision: true
