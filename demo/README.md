@@ -8,6 +8,10 @@ This folder contains setups for multiple scenarios:
 - And a mediator networked with ngrok that can be mixed in with the single agent
   or Alice and Bob scenarios for demonstrating mediation.
 
+Where applicable, agents are connected to the Sovrin StagingNet to enable
+credentials exchange. You can anchor your DID and become an endorser (able to
+write schemas and credential definitions) at https://selfserve.sovrin.org.
+
 ## Disclaimer: On the usage of ngrok
 
 For each of the scenarios listed above, ngrok is used to simplify networking
@@ -31,7 +35,9 @@ a peer.
 
 Ngrok is not without limitations. Requests will be throttled after exceeding a
 certain threshold and endpoints will expire after a set length of time, usually
-on the range of a few hours.
+on the range of a few hours. This means all connections formed will also expire
+after a few hours. **These setups are for demonstration purposes only and should
+not be used in production.**
 
 In practice, Aries Cloud Agent - Python is deployed behind typical web
 infrastructure to provide a consistent endpoint.
@@ -41,6 +47,13 @@ infrastructure to provide a consistent endpoint.
 Requirements:
 - Docker
 - Docker Compose
+
+### Invitations
+
+For each of the demo scenarios, "admin" invitations will be printed to the
+console for each started agent. Paste these invitations into an instance of the
+Aries Toolbox to form an "admin" connection and use the Toolbox to trigger
+interactions with other agents.
 
 #### Single Agent
 
