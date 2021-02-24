@@ -4,7 +4,7 @@ Aries Cloud Agent - Python + Toolbox Plugin Demos
 This folder contains setups for multiple scenarios:
 
 - A single agent networked with ngrok to be reachable from the outside world.
-- An "Alice and Bob" demo for showing interactions between two agents
+- An "Alice and Bob" demo for showing interactions between two agents.
 - And a mediator networked with ngrok that can be mixed in with the single agent
   or Alice and Bob scenarios for demonstrating mediation.
 
@@ -15,7 +15,7 @@ write schemas and credential definitions) at https://selfserve.sovrin.org.
 ## Disclaimer: On the usage of ngrok
 
 For each of the scenarios listed above, ngrok is used to simplify networking
-between host and containers. As a result of the toolbox generally running
+between the host and containers. As a result of the toolbox generally running
 directly on the host and the containers needing to communicate with each other
 as well as the host, there is not a platform agnostic method of using the same
 endpoint from all perspectives and reaching the intended agent. On Linux, this
