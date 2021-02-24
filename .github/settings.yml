@@ -6,7 +6,7 @@ repository:
   name: aries-acapy-plugin-toolbox
   description: Hyperledger Aries
   homepage: https://wiki.hyperledger.org/display/aries
-  default_branch: master
+  default_branch: main
   has_downloads: true
   has_issues: true
   has_projects: false

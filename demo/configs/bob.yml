@@ -1,0 +1,52 @@
+label: Bob
+invite-label: Bob (Admin)
+wallet-name: bob
+endpoint:
+  - http://localhost:3002
+  - ws://localhost:3002
+inbound-transport:
+  - [acapy_plugin_toolbox.http_ws, 0.0.0.0, 3002]
+admin: [0.0.0.0, 3003]
+
+# Load toolbox plugin
+plugin:
+  - acapy_plugin_toolbox
+
+# Transport
+outbound-transport: http
+
+# Ledger
+# Use Sovrin Staging Net. Become an endorser at https://selfserve.sovrin.org.
+genesis-url: https://raw.githubusercontent.com/sovrin-foundation/sovrin/master/sovrin/pool_transactions_sandbox_genesis
+
+# Admin
+admin-insecure-mode: true
+
+# Connections
+debug-connections: true
+debug-credentials: true
+debug-presentations: true
+auto-accept-invites: true
+auto-accept-requests: true
+connections-invite: true
+invite-metadata-json: '{"group": "admin"}'
+
+# Credentials and Presentations
+preserve-exchange-records: true
+auto-store-credential: true
+auto-respond-credential-proposal: true
+auto-respond-credential-offer: true
+auto-respond-credential-request: true
+
+auto-respond-presentation-proposal: true
+auto-respond-presentation-request: true
+auto-verify-presentation: true
+
+# Wallet
+wallet-type: indy
+wallet-key: "insecure, for use in demo only"
+auto-provision: true
+
+# Enable undelivered queue
+# Important for communication with toolbox over http (as opposed to ws)
+enable-undelivered-queue: true
