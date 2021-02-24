@@ -1,0 +1,30 @@
+# The mediator has pared down functionality. In order to mediate, only a subset
+# of the capabiliteis of other agents is required.
+
+# Load the Plugin
+plugin:
+    - acapy_plugin_toolbox
+
+# General
+label: Mindy Mediator
+endpoint: http://localhost:3004
+inbound-transport:
+  - [http, 0.0.0.0, 3004]
+outbound-transport: http
+
+# Mediator does not use ledger
+no-ledger: true
+
+# Admin
+admin: [0.0.0.0, 3005]
+admin-insecure-mode: true
+
+# Connections
+debug-connections: true
+connections-invite: true
+invite-multi-use: true
+auto-accept-invites: true
+auto-accept-requests: true
+
+# Mediation
+open-mediation: true
