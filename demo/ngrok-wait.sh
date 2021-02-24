@@ -1,27 +1,22 @@
 #!/bin/bash
 
-if [ -n "$NO_NGROK" ]; then
-    export ENDPOINT=${ENDPOINT:-"http://localhost:$PORT"}
-    exec "$@"
-fi
-
 NGROK_NAME=${NGROK_NAME:-ngrok}
 
 echo "ngrok end point [$NGROK_NAME]"
 
-ENDPOINT=null
-while [ -z "$ENDPOINT" ] || [ "$ENDPOINT" = "null" ]
+ACAPY_ENDPOINT=null
+while [ -z "$ACAPY_ENDPOINT" ] || [ "$ACAPY_ENDPOINT" = "null" ]
 do
     echo "Fetching end point from ngrok service"
-    ENDPOINT=$(curl --silent "$NGROK_NAME:4040/api/tunnels" | ./jq -r '.tunnels[0].public_url')
+    ACAPY_ENDPOINT=$(curl --silent "$NGROK_NAME:4040/api/tunnels" | ./jq -r '.tunnels[0].public_url')
 
-    if [ -z "$ENDPOINT" ] || [ "$ENDPOINT" = "null" ]; then
+    if [ -z "$ACAPY_ENDPOINT" ] || [ "$ACAPY_ENDPOINT" = "null" ]; then
         echo "ngrok not ready, sleeping 5 seconds...."
         sleep 5
     fi
 done
 
-echo "fetched end point [$ENDPOINT]"
+echo "fetched end point [$ACAPY_ENDPOINT]"
 
-export ENDPOINT=$ENDPOINT
+export ACAPY_ENDPOINT=$ACAPY_ENDPOINT
 exec "$@"

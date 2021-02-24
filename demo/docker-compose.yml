@@ -4,11 +4,11 @@ services:
     image: wernight/ngrok
     command: ngrok http agent:3000 --log stdout
   agent:
+    image: acapy-toolbox-ngrok
     build:
       context: ../
-      dockerfile: ./docker/Dockerfile
+      dockerfile: ./demo/Dockerfile.demo
     environment:
       NGROK_NAME: ngrok
-      AGENT_NAME: MyAgent
-      PORT: 3000
-      ADMIN_PORT: 3001
+    ports:
+      - "3001:3001"
