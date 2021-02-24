@@ -1,4 +1,3 @@
-"""BasicMessage Plugin."""
 # pylint: disable=invalid-name, too-few-public-methods
 
 
