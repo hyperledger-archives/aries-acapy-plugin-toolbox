@@ -36,7 +36,7 @@ For each of the commands listed below, ensure the image has been built:
 $ docker build -t acapy-toolbox .
 ```
 
-### Listing configuration options
+#### Listing configuration options
 
 To see a list of configuration options, run:
 
@@ -47,8 +47,8 @@ $ docker run -it --rm acapy-toolbox start --help
 #### Command line
 
 The entry point for the container image allows adding configuration options on
-startup. When no command line options are given, the follow invocation is used
-by default:
+startup. When no command line options are given, the following command is run
+by default in the container:
 
 ```sh
 $ aca-py start --arg-file default.yml
@@ -76,9 +76,8 @@ $ docker run -it -p 3000:3000 -p 3001:3001 --rm \
 #### Environment
 
 ACA-Py will also load options from the environment. This enables using Docker
-Compose `env` files to load configuration as well when appropriate. To see a
-list of configuration options and what environment variables map to those
-options, run:
+Compose `env` files to load configuration when appropriate. To see a list of
+configuration options and the mapping to environment variables map, run:
 
 ```sh
 $ docker run -it --rm acapy-toolbox start --help
