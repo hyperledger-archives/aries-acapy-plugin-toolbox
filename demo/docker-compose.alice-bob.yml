@@ -4,28 +4,23 @@ services:
     image: wernight/ngrok
     command: ngrok http agent-alice:3000 --log stdout
   agent-alice:
+    image: acapy-toolbox-ngrok
     build:
       context: ../
-      dockerfile: ./docker/Dockerfile
+      dockerfile: ./demo/Dockerfile.demo
     environment:
       NGROK_NAME: ngrok-alice
-      AGENT_NAME: Alice
-      PORT: 3000
-      ADMIN_PORT: 3001
     ports:
       - "3001:3001"
+    command: aca-py start --arg-file ./configs/alice.yml
 
   ngrok-bob:
     image: wernight/ngrok
-    command: ngrok http agent-bob:3000 --log stdout
+    command: ngrok http agent-bob:3002 --log stdout
   agent-bob:
-    build:
-      context: ../
-      dockerfile: ./docker/Dockerfile
+    image: acapy-toolbox-ngrok
     environment:
       NGROK_NAME: ngrok-bob
-      AGENT_NAME: Bob
-      PORT: 3000
-      ADMIN_PORT: 3002
     ports:
-      - "3002:3002"
+      - "3003:3003"
+    command: aca-py start --arg-file ./configs/bob.yml 

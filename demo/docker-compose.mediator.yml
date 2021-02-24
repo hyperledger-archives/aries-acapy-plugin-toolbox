@@ -1,0 +1,15 @@
+version: "3"
+services:
+  ngrok-mediator:
+    image: wernight/ngrok
+    command: ngrok http agent-mediator:3004 --log stdout
+  agent-mediator:
+    image: acapy-toolbox-ngrok
+    build:
+      context: ../
+      dockerfile: ./demo/Dockerfile.demo
+    environment:
+      NGROK_NAME: ngrok-mediator
+    ports:
+      - "3005:3005"
+    command: aca-py start --arg-file ./configs/mediator.yml 

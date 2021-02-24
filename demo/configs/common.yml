@@ -1,6 +1,6 @@
 # Load toolbox plugin
 plugin:
-    -acapy_plugin_toolbox
+  - acapy_plugin_toolbox
 
 # Transport
 outbound-transport: http
