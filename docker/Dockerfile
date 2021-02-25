@@ -1,11 +1,14 @@
 FROM bcgovimages/aries-cloudagent:py36-1.15-0_0.6.0rc0
 
-USER root
+ARG ACAPY=""
+RUN if [ -n "${ACAPY}" ]; then pip3 install ${ACAPY}; fi
+
 ADD acapy_plugin_toolbox aries-acapy-plugin-toolbox/acapy_plugin_toolbox
 ADD requirements.txt aries-acapy-plugin-toolbox
 ADD setup.py aries-acapy-plugin-toolbox
 ADD README.md aries-acapy-plugin-toolbox
-ADD docker/default.yml .
+
+USER root
 RUN chown -R indy:indy aries-acapy-plugin-toolbox
 USER $user
 
@@ -14,8 +17,7 @@ RUN ln -s /home/indy/.pyenv/versions/3.6.9/lib/python3.6/site-packages site-pack
 
 RUN pip3 install -e ./aries-acapy-plugin-toolbox
 
-ARG ACAPY=""
-RUN if [ -n "${ACAPY}" ]; then pip3 install ${ACAPY}; fi
+ADD docker/default.yml .
 
 ENTRYPOINT ["/bin/bash", "-c", "aca-py \"$@\"", "--"]
 CMD ["start", "--plugin", "acapy_plugin_toolbox", "--arg-file", "default.yml"]
