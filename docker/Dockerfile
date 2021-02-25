@@ -14,5 +14,8 @@ RUN ln -s /home/indy/.pyenv/versions/3.6.9/lib/python3.6/site-packages site-pack
 
 RUN pip3 install -e ./aries-acapy-plugin-toolbox
 
+ARG ACAPY=""
+RUN if [ -n "${ACAPY}" ]; then pip3 install ${ACAPY}; fi
+
 ENTRYPOINT ["/bin/bash", "-c", "aca-py \"$@\"", "--"]
 CMD ["start", "--plugin", "acapy_plugin_toolbox", "--arg-file", "default.yml"]
