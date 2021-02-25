@@ -41,7 +41,7 @@ from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange 
     V10PresentationExchange, V10PresentationExchangeSchema
 )
 from aries_cloudagent.protocols.present_proof.v1_0.routes import (
-    V10PresentationProposalRequestSchema
+    V10PresentationProposalRequestSchema, IndyCredPrecisSchema
 )
 from aries_cloudagent.protocols.problem_report.v1_0.message import (
     ProblemReport
@@ -328,7 +328,6 @@ class PresGetList(AdminHolderMessage):
 
         post_filter_positive = dict(
             filter(lambda item: item[1] is not None, {
-                # 'state': V10PresentialExchange.STATE_CREDENTIAL_RECEIVED,
                 'role': V10PresentationExchange.ROLE_PROVER,
                 'connection_id': context.message.connection_id,
                 'verified': context.message.verified,
@@ -423,12 +422,66 @@ class PresExchange(AdminHolderMessage):
     fields_from = V10PresentationExchangeSchema
 
 
+@expand_message_class
+class PresRequestReceived(AdminHolderMessage):
+    """Presentation Request Received."""
+    message_type = "presentation-request-received"
+
+    DEFAULT_COUNT = 10
+
+    class Fields:
+        """Fields of Presentation request received message."""
+        record = fields.Nested(V10PresentationExchangeSchema)
+        matching_credentials = fields.Nested(IndyCredPrecisSchema, many=True)
+        page = fields.Nested(Page.Schema, required=False)
+
+    def __init__(self, record: V10PresentationExchange, **kwargs):
+        super().__init__(**kwargs)
+        self.record = record
+        self.matching_credentials = []
+        self.page = None
+
+    async def retrieve_matching_credentials(self, profile: Profile):
+        holder = profile.inject(IndyHolder)
+        self.matching_credentials = await holder.get_credentials_for_presentation_request_by_referent(
+            self.record.presentation_request,
+            (),
+            0,
+            self.DEFAULT_COUNT,
+            extra_query={},
+        )
+        self.page = Page(count=self.DEFAULT_COUNT, offset=self.DEFAULT_COUNT)
+
+
+@expand_message_class
+class PresRequestApprove(AdminHolderMessage):
+    """Approve presentation request."""
+    message_type = "presentation-request-approve"
+
+    class Fields:
+        """Fields on pres request approve message."""
+        presentation_exchange_id = fields.Str(required=True)
+
+    @admin_only
+    async def handle(self, context: RequestContext, responder: BaseResponder):
+        """Handle presentation request approved message."""
+
+
 MESSAGE_TYPES = {
     msg_class.Meta.message_type: '{}.{}'.format(msg_class.__module__, msg_class.__name__)
     for msg_class in [
-        PresGetList, PresList, SendPresProposal, PresExchange,
-        CredGetList, CredList, SendCredProposal, CredExchange,
-        CredOfferRecv, CredOfferAccept, CredRequestSent
+        CredExchange,
+        CredGetList,
+        CredList,
+        CredOfferAccept,
+        CredOfferRecv,
+        CredRequestSent,
+        PresExchange,
+        PresGetList,
+        PresList,
+        PresRequestApprove,
+        SendCredProposal,
+        SendPresProposal,
     ]
 }
 
@@ -447,6 +500,10 @@ async def setup(
     bus.subscribe(
         re.compile(CredExRecord.WEBHOOK_TOPIC + ".*"),
         issue_credential_event_handler
+    )
+    bus.subscribe(
+        re.compile(V10PresentationExchange.WEBHOOK_TOPIC + ".*"),
+        present_proof_event_handler
     )
 
 
@@ -474,3 +531,15 @@ async def issue_credential_event_handler(profile: Profile, event: Event):
             message,
             responder
         )
+
+
+async def present_proof_event_handler(profile: Profile, event: Event):
+    """Handle present proof events."""
+    record: V10PresentationExchange = V10PresentationExchange.deserialize(event.payload)
+
+    if record.state == V10PresentationExchange.STATE_REQUEST_RECEIVED:
+        responder = profile.inject(BaseResponder)
+        message = PresRequestReceived(record)
+        await message.retrieve_matching_credentials(profile)
+        async with profile.session() as session:
+            await send_to_admins(session, message, responder)
