@@ -107,3 +107,42 @@ async def test_message_sent_on_correct_state(
     event = Event("anything", {"state": state})
     await handler(profile, event)
     assert isinstance(mock_send_to_admins.message, message)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "handler, state",
+    [
+        *[
+            (test_module.issue_credential_event_handler, state)
+            for state in [
+                V10CredentialExchange.STATE_ACKED,
+                V10CredentialExchange.STATE_ISSUED,
+                V10CredentialExchange.STATE_OFFER_SENT,
+                V10CredentialExchange.STATE_PROPOSAL_RECEIVED,
+                V10CredentialExchange.STATE_PROPOSAL_SENT,
+                V10CredentialExchange.STATE_REQUEST_RECEIVED,
+                V10CredentialExchange.STATE_REQUEST_SENT,
+            ]
+        ],
+        *[
+            (test_module.present_proof_event_handler, state)
+            for state in [
+                V10PresentationExchange.STATE_PRESENTATION_ACKED,
+                V10PresentationExchange.STATE_PRESENTATION_RECEIVED,
+                V10PresentationExchange.STATE_PRESENTATION_SENT,
+                V10PresentationExchange.STATE_PROPOSAL_RECEIVED,
+                V10PresentationExchange.STATE_PROPOSAL_SENT,
+                V10PresentationExchange.STATE_REQUEST_SENT,
+                V10PresentationExchange.STATE_VERIFIED,
+            ]
+        ]
+    ]
+)
+async def test_message_not_sent_on_incorrect_state(
+    profile, mock_send_to_admins, handler, state
+):
+    """Test message sent on handle given correct state."""
+    event = Event("anything", {"state": state})
+    await handler(profile, event)
+    assert mock_send_to_admins.message is None
