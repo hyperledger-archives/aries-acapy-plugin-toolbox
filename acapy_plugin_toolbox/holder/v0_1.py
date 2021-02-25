@@ -17,42 +17,21 @@ from aries_cloudagent.messaging.base_handler import (
     BaseResponder, RequestContext
 )
 from aries_cloudagent.messaging.models.base import BaseModel, BaseModelError
-from aries_cloudagent.protocols.issue_credential.v1_0.manager import (
-    CredentialManager, CredentialManagerError
-)
-from aries_cloudagent.protocols.issue_credential.v1_0.messages.credential_proposal import (
-    CredentialProposal
-)
-from aries_cloudagent.protocols.issue_credential.v1_0.messages.inner.credential_preview import (
-    CredAttrSpec
-)
-from aries_cloudagent.protocols.issue_credential.v1_0.models.credential_exchange import \
-    V10CredentialExchange as CredExRecord
-from aries_cloudagent.protocols.issue_credential.v1_0.models.credential_exchange import \
-    V10CredentialExchangeSchema as CredExRecordSchema
-from aries_cloudagent.protocols.issue_credential.v1_0.routes import (
-    V10CredentialProposalRequestMandSchema
-)
-from aries_cloudagent.protocols.present_proof import v1_0 as proof
-from aries_cloudagent.protocols.present_proof.v1_0.messages.inner.presentation_preview import (
-    PresentationPreview
-)
-from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import (
-    V10PresentationExchange, V10PresentationExchangeSchema
-)
-from aries_cloudagent.protocols.present_proof.v1_0.routes import (
-    V10PresentationProposalRequestSchema, IndyCredPrecisSchema
-)
-from aries_cloudagent.protocols.problem_report.v1_0.message import (
-    ProblemReport
-)
 from aries_cloudagent.storage.error import StorageError, StorageNotFoundError
 from marshmallow import fields
 
+from .. import ProblemReport
 from ..decorators.pagination import Page, Paginate
 from ..util import (
     ExceptionReporter, InvalidConnection, admin_only, expand_message_class,
     expand_model_class, get_connection, send_to_admins, with_generic_init
+)
+from . import (
+    CredentialAttributeSpec, CredentialManager, CredentialManagerError,
+    CredentialProposalRequestSchema, CredExRecord, CredExRecordSchema,
+    IndyCredPrecisSchema, PresentationPreview,
+    PresentationProposalRequestSchema, PresExRecord, PresExRecordSchema,
+    issue_credential, present_proof
 )
 
 PACKAGE = 'acapy_plugin_toolbox.holder.v0_1'
@@ -68,7 +47,7 @@ class CredentialRepresentation(BaseModel):
         name = fields.Str()
         comment = fields.Str()
         received_at = fields.DateTime(format="iso")
-        attributes = fields.List(fields.Nested(CredAttrSpec))
+        attributes = fields.List(fields.Nested(CredentialAttributeSpec))
         metadata = fields.Dict()
         raw_repr = fields.Dict()
 
@@ -80,7 +59,7 @@ class CredentialRepresentation(BaseModel):
         name: str = None,
         comment: str = None,
         received_at: str = None,
-        attributes: Sequence[CredAttrSpec] = None,
+        attributes: Sequence[CredentialAttributeSpec] = None,
         metadata: dict = None,
         raw_repr: dict = None
     ):
@@ -159,7 +138,7 @@ class CredList(AdminHolderMessage):
 class SendCredProposal(AdminHolderMessage):
     """Send Credential Proposal Message."""
     message_type = "send-credential-proposal"
-    fields_from = V10CredentialProposalRequestMandSchema
+    fields_from = CredentialProposalRequestSchema
 
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
@@ -202,7 +181,7 @@ class SendCredProposal(AdminHolderMessage):
         )
 
         await responder.send(
-            CredentialProposal(
+            issue_credential.messages.credential_proposal.CredentialProposal(
                 comment=context.message.comment,
                 credential_proposal=context.message.credential_proposal,
                 cred_def_id=credential_definition_id
@@ -328,12 +307,12 @@ class PresGetList(AdminHolderMessage):
 
         post_filter_positive = dict(
             filter(lambda item: item[1] is not None, {
-                'role': V10PresentationExchange.ROLE_PROVER,
+                'role': PresExRecord.ROLE_PROVER,
                 'connection_id': context.message.connection_id,
                 'verified': context.message.verified,
             }.items())
         )
-        records = await V10PresentationExchange.query(
+        records = await PresExRecord.query(
             session, {}, post_filter_positive=post_filter_positive
         )
         cred_list = PresList(*paginate.apply(records))
@@ -360,7 +339,7 @@ class PresList(AdminHolderMessage):
 class SendPresProposal(AdminHolderMessage):
     """Presentation proposal message."""
     message_type = 'send-presentation-proposal'
-    fields_from = V10PresentationProposalRequestSchema
+    fields_from = PresentationProposalRequestSchema
 
     def __init__(
         self,
@@ -419,7 +398,7 @@ class SendPresProposal(AdminHolderMessage):
 class PresExchange(AdminHolderMessage):
     """Presentation Exchange message."""
     message_type = "presentation-exchange"
-    fields_from = V10PresentationExchangeSchema
+    fields_from = PresExRecordSchema
 
 
 @expand_message_class
@@ -431,11 +410,11 @@ class PresRequestReceived(AdminHolderMessage):
 
     class Fields:
         """Fields of Presentation request received message."""
-        record = fields.Nested(V10PresentationExchangeSchema)
+        record = fields.Nested(PresExRecordSchema)
         matching_credentials = fields.Nested(IndyCredPrecisSchema, many=True)
         page = fields.Nested(Page.Schema, required=False)
 
-    def __init__(self, record: V10PresentationExchange, **kwargs):
+    def __init__(self, record: PresExRecord, **kwargs):
         super().__init__(**kwargs)
         self.record = record
         self.matching_credentials = []
@@ -502,7 +481,7 @@ async def setup(
         issue_credential_event_handler
     )
     bus.subscribe(
-        re.compile(V10PresentationExchange.WEBHOOK_TOPIC + ".*"),
+        re.compile(PresExRecord.WEBHOOK_TOPIC + ".*"),
         present_proof_event_handler
     )
 
@@ -535,9 +514,9 @@ async def issue_credential_event_handler(profile: Profile, event: Event):
 
 async def present_proof_event_handler(profile: Profile, event: Event):
     """Handle present proof events."""
-    record: V10PresentationExchange = V10PresentationExchange.deserialize(event.payload)
+    record: PresExRecord = PresExRecord.deserialize(event.payload)
 
-    if record.state == V10PresentationExchange.STATE_REQUEST_RECEIVED:
+    if record.state == PresExRecord.STATE_REQUEST_RECEIVED:
         responder = profile.inject(BaseResponder)
         message = PresRequestReceived(record)
         await message.retrieve_matching_credentials(profile)
