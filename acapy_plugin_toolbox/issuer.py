@@ -226,7 +226,7 @@ class RequestPresHandler(BaseHandler):
             ]
         )
 
-        presentation_manager = PresentationManager(session)
+        presentation_manager = PresentationManager(context.profile)
 
         presentation_exchange_record = (
             await presentation_manager.create_exchange_for_request(
