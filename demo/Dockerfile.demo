@@ -6,7 +6,6 @@ ADD requirements.txt aries-acapy-plugin-toolbox
 ADD setup.py aries-acapy-plugin-toolbox
 ADD README.md aries-acapy-plugin-toolbox
 ADD demo/configs ./configs/
-ADD docker/default.yml ./configs/default.yml
 ADD demo/ngrok-wait.sh ./ngrok-wait.sh
 RUN chown -R indy:indy aries-acapy-plugin-toolbox
 

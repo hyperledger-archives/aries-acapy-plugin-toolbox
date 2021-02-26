@@ -209,7 +209,7 @@ class SendPresProposalHandler(BaseHandler):
             context.settings.get("debug.auto_respond_presentation_request")
         )
 
-        presentation_manager = PresentationManager(session)
+        presentation_manager = PresentationManager(context.profile)
 
         presentation_exchange_record = (
             await presentation_manager.create_exchange_for_proposal(
