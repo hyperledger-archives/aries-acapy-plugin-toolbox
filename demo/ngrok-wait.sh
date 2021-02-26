@@ -18,5 +18,5 @@ done
 
 echo "fetched end point [$ACAPY_ENDPOINT]"
 
-export ACAPY_ENDPOINT=$ACAPY_ENDPOINT
+export ACAPY_ENDPOINT="[$ACAPY_ENDPOINT, ${ACAPY_ENDPOINT/http/ws}]"
 exec "$@"
