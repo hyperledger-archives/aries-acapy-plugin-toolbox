@@ -4,9 +4,10 @@
 import re
 
 from aries_cloudagent.connections.models.conn_record import ConnRecord
-from aries_cloudagent.core.profile import ProfileSession
+from aries_cloudagent.core.profile import ProfileSession, Profile
+from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
-from aries_cloudagent.core.event_bus import Event, EventBus, EventContext
+from aries_cloudagent.core.event_bus import Event, EventBus
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler, BaseResponder, RequestContext
 )
@@ -45,21 +46,21 @@ BASIC_MESSAGE_EVENT_PATTERN = re.compile("^basicmessages$")
 
 
 async def setup(
-        session: ProfileSession,
+        context: InjectionContext,
         protocol_registry: ProblemReport = None
 ):
     """Setup the basicmessage plugin."""
     if not protocol_registry:
-        protocol_registry = session.inject(ProtocolRegistry)
+        protocol_registry = context.inject(ProtocolRegistry)
     protocol_registry.register_message_types(
         MESSAGE_TYPES
     )
 
-    event_bus = session.inject(EventBus)
+    event_bus = context.inject(EventBus)
     event_bus.subscribe(BASIC_MESSAGE_EVENT_PATTERN, basic_message_event_handler)
 
 
-async def basic_message_event_handler(context: EventContext, event: Event):
+async def basic_message_event_handler(profile: Profile, event: Event):
     """
     Handle basic message events.
 
@@ -67,15 +68,16 @@ async def basic_message_event_handler(context: EventContext, event: Event):
     """
 
     msg: BasicMessageRecord = BasicMessageRecord.deserialize(event.payload)
-    msg.sent_time = context.message.sent_time
+    msg.state = BasicMessageRecord.STATE_RECV
 
     notification = New(
         connection_id=event.payload["connection_id"],
         message=msg
     )
 
-    responder = context.inject(BaseResponder)
-    async with context.session() as session:
+    responder = profile.inject(BaseResponder)
+    async with profile.session() as session:
+        await msg.save(session, reason="New message")
         await send_to_admins(
             session,
             notification,
