@@ -31,7 +31,7 @@ from . import (
     CredentialProposalRequestSchema, CredExRecord, CredExRecordSchema,
     IndyCredPrecisSchema, PresentationPreview,
     PresentationProposalRequestSchema, PresExRecord, PresExRecordSchema,
-    issue_credential, present_proof
+    issue_credential
 )
 
 PACKAGE = 'acapy_plugin_toolbox.holder.v0_1'
@@ -101,14 +101,14 @@ class CredGetList(AdminHolderMessage):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received get cred list request."""
         session = await context.session()
-        holder: IndyHolder = session.inject(IndyHolder)
 
-        credentials = await holder.get_credentials(
-            self.paginate.offset, self.paginate.limit, {}
+        credentials = await CredExRecord.query(session)
+        page = self.paginate.apply(credentials)
+
+        cred_list = CredList(
+            results=[credential.serialize() for credential in credentials],
+            page=page
         )
-        page = Page(len(credentials), self.paginate.offset)
-
-        cred_list = CredList(results=credentials, page=page)
         await responder.send_reply(cred_list)
 
 
@@ -429,7 +429,7 @@ class PresRequestReceived(AdminHolderMessage):
             self.DEFAULT_COUNT,
             extra_query={},
         )
-        self.page = Page(count=self.DEFAULT_COUNT, offset=self.DEFAULT_COUNT)
+        self.page = Page(count_=self.DEFAULT_COUNT, offset=self.DEFAULT_COUNT)
 
 
 @expand_message_class

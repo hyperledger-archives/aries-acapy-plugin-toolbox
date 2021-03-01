@@ -14,15 +14,15 @@ class Page(BaseModel):
 
     class Fields:
         """Fields of page decorator."""
-        count = fields.Int(required=True)
+        count_ = fields.Int(required=True, data_key="count")
         offset = fields.Int(required=True)
         remaining = fields.Int(required=False)
 
     def __init__(
-        self, count: int = 0, offset: int = 0, remaining: int = None, **kwargs
+        self, count_: int = 0, offset: int = 0, remaining: int = None, **kwargs
     ):
         super().__init__(**kwargs)
-        self.count = count
+        self.count = count_
         self.offset = offset
         self.remaining = remaining
 
