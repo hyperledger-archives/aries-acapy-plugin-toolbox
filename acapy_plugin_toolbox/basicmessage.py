@@ -1,13 +1,13 @@
 """BasicMessage Plugin."""
 # pylint: disable=invalid-name, too-few-public-methods
 
-import json
-from datetime import datetime
-from typing import Union
+import re
 
 from aries_cloudagent.connections.models.conn_record import ConnRecord
-from aries_cloudagent.core.profile import ProfileSession
+from aries_cloudagent.core.profile import ProfileSession, Profile
+from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
+from aries_cloudagent.core.event_bus import Event, EventBus
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler, BaseResponder, RequestContext
 )
@@ -18,23 +18,16 @@ from aries_cloudagent.messaging.models.base_record import (
     BaseRecord, BaseRecordSchema
 )
 from aries_cloudagent.messaging.valid import INDY_ISO8601_DATETIME
-from aries_cloudagent.protocols.connections.v1_0.manager import (
-    ConnectionManager
-)
+from aries_cloudagent.protocols.basicmessage.v1_0.messages.basicmessage import BasicMessage
 from aries_cloudagent.protocols.problem_report.v1_0.message import (
     ProblemReport
 )
-from aries_cloudagent.storage.base import BaseStorage
 from aries_cloudagent.storage.error import StorageNotFoundError
 from marshmallow import fields
 
 from .util import (
-    admin_only, datetime_from_iso, generate_model_schema, send_to_admins,
-    timestamp_utc_iso
+    admin_only, datetime_from_iso, generate_model_schema, send_to_admins
 )
-
-PROTOCOL_URI = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0"
-BASIC_MESSAGE = f"{PROTOCOL_URI}/message"
 
 ADMIN_PROTOCOL_URI = "https://github.com/hyperledger/" \
     "aries-toolbox/tree/master/docs/admin-basicmessage/0.1"
@@ -44,23 +37,53 @@ DELETE = f"{ADMIN_PROTOCOL_URI}/delete"
 NEW = f"{ADMIN_PROTOCOL_URI}/new"
 
 MESSAGE_TYPES = {
-    BASIC_MESSAGE: 'acapy_plugin_toolbox.basicmessage.BasicMessage',
     GET: 'acapy_plugin_toolbox.basicmessage.Get',
     SEND: 'acapy_plugin_toolbox.basicmessage.Send',
     DELETE: 'acapy_plugin_toolbox.basicmessage.Delete'
 }
 
+BASIC_MESSAGE_EVENT_PATTERN = re.compile("^basicmessages$")
+
 
 async def setup(
-        session: ProfileSession,
+        context: InjectionContext,
         protocol_registry: ProblemReport = None
 ):
     """Setup the basicmessage plugin."""
     if not protocol_registry:
-        protocol_registry = session.inject(ProtocolRegistry)
+        protocol_registry = context.inject(ProtocolRegistry)
     protocol_registry.register_message_types(
         MESSAGE_TYPES
     )
+
+    event_bus = context.inject(EventBus)
+    event_bus.subscribe(BASIC_MESSAGE_EVENT_PATTERN, basic_message_event_handler)
+
+
+async def basic_message_event_handler(profile: Profile, event: Event):
+    """
+    Handle basic message events.
+
+    Send a notification to admins when messages are received.
+    """
+
+    msg: BasicMessageRecord = BasicMessageRecord.deserialize(event.payload)
+    msg.state = BasicMessageRecord.STATE_RECV
+
+    notification = New(
+        connection_id=event.payload["connection_id"],
+        message=msg
+    )
+
+    responder = profile.inject(BaseResponder)
+    async with profile.session() as session:
+        await msg.save(session, reason="New message")
+        await send_to_admins(
+            session,
+            notification,
+            responder,
+            to_session_only=True
+        )
 
 
 class BasicMessageRecord(BaseRecord):
@@ -153,53 +176,6 @@ class BasicMessageRecordSchema(BaseRecordSchema):
     content = fields.Str(required=False)
 
 
-def basic_message_init(
-        self,
-        *,
-        sent_time: Union[str, datetime] = None,
-        content: str = None,
-        localization: str = None,
-        **kwargs,
-):
-    """
-    Initialize basic message object.
-
-    Args:
-        sent_time: Time message was sent
-        content: message content
-        localization: localization
-
-    """
-    # pylint: disable=protected-access
-    super(BasicMessage, self).__init__(**kwargs)
-    if not sent_time:
-        sent_time = timestamp_utc_iso()
-    if localization:
-        self._decorators["l10n"] = localization
-    self.sent_time = sent_time
-    self.content = content
-
-
-BasicMessage, BasicMessageSchema = generate_model_schema(
-    name='BasicMessage',
-    handler='acapy_plugin_toolbox.basicmessage.BasicMessageHandler',
-    msg_type=BASIC_MESSAGE,
-    schema={
-        'sent_time': fields.Str(
-            required=False,
-            description="Time message was sent, ISO8601",
-            **INDY_ISO8601_DATETIME,
-        ),
-        'content': fields.Str(
-            required=True,
-            description="Message content",
-            example="Hello",
-        )
-    },
-    init=basic_message_init
-)
-
-
 New, NewSchema = generate_model_schema(
     name='New',
     handler='acapy_plugin_toolbox.util.PassHandler',
@@ -213,45 +189,6 @@ New, NewSchema = generate_model_schema(
         )
     }
 )
-
-
-class BasicMessageHandler(BaseHandler):
-    """Handler for received Basic Messages."""
-    # pylint: disable=protected-access
-
-    async def handle(self, context: RequestContext, responder: BaseResponder):
-        """Handle received basic message."""
-        session = await context.session()
-        msg = BasicMessageRecord(
-            connection_id=context.connection_record.connection_id,
-            message_id=context.message._id,
-            sent_time=context.message.sent_time,
-            content=context.message.content,
-            state=BasicMessageRecord.STATE_RECV
-        )
-        await msg.save(session, reason='New message received.')
-
-        await responder.send_webhook(
-            "basicmessages",
-            {
-                "connection_id": context.connection_record.connection_id,
-                "message_id": context.message._id,
-                "content": context.message.content,
-                "state": "received",
-            },
-        )
-
-        notification = New(
-            connection_id=context.connection_record.connection_id,
-            message=msg
-        )
-
-        await send_to_admins(
-            session,
-            notification,
-            responder,
-            to_session_only=True
-        )
 
 
 Get, GetSchema = generate_model_schema(
