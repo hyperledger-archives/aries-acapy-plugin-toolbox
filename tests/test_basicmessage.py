@@ -1,18 +1,12 @@
 """Test BasicMessage"""
-from typing import Mapping
 
 import pytest
-from aries_cloudagent.admin.request_context import AdminRequestContext
 from aries_cloudagent.core.event_bus import Event, EventBus
 from aries_cloudagent.core.in_memory import InMemoryProfile
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.responder import BaseResponder, MockResponder
-from aries_cloudagent.protocols.basicmessage.v1_0.messages.basicmessage import (
-    BasicMessage
-)
-from asynctest import mock
 
-from .. import basicmessage as basicmessage_module
+from acapy_plugin_toolbox import basicmessage as basicmessage_module
 
 
 @pytest.fixture
@@ -62,7 +56,7 @@ async def test_basic_message_event_handler_notify_admins(
 ):
     await basicmessage_module.setup(context)
 
-    assert mock_send_to_admins.message == None
+    assert mock_send_to_admins.message is None
 
     await event_bus.notify(
         profile,

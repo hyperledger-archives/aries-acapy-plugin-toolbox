@@ -1,11 +1,15 @@
 """Test utilities."""
+
 import pytest
-
-from marshmallow import fields
-from aries_cloudagent.messaging.agent_message import AgentMessage, AgentMessageSchema
+from aries_cloudagent.messaging.agent_message import (
+    AgentMessage, AgentMessageSchema
+)
 from aries_cloudagent.messaging.models.base import BaseModel, BaseModelSchema
+from marshmallow import fields
 
-from ..util import expand_message_class, expand_model_class, PassHandler
+from acapy_plugin_toolbox.util import (
+    PassHandler, expand_message_class, expand_model_class
+)
 
 
 def test_expand_message_class():

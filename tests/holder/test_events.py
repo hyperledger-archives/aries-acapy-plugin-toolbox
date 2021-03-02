@@ -3,16 +3,19 @@
 # pylint: disable=redefined-outer-name
 
 import pytest
-from aries_cloudagent.core.event_bus import EventBus, Event
+from aries_cloudagent.core.event_bus import Event, EventBus
 from aries_cloudagent.core.in_memory import InMemoryProfile
-from aries_cloudagent.core.profile import Profile
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.responder import BaseResponder, MockResponder
-from aries_cloudagent.protocols.issue_credential.v1_0.models.credential_exchange import V10CredentialExchange
-from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import V10PresentationExchange
+from aries_cloudagent.protocols.issue_credential.v1_0.models.credential_exchange import (
+    V10CredentialExchange
+)
+from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import (
+    V10PresentationExchange
+)
 from asynctest import mock
 
-from .. import v0_1 as test_module
+from acapy_plugin_toolbox.holder import v0_1 as test_module
 
 
 @pytest.fixture
