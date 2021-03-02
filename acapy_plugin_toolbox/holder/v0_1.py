@@ -31,7 +31,7 @@ from . import (
     CredentialProposalRequestSchema, CredExRecord, CredExRecordSchema,
     IndyCredPrecisSchema, PresentationPreview,
     PresentationProposalRequestSchema, PresExRecord, PresExRecordSchema,
-    issue_credential
+    issue_credential, present_proof
 )
 
 PACKAGE = 'acapy_plugin_toolbox.holder.v0_1'
@@ -368,7 +368,7 @@ class SendPresProposal(AdminHolderMessage):
 
         comment = context.message.comment
         # Aries#0037 calls it a proposal in the proposal struct but it's of type preview
-        presentation_proposal = proof.messages.presentation_proposal.PresentationProposal(
+        presentation_proposal = present_proof.messages.presentation_proposal.PresentationProposal(
             comment=comment,
             presentation_proposal=context.message.presentation_proposal
         )
@@ -377,7 +377,7 @@ class SendPresProposal(AdminHolderMessage):
             context.settings.get("debug.auto_respond_presentation_request")
         )
 
-        presentation_manager = proof.manager.PresentationManager(context.profile)
+        presentation_manager = present_proof.manager.PresentationManager(context.profile)
 
         presentation_exchange_record = (
             await presentation_manager.create_exchange_for_proposal(
