@@ -1,74 +1,37 @@
 """Test BasicMessage"""
 
 import pytest
-from aries_cloudagent.core.event_bus import Event, EventBus
-from aries_cloudagent.core.in_memory import InMemoryProfile
-from aries_cloudagent.core.protocol_registry import ProtocolRegistry
-from aries_cloudagent.messaging.responder import BaseResponder, MockResponder
+from aries_cloudagent.core.event_bus import Event
 
 from acapy_plugin_toolbox import basicmessage as basicmessage_module
 
 
 @pytest.fixture
-def event_bus():
-    """Event bus fixture."""
-    yield EventBus()
-
-
-@pytest.fixture
-def profile(event_bus):
-    """Context fixture."""
-    yield InMemoryProfile.test_profile(bind={
-        EventBus: event_bus,
-        BaseResponder: MockResponder(),
-        ProtocolRegistry: ProtocolRegistry(),
-    })
-
-
-@pytest.fixture
-def context(profile):
+def injection_context(profile):
+    """Injection context fixture."""
     yield profile.context
-
-
-class MockSendToAdmins:
-    """Mock send_to_admins method."""
-
-    def __init__(self):
-        self.message = None
-
-    async def __call__(
-        self, session, message, responder, to_session_only: bool = False
-    ):
-        self.message = message
-
-
-@pytest.fixture
-def mock_send_to_admins():
-    temp = basicmessage_module.send_to_admins
-    basicmessage_module.send_to_admins = MockSendToAdmins()
-    yield basicmessage_module.send_to_admins
-    basicmessage_module.send_to_admins = temp
 
 
 @pytest.mark.asyncio
 async def test_basic_message_event_handler_notify_admins(
-    mock_send_to_admins, event_bus, profile, context
+    event_bus, profile, injection_context, mock_send_to_admins
 ):
-    await basicmessage_module.setup(context)
+    with mock_send_to_admins(basicmessage_module) as send_to_admins:
+        await basicmessage_module.setup(injection_context)
 
-    assert mock_send_to_admins.message is None
+        assert send_to_admins.message is None
 
-    await event_bus.notify(
-        profile,
-        Event(
-            "basicmessages",
-            {
-                "connection_id": "connection-1",
-                "message_id": "test id",
-                "content": "Hello world",
-                "state": "received",
-            },
-        ),
-    )
+        await event_bus.notify(
+            profile,
+            Event(
+                "basicmessages",
+                {
+                    "connection_id": "connection-1",
+                    "message_id": "test id",
+                    "content": "Hello world",
+                    "state": "received",
+                },
+            ),
+        )
 
-    assert mock_send_to_admins.message.message.content == "Hello world"
+        assert send_to_admins.message.message.content == "Hello world"

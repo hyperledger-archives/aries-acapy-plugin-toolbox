@@ -4,7 +4,6 @@ import pytest
 
 from acapy_plugin_toolbox.holder import v0_1 as test_module
 from acapy_plugin_toolbox.holder.v0_1 import SendPresProposal
-from ..conftest import mock_get_connection
 
 TEST_CONN_ID = "test-connection-id"
 TEST_PROPOSAL = "test-proposal"
@@ -29,7 +28,7 @@ def context(context, message):
 
 
 @pytest.mark.asyncio
-async def test_handler(context, mock_responder, message):
+async def test_handler(context, mock_responder, message, mock_get_connection):
     """Test SendPresProposal handler."""
     with mock_get_connection(test_module):
         await message.handle(context, mock_responder)
