@@ -240,7 +240,6 @@ CredList, CredListSchema = generate_model_schema(
     name='CredList',
     handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=CREDENTIALS_LIST,
-    #schema=V10CredentialExchangeListResultSchema
     schema={
         'results': fields.List(fields.Dict())
     }
@@ -253,38 +252,11 @@ class CredGetListHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received get cred list request."""
-
-        # holder: BaseHolder = await context.inject(BaseHolder)
-        # credentials = await holder.get_credentials(0, 100, {})
-        # cred_list = CredList(results=credentials)
-        # await responder.send_reply(cred_list)
-
-        start = 0 #request.query.get("start")
-        count = 10 #request.query.get("count")
-
-        # url encoded json wql
-        encoded_wql = "{}" #request.query.get("wql") or "{}"
-        wql = json.loads(encoded_wql)
-
-        # defaults
-        #start = int(start) if isinstance(start, str) else 0
-        #count = int(count) if isinstance(count, str) else 10
-
         session = await context.session()
-        holder: IndyHolder = session.inject(IndyHolder)
-        credentials = await holder.get_credentials(start, count, wql)
-
-        # post_filter_positive = dict(
-        #     filter(lambda item: item[1] is not None, {
-        #         # 'state': V10CredentialExchange.STATE_CREDENTIAL_RECEIVED,
-        #         #'role': V10CredentialExchange.ROLE_HOLDER,
-        #         'connection_id': context.message.connection_id,
-        #         'credential_definition_id': context.message.credential_definition_id,
-        #         'schema_id': context.message.schema_id
-        #     }.items())
-        # )
-        # records = await V10CredentialExchange.query(context, {}, post_filter_positive)
-        cred_list = CredList(results=credentials)
+        credentials = await V10CredentialExchange.query(session)
+        cred_list = CredList(
+            results=[credential.serialize() for credential in credentials]
+        )
         await responder.send_reply(cred_list)
 
 
