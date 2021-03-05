@@ -52,7 +52,8 @@ class Paginate(BaseModel):
 
     def apply(self, items: list) -> Tuple[Sequence[Any], Page]:
         """Apply pagination to list."""
-        end = self.offset + self.limit
+        limit = self.limit if self.limit >= 1 else len(items[self.offset:])
+        end = self.offset + limit
         result = items[self.offset:end]
         remaining = len(items[end:])
         page = Page(len(result), self.offset, remaining)
