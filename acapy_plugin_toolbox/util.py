@@ -354,7 +354,7 @@ async def send_to_admins(
     to_session_only: bool = False
 ):
     """Send a message to all admin connections."""
-    LOGGER.info("Sending message to admins: %s", message)
+    LOGGER.info("Sending message to admins: %s", message.serialize())
     admins = await admin_connections(session)
     admins = list(filter(lambda admin: admin.state == 'active', admins))
     connection_mgr = ConnectionManager(session)
