@@ -26,6 +26,8 @@ from aries_cloudagent.protocols.problem_report.v1_0.message import (
     ProblemReport
 )
 
+LOGGER = logging.getLogger(__name__)
+
 
 def timestamp_utc_iso(timespec: str = 'seconds') -> str:
     """Timestamp in UTC in ISO 8601 format.
@@ -82,6 +84,15 @@ def require_role(role):
 def admin_only(func):
     """Require admin role."""
     return require_role('admin')(func)
+
+
+def log_handling(func):
+    @functools.wraps(func)
+    async def _logged(*args):
+        context, *_ = [arg for arg in args if isinstance(arg, RequestContext)]
+        LOGGER.debug("%s called with message: %s", func, context.message)
+        return await func(*args)
+    return _logged
 
 
 def expand_message_class(cls):
@@ -307,8 +318,7 @@ class PassHandler(BaseHandler):
     async def handle(self, context: RequestContext, _responder):
         """Handle messages require no handling."""
         # pylint: disable=protected-access
-        logger = logging.getLogger(__name__)
-        logger.debug(
+        LOGGER.info(
             "Pass: Not handling message of type %s",
             context.message._type
         )
@@ -330,6 +340,7 @@ async def admin_connections(session: ProfileSession):
         await ConnRecord.retrieve_by_id(session, id)
         for id in admin_ids
     ]
+    LOGGER.info("Discovered admins: %s", admin_connections)
     return admins
 
 
@@ -340,6 +351,7 @@ async def send_to_admins(
     to_session_only: bool = False
 ):
     """Send a message to all admin connections."""
+    LOGGER.info("Sending message to admins: %s", message)
     admins = await admin_connections(session)
     admins = list(filter(lambda admin: admin.state == 'active', admins))
     connection_mgr = ConnectionManager(session)

@@ -5,6 +5,7 @@
 
 import re
 from typing import Sequence
+import logging
 
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.connections.models.conn_record import ConnRecord
@@ -24,7 +25,8 @@ from .. import ProblemReport
 from ..decorators.pagination import Page, Paginate
 from ..util import (
     ExceptionReporter, InvalidConnection, admin_only, expand_message_class,
-    expand_model_class, get_connection, send_to_admins, with_generic_init
+    expand_model_class, get_connection, send_to_admins, with_generic_init,
+    log_handling
 )
 from . import (
     CredentialAttributeSpec, CredentialManager, CredentialManagerError,
@@ -33,6 +35,9 @@ from . import (
     PresentationProposalRequestSchema, PresExRecord, PresExRecordSchema,
     issue_credential, present_proof
 )
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 @expand_model_class
@@ -95,13 +100,14 @@ class CredGetList(AdminHolderMessage):
         super().__init__(**kwargs)
         self.paginate = paginate
 
+    @log_handling
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received get cred list request."""
         session = await context.session()
 
         credentials = await CredExRecord.query(session)
-        page = self.paginate.apply(credentials)
+        credentials, page = self.paginate.apply(credentials)
 
         cred_list = CredList(
             results=[credential.serialize() for credential in credentials],
@@ -138,6 +144,7 @@ class SendCredProposal(AdminHolderMessage):
     message_type = "send-credential-proposal"
     fields_from = CredentialProposalRequestSchema
 
+    @log_handling
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received send proposal request."""
@@ -220,6 +227,7 @@ class CredOfferAccept(AdminHolderMessage):
         super().__init__(**kwargs)
         self.credential_exchange_id = credential_exchange_id
 
+    @log_handling
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle credential offer accept message."""
@@ -294,8 +302,9 @@ class PresGetList(AdminHolderMessage):
         super().__init__(**kwargs)
         self.connection_id = connection_id
         self.verified = verified
-        self.paginate = paginate
+        self.paginate = paginate or Paginate()
 
+    @log_handling
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received get cred list request."""
@@ -313,8 +322,9 @@ class PresGetList(AdminHolderMessage):
         records = await PresExRecord.query(
             session, {}, post_filter_positive=post_filter_positive
         )
-        cred_list = PresList(*paginate.apply(records))
-        await responder.send_reply(cred_list)
+        records, page = paginate.apply(records)
+        pres_list = PresList([record.serialize() for record in records], page=page)
+        await responder.send_reply(pres_list)
 
 
 @expand_message_class
@@ -356,6 +366,7 @@ class SendPresProposal(AdminHolderMessage):
         self.auto_present = auto_present
         self.trace = trace
 
+    @log_handling
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received send presentation proposal request."""
@@ -439,6 +450,7 @@ class PresRequestApprove(AdminHolderMessage):
         """Fields on pres request approve message."""
         presentation_exchange_id = fields.Str(required=True)
 
+    @log_handling
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle presentation request approved message."""
