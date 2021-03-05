@@ -32,9 +32,18 @@ class Paginate(BaseModel):
     """Paginate decorator for messages querying for a paginated object."""
 
     class Fields:
-        """Fields of paginate decorator."""
-        limit = fields.Int(required=True)
-        offset = fields.Int(required=False, missing=0)
+        """Pagination decorator."""
+        limit = fields.Int(
+            required=True,
+            description="return at most n items in paginated results",
+            example=10
+        )
+        offset = fields.Int(
+            required=False,
+            missing=0,
+            description="Offset returned results by n items",
+            example=20
+        )
 
     def __init__(self, limit: int = 0, offset: int = 0, **kwargs):
         super().__init__(**kwargs)

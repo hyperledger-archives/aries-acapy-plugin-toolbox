@@ -34,8 +34,6 @@ from . import (
     issue_credential, present_proof
 )
 
-PACKAGE = 'acapy_plugin_toolbox.holder.v0_1'
-
 
 @expand_model_class
 class CredentialRepresentation(BaseModel):
@@ -446,21 +444,26 @@ class PresRequestApprove(AdminHolderMessage):
         """Handle presentation request approved message."""
 
 
+PROTOCOL = AdminHolderMessage.protocol
+TITLE = "Holder Admin Protocol"
+NAME = "admin-holder"
+VERSION = "0.1"
 MESSAGE_TYPES = {
     msg_class.Meta.message_type: '{}.{}'.format(msg_class.__module__, msg_class.__name__)
     for msg_class in [
-        CredExchange,
         CredGetList,
         CredList,
         CredOfferAccept,
         CredOfferRecv,
         CredRequestSent,
-        PresExchange,
+        CredReceived,
+        SendCredProposal,
+        CredExchange,
         PresGetList,
         PresList,
         PresRequestApprove,
-        SendCredProposal,
         SendPresProposal,
+        PresExchange,
     ]
 }
 
