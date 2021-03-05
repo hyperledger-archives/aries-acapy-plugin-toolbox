@@ -30,7 +30,9 @@ def context(context, message):
 
 
 @pytest.mark.asyncio
-async def test_handler(context, mock_responder, message, mock_record_query, pres_record):
+async def test_handler(
+    context, mock_responder, message, mock_record_query, pres_record
+):
     """Test PresGetList handler."""
     rec1 = pres_record()
     with mock_record_query(
@@ -43,3 +45,5 @@ async def test_handler(context, mock_responder, message, mock_record_query, pres
     assert isinstance(pres_list, PresList)
     assert pres_list.serialize()
     assert pres_list.results == [rec1.serialize()]
+    assert pres_list.page is not None
+    assert pres_list.page.count == 1

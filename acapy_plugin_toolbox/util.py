@@ -87,10 +87,13 @@ def admin_only(func):
 
 
 def log_handling(func):
+    """Logging decorator for handlers."""
+    logger = logging.getLogger(func.__module__)
+
     @functools.wraps(func)
     async def _logged(*args):
         context, *_ = [arg for arg in args if isinstance(arg, RequestContext)]
-        LOGGER.debug("%s called with message: %s", func, context.message)
+        logger.debug("%s called with message: %s", func.__qualname__, context.message)
         return await func(*args)
     return _logged
 
