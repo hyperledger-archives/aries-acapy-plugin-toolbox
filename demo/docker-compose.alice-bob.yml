@@ -10,6 +10,8 @@ services:
       dockerfile: ./demo/Dockerfile.demo
     environment:
       NGROK_NAME: ngrok-alice
+      # Modify for more log output
+      ACAPY_TOOLBOX_LOG_LEVEL: WARNING
     ports:
       - "3001:3001"
     command: aca-py start --arg-file ./configs/alice.yml
@@ -21,6 +23,8 @@ services:
     image: acapy-toolbox-ngrok
     environment:
       NGROK_NAME: ngrok-bob
+      # Modify for more log output
+      ACAPY_TOOLBOX_LOG_LEVEL: WARNING
     ports:
       - "3003:3003"
     command: aca-py start --arg-file ./configs/bob.yml 

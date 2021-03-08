@@ -343,7 +343,7 @@ async def admin_connections(session: ProfileSession):
         await ConnRecord.retrieve_by_id(session, id)
         for id in admin_ids
     ]
-    LOGGER.info("Discovered admins: %s", admin_connections)
+    LOGGER.info("Discovered admins: %s", admins)
     return admins
 
 

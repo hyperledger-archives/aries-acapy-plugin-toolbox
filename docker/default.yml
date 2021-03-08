@@ -9,6 +9,7 @@ admin-insecure-mode: true
 debug-connections: true
 auto-accept-invites: true
 auto-accept-requests: true
+auto-ping-connection: true
 connections-invite: true
 label: Aries Cloud Agent + Toolbox Plugin
 invite-label: ACA-Py (Admin)

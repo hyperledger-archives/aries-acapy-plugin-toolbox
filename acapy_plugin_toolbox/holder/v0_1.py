@@ -504,6 +504,7 @@ async def setup(
 async def issue_credential_event_handler(profile: Profile, event: Event):
     """Handle issue credential events."""
     record: CredExRecord = CredExRecord.deserialize(event.payload)
+    LOGGER.debug("IssueCredential Event; %s: %s", event.topic, event.payload)
 
     if record.state not in (
         CredExRecord.STATE_OFFER_RECEIVED,
@@ -515,9 +516,11 @@ async def issue_credential_event_handler(profile: Profile, event: Event):
     message = None
     if record.state == CredExRecord.STATE_OFFER_RECEIVED:
         message = CredOfferRecv(**record.serialize())
+        LOGGER.debug("Prepared Message: %s", message.serialize())
 
     if record.state == CredExRecord.STATE_CREDENTIAL_RECEIVED:
         message = CredReceived(**record.serialize())
+        LOGGER.debug("Prepared Message: %s", message.serialize())
 
     async with profile.session() as session:
         await send_to_admins(
@@ -530,10 +533,12 @@ async def issue_credential_event_handler(profile: Profile, event: Event):
 async def present_proof_event_handler(profile: Profile, event: Event):
     """Handle present proof events."""
     record: PresExRecord = PresExRecord.deserialize(event.payload)
+    LOGGER.debug("PresentProof Event; %s: %s", event.topic, event.payload)
 
     if record.state == PresExRecord.STATE_REQUEST_RECEIVED:
         responder = profile.inject(BaseResponder)
         message = PresRequestReceived(record)
+        LOGGER.debug("Prepared Message: %s", message.serialize())
         await message.retrieve_matching_credentials(profile)
         async with profile.session() as session:
             await send_to_admins(session, message, responder)

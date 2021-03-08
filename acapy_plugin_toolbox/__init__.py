@@ -12,10 +12,11 @@ from . import (
     basicmessage, connections, credential_definitions, dids, invitations,
     issuer, mediator, routing, schemas, static_connections, taa
 )
+from .holder import v0_1 as holder
 
 MODULES = [
     basicmessage, connections, credential_definitions, dids, invitations,
-    issuer, mediator, routing, schemas, static_connections, taa
+    issuer, mediator, routing, schemas, static_connections, taa, holder
 ]
 
 
