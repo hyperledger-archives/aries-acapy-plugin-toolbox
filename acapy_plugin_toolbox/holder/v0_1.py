@@ -4,7 +4,7 @@
 # pylint: disable=too-few-public-methods
 
 import re
-from typing import Sequence
+from typing import Sequence, List, Optional
 import logging
 
 from aries_cloudagent.config.injection_context import InjectionContext
@@ -95,10 +95,17 @@ class CredGetList(AdminHolderMessage):
             data_key="~paginate",
             missing=Paginate(limit=10, offset=0)
         )
+        states = fields.List(fields.Str(required=True), required=False)
 
-    def __init__(self, paginate: Paginate = None, **kwargs):
+    def __init__(
+        self,
+        paginate: Paginate = None,
+        states: Optional[List[str]] = None,
+        **kwargs
+    ):
         super().__init__(**kwargs)
         self.paginate = paginate
+        self.states = states
 
     @log_handling
     @admin_only
@@ -107,6 +114,10 @@ class CredGetList(AdminHolderMessage):
         session = await context.session()
 
         credentials = await CredExRecord.query(session)
+
+        if self.states:
+            credentials = [c for c in credentials if c.state in self.states]
+
         credentials, page = self.paginate.apply(credentials)
 
         cred_list = CredList(
