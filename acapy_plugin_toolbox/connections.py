@@ -187,9 +187,13 @@ class GetListHandler(BaseHandler):
                 'their_did': context.message.their_did,
             }.items())
         )
+        # Filter out invitations, admin-invitations will handle those
+        post_filter_negative = {
+            "state": ConnRecord.State.INVITATION.rfc160
+        }
         # TODO: Filter on state (needs mapping back to ACA-Py connection states)
         records = await ConnRecord.query(
-            session, tag_filter
+            session, tag_filter, post_filter_negative=post_filter_negative
         )
         results = [
             Connection(**conn_record_to_message_repr(record))
