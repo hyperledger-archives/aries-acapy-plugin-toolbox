@@ -2,6 +2,8 @@
 
 from contextlib import contextmanager
 
+from acapy_plugin_toolbox.holder import PresExRecord
+
 import pytest
 from asynctest import mock
 
@@ -20,3 +22,19 @@ def mock_record_query():
         ) as record_query:
             yield record_query
     yield _mock_record_query
+
+
+@pytest.fixture
+def mock_get_pres_ex_record():
+    """Mock get_pres_ex_record."""
+    @contextmanager
+    def _mock_get_pres_ex_record(obj, pres_ex_record: PresExRecord = None):
+        with mock.patch.object(
+            obj,
+            "get_pres_ex_record",
+            mock.CoroutineMock(
+                return_value=pres_ex_record or mock.MagicMock(autospec=True)
+            )
+        ) as get_pres_ex_record:
+            yield get_pres_ex_record
+    yield _mock_get_pres_ex_record
