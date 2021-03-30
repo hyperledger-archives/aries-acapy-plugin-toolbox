@@ -3,7 +3,7 @@
 # pylint: disable=too-few-public-methods
 
 import sys
-from typing import Type
+from typing import Type, Union, Tuple, cast
 import logging
 import functools
 import json
@@ -379,13 +379,14 @@ class InvalidConnection(Exception):
     """Raised if no connection or connection is not ready."""
 
 
-async def get_connection(session: ProfileSession, connection_id: str):
+async def get_connection(session: ProfileSession, connection_id: str) -> ConnRecord:
     """Get connection record or raise error if not found or conn is not ready."""
     try:
         conn_record = await ConnRecord.retrieve_by_id(
             session,
             connection_id
         )
+        conn_record = cast(ConnRecord, conn_record)
         if not conn_record.is_ready:
             raise InvalidConnection("Connection is not ready.")
 
@@ -398,7 +399,7 @@ class ExceptionReporter:
     def __init__(
         self,
         responder: BaseResponder,
-        exception: Type[Exception],
+        exception: Union[Type[Exception], Tuple[Type[Exception], ...]],
         original_message: AgentMessage = None
     ):
         self.responder = responder
