@@ -7,6 +7,7 @@ from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.core.profile import ProfileSession, Profile
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
+from aries_cloudagent.protocols.connections.v1_0.manager import ConnectionManager
 from aries_cloudagent.core.event_bus import Event, EventBus
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler, BaseResponder, RequestContext
@@ -320,7 +321,20 @@ class SendHandler(BaseHandler):
             localization=LocalizationDecorator(locale='en')
         )
 
-        await responder.send(msg, connection_id=connection.connection_id)
+        connection_mgr = ConnectionManager(session)
+        targets = [
+            target
+            for target in await connection_mgr.get_connection_targets(
+                connection=connection
+            )
+        ]
+
+        for target in targets:
+            await responder.send(
+                msg,
+                reply_to_verkey=target.recipient_keys[0],
+                reply_from_verkey=target.sender_key
+            )
 
         record = BasicMessageRecord(
             connection_id=context.message.connection_id,
