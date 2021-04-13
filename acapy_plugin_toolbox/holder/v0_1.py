@@ -95,9 +95,27 @@ class CredGetList(AdminHolderMessage):
             Paginate.Schema,
             required=False,
             data_key="~paginate",
-            missing=Paginate(limit=10, offset=0)
+            missing=Paginate(limit=10, offset=0),
         )
-        states = fields.List(fields.Str(required=True), required=False)
+        states = fields.List(
+            fields.Str(required=True),
+            required=False,
+            example=["offer_received"],
+            description="Filter listed credentials by state.",
+            validate=validate.OneOf(
+                [
+                    CredExRecord.STATE_ACKED,
+                    CredExRecord.STATE_CREDENTIAL_RECEIVED,
+                    CredExRecord.STATE_ISSUED,
+                    CredExRecord.STATE_OFFER_RECEIVED,
+                    CredExRecord.STATE_OFFER_SENT,
+                    CredExRecord.STATE_PROPOSAL_RECEIVED,
+                    CredExRecord.STATE_PROPOSAL_SENT,
+                    CredExRecord.STATE_REQUEST_RECEIVED,
+                    CredExRecord.STATE_REQUEST_SENT,
+                ]
+            ),
+        )
 
     def __init__(
         self,
@@ -136,7 +154,12 @@ class CredList(AdminHolderMessage):
 
     class Fields:
         """Fields of credential list message."""
-        results = fields.List(fields.Dict())
+        results = fields.List(
+            fields.Dict(),
+            required=True,
+            description="List of requested credentials",
+            example=[],
+        )
         page = fields.Nested(Page.Schema, required=False, data_key="~page")
 
     def __init__(
@@ -234,7 +257,11 @@ class CredOfferAccept(AdminHolderMessage):
 
     class Fields:
         """Fields of cred offer accept message."""
-        credential_exchange_id = fields.Str(required=True)
+        credential_exchange_id = fields.Str(
+            required=True,
+            description="ID of the credential exchange to accept",
+            example=UUIDFour.EXAMPLE
+        )
 
     def __init__(self, credential_exchange_id: str = None, **kwargs):
         super().__init__(**kwargs)
