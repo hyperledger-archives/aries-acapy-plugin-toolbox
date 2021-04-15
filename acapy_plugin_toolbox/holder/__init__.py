@@ -30,3 +30,12 @@ from aries_cloudagent.protocols.present_proof.v1_0.routes import (
 )
 from aries_cloudagent.protocols.present_proof.v1_0.routes import \
     V10PresentationProposalRequestSchema as PresentationProposalRequestSchema
+
+__all__ = [
+    "issue_credential", "CredentialManager", "CredentialManagerError",
+    "CredentialAttributeSpec", "CredExRecord", "CredExRecordSchema",
+    "CredentialProposalRequestSchema", "present_proof",
+    "PresentationManager", "PresentationManagerError",
+    "PresentationPreview", "PresExRecord", "PresExRecordSchema", "IndyCredPrecisSchema",
+    "PresentationProposalRequestSchema"
+]

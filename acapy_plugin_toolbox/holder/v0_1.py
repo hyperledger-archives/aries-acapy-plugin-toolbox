@@ -4,7 +4,7 @@
 # pylint: disable=too-few-public-methods
 
 import re
-from typing import Sequence, List, Optional, cast
+from typing import Sequence, List, Optional, Tuple, cast, Any
 import logging
 
 from aries_cloudagent.config.injection_context import InjectionContext
@@ -13,6 +13,7 @@ from aries_cloudagent.core.event_bus import Event, EventBus
 from aries_cloudagent.core.profile import Profile, ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.indy.holder import IndyHolder, IndyHolderError
+from aries_cloudagent.indy.sdk.holder import IndySdkHolder
 from aries_cloudagent.ledger.error import LedgerError
 from aries_cloudagent.wallet.error import WalletNotFoundError
 from aries_cloudagent.messaging.agent_message import AgentMessage
@@ -21,7 +22,8 @@ from aries_cloudagent.messaging.base_handler import (
 )
 from aries_cloudagent.messaging.models.base import BaseModel, BaseModelError
 from aries_cloudagent.storage.error import StorageError, StorageNotFoundError
-from marshmallow import fields
+from aries_cloudagent.messaging.valid import UUIDFour
+from marshmallow import fields, validate
 
 from .. import ProblemReport
 from ..decorators.pagination import Page, Paginate
@@ -619,6 +621,93 @@ class PresSent(AdminHolderMessage):
     fields_from = PresExRecordSchema
 
 
+@expand_message_class
+class PresGetMatchingCredentials(AdminHolderMessage):
+    """Retrieve matching credentials for a presentation request."""
+    message_type = "presentation-get-matching-credentials"
+
+    class Fields:
+        presentation_exchange_id = fields.Str(
+            required=True, description="Presentation to match credentials to."
+        )
+        paginate = fields.Nested(
+            Paginate.Schema,
+            required=False,
+            data_key="~paginate",
+            missing=Paginate(limit=10, offset=0),
+        )
+
+    def __init__(
+        self, presentation_exchange_id: str, paginate: Paginate = None, **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.presentation_exchange_id = presentation_exchange_id
+        self.paginate = paginate
+
+    @log_handling
+    @admin_only
+    async def handle(self, context: RequestContext, responder: BaseResponder):
+        holder = cast(IndySdkHolder, context.inject(IndyHolder))
+        async with context.session() as session:
+            async with ExceptionReporter(
+                responder, InvalidPresentationExchange, context.message
+            ):
+                pres_ex_record = await PresRequestApprove.get_pres_ex_record(
+                    session, self.presentation_exchange_id
+                )
+
+        matches = PresMatchingCredentials(
+            presentation_exchange_id=self.presentation_exchange_id,
+            matching_credentials=await holder.get_credentials_for_presentation_request_by_referent(
+                pres_ex_record.presentation_request,
+                (),
+                self.paginate.offset,
+                self.paginate.limit,
+                extra_query={},
+            ),
+            page=Page(count_=self.paginate.limit, offset=self.paginate.offset)
+        )
+        matches.assign_thread_from(self)
+        await responder.send_reply(matches)
+
+
+@with_generic_init
+@expand_message_class
+class PresMatchingCredentials(AdminHolderMessage):
+    """Presentation Matching Credentials"""
+    message_type = "presentation-matching-credentials"
+
+    class Fields:
+        """Fields for MatchingCredentials."""
+        presentation_exchange_id = fields.Str(
+            required=True,
+            description="Exchange ID for matched credentials."
+        )
+        matching_credentials = fields.Nested(
+            IndyCredPrecisSchema,
+            many=True,
+            description="Matched credentials."
+        )
+        page = fields.Nested(
+            Page.Schema,
+            required=False,
+            description="Pagination info for matched credentials."
+        )
+
+    def __init__(
+        self,
+        presentation_exchange_id: str,
+        matching_credentials: Tuple[Any, ...],
+        page: Page = None,
+        **kwargs
+    ):
+        """Initialize PresMatchingCredentials"""
+        super().__init__(**kwargs)
+        self.presentation_exchange_id = presentation_exchange_id
+        self.matching_credentials = matching_credentials
+        self.page = page
+
+
 PROTOCOL = AdminHolderMessage.protocol
 TITLE = "Holder Admin Protocol"
 NAME = "admin-holder"
@@ -637,6 +726,8 @@ MESSAGE_TYPES = {
         PresGetList,
         PresList,
         PresRequestApprove,
+        PresGetMatchingCredentials,
+        PresMatchingCredentials,
         SendPresProposal,
         PresExchange,
     ]
@@ -645,7 +736,7 @@ MESSAGE_TYPES = {
 
 async def setup(
         context: InjectionContext,
-        protocol_registry: ProblemReport = None
+        protocol_registry: Optional[ProtocolRegistry] = None
 ):
     """Setup the holder plugin."""
     if not protocol_registry:
@@ -700,7 +791,7 @@ async def present_proof_event_handler(profile: Profile, event: Event):
 
     if record.state == PresExRecord.STATE_REQUEST_RECEIVED:
         responder = profile.inject(BaseResponder)
-        message = PresRequestReceived(record)
+        message: PresRequestReceived = PresRequestReceived(record)
         LOGGER.debug("Prepared Message: %s", message.serialize())
         await message.retrieve_matching_credentials(profile)
         async with profile.session() as session:
