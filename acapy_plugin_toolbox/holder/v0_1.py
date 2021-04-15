@@ -98,6 +98,7 @@ class CredGetList(AdminHolderMessage):
             required=False,
             data_key="~paginate",
             missing=Paginate(limit=10, offset=0),
+            description="Pagination decorator."
         )
         states = fields.List(
             fields.Str(required=True),
@@ -162,7 +163,12 @@ class CredList(AdminHolderMessage):
             description="List of requested credentials",
             example=[],
         )
-        page = fields.Nested(Page.Schema, required=False, data_key="~page")
+        page = fields.Nested(
+            Page.Schema,
+            required=False,
+            data_key="~page",
+            description="Pagination decorator."
+        )
 
     def __init__(
         self,
@@ -325,25 +331,26 @@ class PresGetList(AdminHolderMessage):
 
     class Fields:
         """Message fields."""
-        connection_id = fields.Str(required=False)
-        verified = fields.Str(required=False)
+        connection_id = fields.Str(
+            required=False,
+            description="Filter presentations by connection_id"
+        )
         paginate = fields.Nested(
             Paginate.Schema,
             required=False,
             data_key="~paginate",
-            missing=Paginate(limit=10, offset=0)
+            missing=Paginate(limit=10, offset=0),
+            description="Pagination decorator."
         )
 
     def __init__(
         self,
         connection_id: str = None,
-        verified: str = None,
         paginate: Paginate = None,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.connection_id = connection_id
-        self.verified = verified
         self.paginate = paginate or Paginate()
 
     @log_handling
@@ -358,7 +365,6 @@ class PresGetList(AdminHolderMessage):
             filter(lambda item: item[1] is not None, {
                 'role': PresExRecord.ROLE_PROVER,
                 'connection_id': context.message.connection_id,
-                'verified': context.message.verified,
             }.items())
         )
         records = await PresExRecord.query(
@@ -376,8 +382,16 @@ class PresList(AdminHolderMessage):
 
     class Fields:
         """Fields for presentation list message."""
-        results = fields.List(fields.Dict())
-        page = fields.Nested(Page.Schema, required=False, data_key="~page")
+        results = fields.List(
+            fields.Dict(),
+            description="Retrieved presentations."
+        )
+        page = fields.Nested(
+            Page.Schema,
+            required=False,
+            data_key="~page",
+            description="Pagination decorator."
+        )
 
     def __init__(self, results, page: Page = None, **kwargs):
         super().__init__(**kwargs)
@@ -461,9 +475,21 @@ class PresRequestReceived(AdminHolderMessage):
 
     class Fields:
         """Fields of Presentation request received message."""
-        record = fields.Nested(PresExRecordSchema)
-        matching_credentials = fields.Nested(IndyCredPrecisSchema, many=True)
-        page = fields.Nested(Page.Schema, required=False)
+        record = fields.Nested(
+            PresExRecordSchema,
+            required=True,
+            description="Presentation details."
+        )
+        matching_credentials = fields.Nested(
+            IndyCredPrecisSchema,
+            many=True,
+            description="Credentials matching the requested attributes."
+        )
+        page = fields.Nested(
+            Page.Schema,
+            required=False,
+            description="Pagination decorator."
+        )
 
     def __init__(self, record: PresExRecord, **kwargs):
         super().__init__(**kwargs)
@@ -525,7 +551,11 @@ class PresRequestApprove(AdminHolderMessage):
             keys=fields.Str(example="pred_referent"),  # marshmallow/apispec v3.0 ignores
             values=fields.Nested(present_proof.routes.IndyRequestedCredsRequestedPredSchema()),
         )
-        comment = fields.Str(required=False)
+        comment = fields.Str(
+            required=False,
+            description="Optional comment.",
+            example="Nothing to see here."
+        )
 
     def __init__(
         self,
@@ -628,13 +658,16 @@ class PresGetMatchingCredentials(AdminHolderMessage):
 
     class Fields:
         presentation_exchange_id = fields.Str(
-            required=True, description="Presentation to match credentials to."
+            required=True,
+            description="Presentation to match credentials to.",
+            example=UUIDFour.EXAMPLE
         )
         paginate = fields.Nested(
             Paginate.Schema,
             required=False,
             data_key="~paginate",
             missing=Paginate(limit=10, offset=0),
+            description="Pagination decorator."
         )
 
     def __init__(
