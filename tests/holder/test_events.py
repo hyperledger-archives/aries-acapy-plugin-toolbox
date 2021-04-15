@@ -64,8 +64,8 @@ def mock_send_to_admins():
 @pytest.mark.parametrize(
     "handler, topic",
     [
-        ("issue_credential_event_handler", V10CredentialExchange.WEBHOOK_TOPIC),
-        ("present_proof_event_handler", V10PresentationExchange.WEBHOOK_TOPIC)
+        ("issue_credential_event_handler", f"acapy::record::{V10CredentialExchange.RECORD_TOPIC}::test"),
+        ("present_proof_event_handler", f"acapy::record::{V10PresentationExchange.RECORD_TOPIC}::test")
     ]
 )
 async def test_events_subscribed_and_triggered(

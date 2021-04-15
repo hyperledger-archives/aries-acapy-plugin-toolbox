@@ -55,7 +55,7 @@ MESSAGE_TYPES = {
     CONNECTED: 'acapy_plugin_toolbox.connections.Connected',
 }
 
-EVENT_PATTERN = re.compile(ConnRecord.WEBHOOK_TOPIC + ".*")
+EVENT_PATTERN = re.compile(f"acapy::record::{ConnRecord.RECORD_TOPIC}::.*")
 
 
 async def setup(

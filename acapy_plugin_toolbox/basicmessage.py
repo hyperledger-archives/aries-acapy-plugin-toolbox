@@ -43,7 +43,7 @@ MESSAGE_TYPES = {
     DELETE: 'acapy_plugin_toolbox.basicmessage.Delete'
 }
 
-BASIC_MESSAGE_EVENT_PATTERN = re.compile("^basicmessages$")
+BASIC_MESSAGE_EVENT_PATTERN = re.compile("^acapy::basicmessage::received$")
 
 
 async def setup(
