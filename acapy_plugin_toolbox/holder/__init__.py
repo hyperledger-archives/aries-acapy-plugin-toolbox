@@ -18,8 +18,8 @@ from aries_cloudagent.protocols.present_proof import v1_0 as present_proof
 from aries_cloudagent.protocols.present_proof.v1_0.manager import (
     PresentationManager, PresentationManagerError
 )
-from aries_cloudagent.protocols.present_proof.v1_0.messages.inner.presentation_preview import (
-    PresentationPreview
+from aries_cloudagent.protocols.present_proof.indy.pres_preview import (
+    IndyPresPreview as PresentationPreview
 )
 from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import \
     V10PresentationExchange as PresExRecord
@@ -27,6 +27,10 @@ from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange 
     V10PresentationExchangeSchema as PresExRecordSchema
 from aries_cloudagent.protocols.present_proof.v1_0.routes import (
     IndyCredPrecisSchema
+)
+from aries_cloudagent.protocols.present_proof.indy.requested_creds import (
+    IndyRequestedCredsRequestedAttrSchema,
+    IndyRequestedCredsRequestedPredSchema,
 )
 from aries_cloudagent.protocols.present_proof.v1_0.routes import \
     V10PresentationProposalRequestSchema as PresentationProposalRequestSchema
@@ -37,5 +41,6 @@ __all__ = [
     "CredentialProposalRequestSchema", "present_proof",
     "PresentationManager", "PresentationManagerError",
     "PresentationPreview", "PresExRecord", "PresExRecordSchema", "IndyCredPrecisSchema",
-    "PresentationProposalRequestSchema"
+    "PresentationProposalRequestSchema", "IndyRequestedCredsRequestedAttrSchema",
+    "IndyRequestedCredsRequestedPredSchema"
 ]

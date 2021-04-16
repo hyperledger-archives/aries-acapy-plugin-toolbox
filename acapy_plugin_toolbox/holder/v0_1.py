@@ -37,7 +37,8 @@ from . import (
     CredentialProposalRequestSchema, CredExRecord, CredExRecordSchema,
     IndyCredPrecisSchema, PresentationPreview,
     PresentationProposalRequestSchema, PresExRecord, PresExRecordSchema,
-    issue_credential, present_proof, PresentationManager
+    issue_credential, present_proof, PresentationManager,
+    IndyRequestedCredsRequestedPredSchema, IndyRequestedCredsRequestedAttrSchema
 )
 
 
@@ -540,7 +541,7 @@ class PresRequestApprove(AdminHolderMessage):
             ),
             required=True,
             keys=fields.Str(example="attr_referent"),  # marshmallow/apispec v3.0 ignores
-            values=fields.Nested(present_proof.routes.IndyRequestedCredsRequestedAttrSchema()),
+            values=fields.Nested(IndyRequestedCredsRequestedAttrSchema()),
         )
         requested_predicates = fields.Dict(
             description=(
@@ -549,7 +550,7 @@ class PresRequestApprove(AdminHolderMessage):
             ),
             required=True,
             keys=fields.Str(example="pred_referent"),  # marshmallow/apispec v3.0 ignores
-            values=fields.Nested(present_proof.routes.IndyRequestedCredsRequestedPredSchema()),
+            values=fields.Nested(IndyRequestedCredsRequestedPredSchema()),
         )
         comment = fields.Str(
             required=False,
@@ -779,11 +780,11 @@ async def setup(
     )
     bus: EventBus = context.inject(EventBus)
     bus.subscribe(
-        re.compile(CredExRecord.WEBHOOK_TOPIC + ".*"),
+        re.compile(f"acapy::record::{CredExRecord.RECORD_TOPIC}::.*"),
         issue_credential_event_handler
     )
     bus.subscribe(
-        re.compile(PresExRecord.WEBHOOK_TOPIC + ".*"),
+        re.compile(f"acapy::record::{PresExRecord.RECORD_TOPIC}::.*"),
         present_proof_event_handler
     )
 

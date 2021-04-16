@@ -24,7 +24,7 @@ async def test_basic_message_event_handler_notify_admins(
         await event_bus.notify(
             profile,
             Event(
-                "basicmessages",
+                "acapy::basicmessage::received",
                 {
                     "connection_id": "connection-1",
                     "message_id": "test id",
@@ -34,4 +34,5 @@ async def test_basic_message_event_handler_notify_admins(
             ),
         )
 
+        assert send_to_admins.message
         assert send_to_admins.message.message.content == "Hello world"
