@@ -1,4 +1,4 @@
-FROM bcgovimages/aries-cloudagent:py36-1.15-0_0.6.0rc0
+FROM bcgovimages/von-image:py36-1.15-1
 
 ARG ACAPY=""
 RUN if [ -n "${ACAPY}" ]; then pip3 install ${ACAPY}; fi
@@ -15,7 +15,7 @@ USER $user
 # Make ACA-Py Install location more accessible
 RUN ln -s /home/indy/.pyenv/versions/3.6.9/lib/python3.6/site-packages site-packages
 
-RUN pip3 install -e ./aries-acapy-plugin-toolbox
+RUN pip3 install --no-cache-dir -e ./aries-acapy-plugin-toolbox
 
 ADD docker/default.yml .
 

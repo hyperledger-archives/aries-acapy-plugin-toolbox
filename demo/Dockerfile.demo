@@ -1,4 +1,4 @@
-FROM bcgovimages/aries-cloudagent:py36-1.15-0_0.6.0rc0
+FROM bcgovimages/von-image:py36-1.15-1
 
 ARG ACAPY=""
 RUN if [ -n "${ACAPY}" ]; then pip3 install ${ACAPY}; fi
@@ -18,7 +18,7 @@ ADD https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 ./jq
 RUN chmod +x ./jq
 USER $user
 
-RUN pip3 install -e ./aries-acapy-plugin-toolbox
+RUN pip3 install --no-cache-dir -e ./aries-acapy-plugin-toolbox
 
 ENTRYPOINT ["/bin/bash", "-c", "./ngrok-wait.sh \"$@\"", "--"]
 CMD ["aca-py", "start", "--plugin", "acapy_plugin_toolbox", "--arg-file", "configs/default.yml"]
