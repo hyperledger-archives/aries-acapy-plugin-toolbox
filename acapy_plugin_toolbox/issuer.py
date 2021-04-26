@@ -55,6 +55,7 @@ from .util import (
     expand_message_class,
     generate_model_schema,
     get_connection,
+    log_handling,
     with_generic_init,
 )
 
@@ -180,6 +181,7 @@ class RequestPres(AdminIssuerMessage):
         self.proof_request = proof_request
         self.comment = comment
 
+    @log_handling
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received presentation request request."""
