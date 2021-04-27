@@ -814,6 +814,63 @@ class CredDeleted(AdminHolderMessage):
         self.credential_id = credential_id
 
 
+@expand_message_class
+class PresDelete(AdminHolderMessage):
+    """Delete a presentation exchange message."""
+    message_type = "presentation-exchange-delete"
+
+    class Fields:
+        presentation_exchange_id = fields.Str(
+            required=True,
+            description="Presentation Exchange Message to delete.",
+            example=UUIDFour.EXAMPLE
+        )
+
+    def __init__(
+        self, presentation_exchange_id: str, **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.presentation_exchange_id = presentation_exchange_id
+
+    @log_handling
+    @admin_only
+    async def handle(self, context: RequestContext, responder: BaseResponder):
+        async with context.session() as session:
+            async with ExceptionReporter(
+                responder, InvalidPresentationExchange, context.message
+            ):
+                pres_ex_record = await PresRequestApprove.get_pres_ex_record(
+                    session, self.presentation_exchange_id
+                )
+
+            await pres_ex_record.delete_record(session)
+
+        message = PresDeleted(
+            presentation_exchange_id=self.presentation_exchange_id,
+        )
+        message.assign_thread_from(self)
+        await responder.send_reply(message)
+
+
+@expand_message_class
+class PresDeleted(AdminHolderMessage):
+    """Presentation exchange message deleted."""
+    message_type = "presentation-exchange-deleted"
+
+    class Fields:
+        presentation_exchange_id = fields.Str(
+            required=True,
+            description="Presentation Exchange Message to delete.",
+            example=UUIDFour.EXAMPLE
+        )
+
+    def __init__(
+        self, presentation_exchange_id: str, **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.presentation_exchange_id = presentation_exchange_id
+
+
 PROTOCOL = AdminHolderMessage.protocol
 TITLE = "Holder Admin Protocol"
 NAME = "admin-holder"
@@ -837,6 +894,7 @@ MESSAGE_TYPES = {
         SendPresProposal,
         PresExchange,
         CredDelete,
+        PresDelete,
     ]
 }
 
