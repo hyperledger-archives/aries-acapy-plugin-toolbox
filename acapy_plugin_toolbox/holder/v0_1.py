@@ -742,6 +742,78 @@ class PresMatchingCredentials(AdminHolderMessage):
         self.page = page
 
 
+@expand_message_class
+class CredDelete(AdminHolderMessage):
+    """Delete a credential."""
+    message_type = "credential-delete"
+
+    class Fields:
+        credential_exchange_id = fields.Str(
+            required=True,
+            description="ID of the credential exchange to delete",
+            example=UUIDFour.EXAMPLE
+        )
+
+    def __init__(self, credential_exchange_id: str = None, **kwargs):
+        super().__init__(**kwargs)
+        self.credential_exchange_id = credential_exchange_id
+
+    @log_handling
+    @admin_only
+    async def handle(self, context: RequestContext, responder: BaseResponder):
+        """Handle delete credential message."""
+
+        holder = cast(IndySdkHolder, context.inject(IndyHolder))
+        async with context.session() as session:
+            async with ExceptionReporter(
+                responder,
+                (
+                    StorageError,
+                    CredentialManagerError,
+                    BaseModelError
+                ),
+                context.message
+            ):
+                cred_ex_record: CredExRecord = await CredExRecord.retrieve_by_id(
+                    session, self.credential_exchange_id
+                )
+
+                await holder.delete_credential(cred_ex_record.credential_id)
+                await cred_ex_record.delete_record(session)
+
+        message = CredDeleted(
+            credential_exchange_id=self.credential_exchange_id,
+            credential_id=cred_ex_record.credential_id,
+        )
+        message.assign_thread_from(self)
+        await responder.send_reply(message)
+
+
+@expand_message_class
+class CredDeleted(AdminHolderMessage):
+    """Credential deleted."""
+    message_type = "credential-deleted"
+
+    class Fields:
+        credential_exchange_id = fields.Str(
+            required=True,
+            description="Credential exchange ID that was deleted.",
+            example=UUIDFour.EXAMPLE
+        )
+        credential_id = fields.Str(
+            required=True,
+            description="Credential ID that was deleted.",
+            example=UUIDFour.EXAMPLE
+        )
+
+    def __init__(
+        self, credential_exchange_id: str, credential_id: str, **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.credential_exchange_id = credential_exchange_id
+        self.credential_id = credential_id
+
+
 PROTOCOL = AdminHolderMessage.protocol
 TITLE = "Holder Admin Protocol"
 NAME = "admin-holder"
@@ -764,6 +836,7 @@ MESSAGE_TYPES = {
         PresMatchingCredentials,
         SendPresProposal,
         PresExchange,
+        CredDelete,
     ]
 }
 
