@@ -15,8 +15,10 @@ from .pres_get_list import PresGetList
 from .pres_get_matching_credentials import PresGetMatchingCredentials
 from .pres_list import PresList
 from .pres_matching_credentials import PresMatchingCredentials
+from .pres_reject_sent import PresRejectSent
 from .pres_request_approve import PresRequestApprove
 from .pres_request_received import PresRequestReceived
+from .pres_request_reject import PresRequestReject
 from .pres_sent import PresSent
 from .send_cred_proposal import SendCredProposal
 from .send_pres_proposal import SendPresProposal
@@ -39,8 +41,10 @@ __all__ = [
     "PresGetMatchingCredentials",
     "PresList",
     "PresMatchingCredentials",
+    "PresRejectSent",
     "PresRequestApprove",
     "PresRequestReceived",
+    "PresRequestReject",
     "PresSent",
     "SendCredProposal",
     "SendPresProposal",
