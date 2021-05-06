@@ -309,7 +309,7 @@ class SendHandler(BaseHandler):
             )
         except StorageNotFoundError:
             report = ProblemReport(
-                explain_ltxt='Connection not found.',
+                description={"en":'Connection not found.'},
                 who_retries='none'
             )
             report.assign_thread_from(context.message)

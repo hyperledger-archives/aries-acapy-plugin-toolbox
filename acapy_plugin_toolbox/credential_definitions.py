@@ -214,7 +214,7 @@ class SendCredDefHandler(BaseHandler):
                 )
         except Exception as err:
             report = ProblemReport(
-                explain_ltxt='Failed to send to ledger; Error: {}'.format(err),
+                description={"en":'Failed to send to ledger; Error: {}'.format(err)},
                 who_retries='none'
             )
             LOGGER.exception("Failed to send cred def to ledger: %s", err)

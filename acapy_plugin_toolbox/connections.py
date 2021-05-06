@@ -229,7 +229,7 @@ class UpdateHandler(BaseHandler):
             )
         except StorageNotFoundError:
             report = ProblemReport(
-                explain_ltxt='Connection not found.',
+                description={"en":'Connection not found.'},
                 who_retries='none'
             )
             report.assign_thread_from(context.message)
@@ -274,7 +274,7 @@ class DeleteHandler(BaseHandler):
                 context.connection_record.connection_id:
 
             report = ProblemReport(
-                explain_ltxt='Current connection cannot be deleted.',
+                description={"en":'Current connection cannot be deleted.'},
                 who_retries='none'
             )
             report.assign_thread_from(context.message)
@@ -289,7 +289,7 @@ class DeleteHandler(BaseHandler):
             )
         except StorageNotFoundError:
             report = ProblemReport(
-                explain_ltxt='Connection not found.',
+                description={"en":'Connection not found.'},
                 who_retries='none'
             )
             report.assign_thread_from(context.message)

@@ -70,8 +70,8 @@ def require_role(role):
                     return await func(*args)
 
             report = ProblemReport(
-                explain_ltxt='This connection is not authorized to perform'
-                             ' the requested action.',
+                description={"en":'This connection is not authorized to perform'
+                                  ' the requested action.'},
                 who_retries='none'
             )
             report.assign_thread_from(context.message)
@@ -412,7 +412,7 @@ class ExceptionReporter:
     async def __aexit__(self, err_type, err_value, err_traceback):
         """Exit the context manager."""
         if isinstance(err_value, self.exception):
-            report = ProblemReport(explain_ltxt=str(err_value))
+            report = ProblemReport(description={"en":str(err_value)})
             if self.original_message:
                 report.assign_thread_from(self.original_message)
             await self.responder.send_reply(report)

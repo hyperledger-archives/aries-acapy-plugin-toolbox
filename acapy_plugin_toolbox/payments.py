@@ -169,10 +169,10 @@ class GetAddressListHandler(BaseHandler):
         """Handle received address list requests."""
         if context.message.method and context.message.method != SOV_METHOD:
             report = ProblemReport(
-                explain_ltxt=(
+                description={"en":(
                     'Method "{}" is not supported.'
                     .format(context.message.method)
-                ),
+                )},
                 who_retries='none'
             )
             report.assign_thread_from(context.message)
@@ -204,7 +204,7 @@ class GetAddressListHandler(BaseHandler):
                     })
         except (LedgerError, PaymentError) as err:
             report = ProblemReport(
-                explain_ltxt=(err),
+                description={"en":str(err)},
                 who_retries='none'
             )
             await responder.send_reply(report)
@@ -216,7 +216,7 @@ class GetAddressListHandler(BaseHandler):
             if hasattr(err, 'message'):
                 message += ': {}'.format(err.message)
             report = ProblemReport(
-                explain_ltxt=(message),
+                description={"en":message},
                 who_retries='none'
             )
             await responder.send_reply(report)
@@ -256,10 +256,10 @@ class CreateAddressHandler(BaseHandler):
         ledger: BaseLedger = session.inject(BaseLedger)
         if context.message.method != SOV_METHOD:
             report = ProblemReport(
-                explain_ltxt=(
+                description={"en":(
                     'Method "{}" is not supported.'
                     .format(context.message.method)
-                ),
+                )},
                 who_retries='none'
             )
             report.assign_thread_from(context.message)
@@ -268,9 +268,9 @@ class CreateAddressHandler(BaseHandler):
 
         if context.message.seed and len(context.message.seed) < 32:
             report = ProblemReport(
-                explain_ltxt=(
+                description={"en":(
                     'Seed must be 32 characters in length'
-                ),
+                )},
                 who_retries='none'
             )
             report.assign_thread_from(context.message)
@@ -291,7 +291,7 @@ class CreateAddressHandler(BaseHandler):
             if hasattr(err, 'message'):
                 message += ': {}'.format(err.message)
             report = ProblemReport(
-                explain_ltxt=(message),
+                description={"en":message},
                 who_retries='none'
             )
             await responder.send_reply(report)
@@ -307,7 +307,7 @@ class CreateAddressHandler(BaseHandler):
                     sources.append(source)
         except (LedgerError, PaymentError) as err:
             report = ProblemReport(
-                explain_ltxt=(err),
+                description={"en":str(err)},
                 who_retries='none'
             )
             await responder.send_reply(report)
@@ -319,7 +319,7 @@ class CreateAddressHandler(BaseHandler):
             if hasattr(err, 'message'):
                 message += ': {}'.format(err.message)
             report = ProblemReport(
-                explain_ltxt=(message),
+                description={"en":message},
                 who_retries='none'
             )
             await responder.send_reply(report)
@@ -410,10 +410,10 @@ class GetFeesHandler(BaseHandler):
         ledger: BaseLedger = session.inject(BaseLedger)
         if context.message.method != SOV_METHOD:
             report = ProblemReport(
-                explain_ltxt=(
+                description={"en":(
                     'Method "{}" is not supported.'
                     .format(context.message.method)
-                ),
+                )},
                 who_retries='none'
             )
             report.assign_thread_from(context.message)
@@ -425,7 +425,7 @@ class GetFeesHandler(BaseHandler):
                 xfer_auth = await get_transfer_auth(ledger)
         except (LedgerError, PaymentError) as err:
             report = ProblemReport(
-                explain_ltxt=(err),
+                description={"en":str(err)},
                 who_retries='none'
             )
             await responder.send_reply(report)
@@ -437,7 +437,7 @@ class GetFeesHandler(BaseHandler):
             if hasattr(err, 'message'):
                 message += ': {}'.format(err.message)
             report = ProblemReport(
-                explain_ltxt=(message),
+                description={"en":message},
                 who_retries='none'
             )
             await responder.send_reply(report)
@@ -612,10 +612,10 @@ class TransferHandler(BaseHandler):
         ledger: BaseLedger = session.inject(BaseLedger)
         if context.message.method != SOV_METHOD:
             report = ProblemReport(
-                explain_ltxt=(
+                description={"en":(
                     'Method "{}" is not supported.'
                     .format(context.message.method)
-                ),
+                )},
                 who_retries='none'
             )
             report.assign_thread_from(context.message)
@@ -637,7 +637,7 @@ class TransferHandler(BaseHandler):
                 )
             except (LedgerError, PaymentError) as err:
                 report = ProblemReport(
-                    explain_ltxt=(err),
+                    description={"en":str(err)},
                     who_retries='none'
                 )
                 await responder.send_reply(report)
@@ -649,7 +649,7 @@ class TransferHandler(BaseHandler):
                 if hasattr(err, 'message'):
                     message += ': {}'.format(err.message)
                 report = ProblemReport(
-                    explain_ltxt=(message),
+                    description={"en":message},
                     who_retries='none'
                 )
                 await responder.send_reply(report)

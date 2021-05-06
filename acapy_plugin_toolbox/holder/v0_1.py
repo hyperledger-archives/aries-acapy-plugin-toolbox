@@ -207,7 +207,7 @@ class SendCredProposal(AdminHolderMessage):
             )
         except StorageNotFoundError:
             report = ProblemReport(
-                explain_ltxt='Connection not found.',
+                description={"en":'Connection not found.'},
                 who_retries='none'
             )
             report.assign_thread_from(context.message)
@@ -216,7 +216,7 @@ class SendCredProposal(AdminHolderMessage):
 
         if not conn_record.is_ready:
             report = ProblemReport(
-                explain_ltxt='Connection invalid.',
+                description={"en":'Connection invalid.'},
                 who_retries='none'
             )
             report.assign_thread_from(context.message)

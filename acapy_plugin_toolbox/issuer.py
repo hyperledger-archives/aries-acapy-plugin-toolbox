@@ -124,7 +124,7 @@ class SendCredHandler(BaseHandler):
             conn_record = await ConnRecord.retrieve_by_id(session, connection_id)
         except StorageNotFoundError:
             report = ProblemReport(
-                explain_ltxt="Connection not found.", who_retries="none"
+                description={"en":"Connection not found."}, who_retries="none"
             )
             report.assign_thread_from(context.message)
             await responder.send_reply(report)
@@ -132,7 +132,7 @@ class SendCredHandler(BaseHandler):
 
         if not conn_record.is_ready:
             report = ProblemReport(
-                explain_ltxt="Connection invalid.", who_retries="none"
+                description={"en":"Connection invalid."}, who_retries="none"
             )
             report.assign_thread_from(context.message)
             await responder.send_reply(report)
