@@ -1,8 +1,12 @@
 """Test PresRequestApprove message and handler."""
 
 import pytest
-from acapy_plugin_toolbox.holder import v0_1 as test_module
-from acapy_plugin_toolbox.holder.v0_1 import PresRequestApprove
+from acapy_plugin_toolbox.holder.v0_1.messages import (
+    pres_request_approve as test_module,
+)
+from acapy_plugin_toolbox.holder.v0_1.messages.pres_request_approve import (
+    PresRequestApprove,
+)
 from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.protocols.present_proof.v1_0.manager import PresentationManager
 from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import (

@@ -6,11 +6,11 @@ import pytest
 from acapy_plugin_toolbox.decorators.pagination import Paginate
 from acapy_plugin_toolbox.holder import v0_1 as test_module
 from acapy_plugin_toolbox.holder.v0_1 import (
-    InvalidPresentationExchange,
     PresGetMatchingCredentials,
     PresMatchingCredentials,
     PresRequestApprove,
 )
+from acapy_plugin_toolbox.holder.v0_1.error import InvalidPresentationExchange
 from aries_cloudagent.indy.holder import IndyHolder
 from aries_cloudagent.indy.sdk.holder import IndySdkHolder
 from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import (

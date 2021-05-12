@@ -1,8 +1,10 @@
 """Test SendPresProposal message and handler."""
 
 import pytest
-from acapy_plugin_toolbox.holder import v0_1 as test_module
-from acapy_plugin_toolbox.holder.v0_1 import SendPresProposal
+from acapy_plugin_toolbox.holder.v0_1.messages import send_pres_proposal as test_module
+from acapy_plugin_toolbox.holder.v0_1.messages.send_pres_proposal import (
+    SendPresProposal,
+)
 from aries_cloudagent.indy.sdk.models.pres_preview import (
     IndyPresAttrSpec,
     IndyPresPreview,
