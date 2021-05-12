@@ -32,12 +32,13 @@ from ..util import (
     expand_model_class, get_connection, send_to_admins, with_generic_init,
     log_handling
 )
+from aries_cloudagent.protocols.present_proof.v1_0.messages.presentation_proposal import PresentationProposal
 from . import (
     CredentialAttributeSpec, CredentialManager, CredentialManagerError,
     CredentialProposalRequestSchema, CredExRecord, CredExRecordSchema,
     IndyCredPrecisSchema, PresentationPreview,
     PresentationProposalRequestSchema, PresExRecord, PresExRecordSchema,
-    issue_credential, present_proof, PresentationManager,
+    issue_credential, PresentationManager,
     IndyRequestedCredsRequestedPredSchema, IndyRequestedCredsRequestedAttrSchema
 )
 
@@ -434,7 +435,7 @@ class SendPresProposal(AdminHolderMessage):
 
         comment = context.message.comment
         # Aries#0037 calls it a proposal in the proposal struct but it's of type preview
-        presentation_proposal = present_proof.messages.presentation_proposal.PresentationProposal(
+        presentation_proposal = PresentationProposal(
             comment=comment,
             presentation_proposal=context.message.presentation_proposal
         )
@@ -443,7 +444,7 @@ class SendPresProposal(AdminHolderMessage):
             context.settings.get("debug.auto_respond_presentation_request")
         )
 
-        presentation_manager = present_proof.manager.PresentationManager(context.profile)
+        presentation_manager = PresentationManager(context.profile)
 
         presentation_exchange_record = (
             await presentation_manager.create_exchange_for_proposal(

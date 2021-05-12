@@ -14,11 +14,10 @@ from aries_cloudagent.protocols.issue_credential.v1_0.models.credential_exchange
     V10CredentialExchangeSchema as CredExRecordSchema
 from aries_cloudagent.protocols.issue_credential.v1_0.routes import \
     V10CredentialProposalRequestMandSchema as CredentialProposalRequestSchema
-from aries_cloudagent.protocols.present_proof import v1_0 as present_proof
 from aries_cloudagent.protocols.present_proof.v1_0.manager import (
     PresentationManager, PresentationManagerError
 )
-from aries_cloudagent.protocols.present_proof.indy.pres_preview import (
+from aries_cloudagent.indy.sdk.models.pres_preview import (
     IndyPresPreview as PresentationPreview
 )
 from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import \
@@ -28,7 +27,7 @@ from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange 
 from aries_cloudagent.protocols.present_proof.v1_0.routes import (
     IndyCredPrecisSchema
 )
-from aries_cloudagent.protocols.present_proof.indy.requested_creds import (
+from aries_cloudagent.indy.sdk.models.requested_creds import (
     IndyRequestedCredsRequestedAttrSchema,
     IndyRequestedCredsRequestedPredSchema,
 )
@@ -38,7 +37,7 @@ from aries_cloudagent.protocols.present_proof.v1_0.routes import \
 __all__ = [
     "issue_credential", "CredentialManager", "CredentialManagerError",
     "CredentialAttributeSpec", "CredExRecord", "CredExRecordSchema",
-    "CredentialProposalRequestSchema", "present_proof",
+    "CredentialProposalRequestSchema",
     "PresentationManager", "PresentationManagerError",
     "PresentationPreview", "PresExRecord", "PresExRecordSchema", "IndyCredPrecisSchema",
     "PresentationProposalRequestSchema", "IndyRequestedCredsRequestedAttrSchema",

@@ -1,12 +1,20 @@
 """Test SendPresProposal message and handler."""
 
 import pytest
-
 from acapy_plugin_toolbox.holder import v0_1 as test_module
 from acapy_plugin_toolbox.holder.v0_1 import SendPresProposal
+from aries_cloudagent.indy.sdk.models.pres_preview import (
+    IndyPresAttrSpec,
+    IndyPresPreview,
+)
 
 TEST_CONN_ID = "test-connection-id"
-TEST_PROPOSAL = "test-proposal"
+TEST_PROPOSAL = IndyPresPreview(
+    attributes=[
+        IndyPresAttrSpec(name="test-proposal"),
+    ],
+    predicates=[],
+)
 TEST_COMMENT = "test-comment"
 
 
@@ -16,7 +24,7 @@ def message():
     yield SendPresProposal(
         connection_id=TEST_CONN_ID,
         presentation_proposal=TEST_PROPOSAL,
-        comment=TEST_COMMENT
+        comment=TEST_COMMENT,
     )
 
 

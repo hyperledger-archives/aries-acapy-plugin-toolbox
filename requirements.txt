@@ -1,4 +1,4 @@
-aries-cloudagent[indy]@git+https://github.com/indicio-tech/aries-cloudagent-python@39f2c9a49d00f3c926ff56d9385c52dca6dc1c76
+aries-cloudagent[indy]@git+https://github.com/hyperledger/aries-cloudagent-python@6292b5913605ff3cfe245093b7ce68b705e9b262
 marshmallow==3.5.1
 flake8
 python-dateutil
