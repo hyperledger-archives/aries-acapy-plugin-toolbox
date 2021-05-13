@@ -2,7 +2,7 @@
 
 # pylint: disable=invalid-name
 # pylint: disable=too-few-public-methods
-from typing import Optional
+from typing import Optional, Mapping
 
 from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.core.profile import ProfileSession
@@ -22,7 +22,6 @@ from aries_cloudagent.protocols.issue_credential.v1_0.messages.credential_propos
 )
 from aries_cloudagent.protocols.issue_credential.v1_0.models.credential_exchange import (
     V10CredentialExchange,
-    V10CredentialExchangeSchema,
 )
 from aries_cloudagent.protocols.issue_credential.v1_0.routes import (
     V10CredentialExchangeListResultSchema,
@@ -101,12 +100,22 @@ SendCred, SendCredSchema = generate_model_schema(
     msg_type=SEND_CREDENTIAL,
     schema=V10CredentialProposalRequestMandSchema,
 )
-IssuerCredExchange, IssuerCredExchangeSchema = generate_model_schema(
-    name="IssuerCredExchange",
-    handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=ISSUER_CRED_EXCHANGE,
-    schema=V10CredentialExchangeSchema,
-)
+
+
+@expand_message_class
+class IssuerCredExchange(AdminIssuerMessage):
+    message_type = ISSUER_CRED_EXCHANGE
+    class Fields:
+        # TODO Use a toolbox CredentialRepresentation
+        raw_repr = fields.Mapping(required=True)
+
+    def __init__(self, record: V10CredentialExchange, **kwargs):
+        super().__init__(**kwargs)
+        self.raw_repr = record.serialize()
+
+    def serialize(self, **kwargs) -> Mapping:
+        base_msg = super().serialize(**kwargs)
+        return {**self.raw_repr, **base_msg}
 
 
 class SendCredHandler(BaseHandler):
@@ -160,7 +169,7 @@ class SendCredHandler(BaseHandler):
         await responder.send(
             cred_offer_message, connection_id=cred_exchange_record.connection_id
         )
-        cred_exchange = IssuerCredExchange(**cred_exchange_record.serialize())
+        cred_exchange = IssuerCredExchange(record=cred_exchange_record)
         cred_exchange.assign_thread_from(context.message)
         await responder.send_reply(cred_exchange)
 
@@ -239,12 +248,18 @@ CredGetList, CredGetListSchema = generate_model_schema(
     },
 )
 
-CredList, CredListSchema = generate_model_schema(
-    name="CredList",
-    handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=CREDENTIALS_LIST,
-    schema=V10CredentialExchangeListResultSchema,
-)
+
+@with_generic_init
+@expand_message_class
+class CredList(AdminIssuerMessage):
+    message_type = CREDENTIALS_LIST
+    class Fields:
+        results = fields.List(
+            fields.Dict(),
+            required=True,
+            description="List of credentials",
+            example=[],
+        )
 
 
 class CredGetListHandler(BaseHandler):
@@ -270,7 +285,7 @@ class CredGetListHandler(BaseHandler):
         records = await V10CredentialExchange.query(
             session, {}, post_filter_positive=post_filter_positive
         )
-        cred_list = CredList(results=records)
+        cred_list = CredList(results=[record.serialize() for record in records])
         await responder.send_reply(cred_list)
 
 

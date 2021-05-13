@@ -68,6 +68,6 @@ class SendCredProposal(AdminHolderMessage):
             ),
             connection_id=connection_id,
         )
-        cred_exchange = CredExchange(**credential_exchange_record.serialize())
+        cred_exchange = CredExchange(record=credential_exchange_record)
         cred_exchange.assign_thread_from(context.message)
         await responder.send_reply(cred_exchange)

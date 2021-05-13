@@ -115,11 +115,11 @@ async def issue_credential_event_handler(profile: Profile, event: Event):
     responder = profile.inject(BaseResponder)
     message = None
     if record.state == CredExRecord.STATE_OFFER_RECEIVED:
-        message = CredOfferRecv(**record.serialize())
+        message = CredOfferRecv(record=record)
         LOGGER.debug("Prepared Message: %s", message.serialize())
 
     if record.state == CredExRecord.STATE_CREDENTIAL_RECEIVED:
-        message = CredReceived(**record.serialize())
+        message = CredReceived(record=record)
         LOGGER.debug("Prepared Message: %s", message.serialize())
 
     async with profile.session() as session:

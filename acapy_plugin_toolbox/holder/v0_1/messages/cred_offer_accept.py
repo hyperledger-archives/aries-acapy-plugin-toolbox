@@ -69,7 +69,7 @@ class CredOfferAccept(AdminHolderMessage):
             cred_ex_record, connection_record.my_did
         )
 
-        sent = CredRequestSent(**cred_ex_record.serialize())
+        sent = CredRequestSent(record=cred_ex_record)
 
         await responder.send(credential_request_message, connection_id=connection_id)
         await responder.send_reply(sent)
