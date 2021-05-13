@@ -24,7 +24,6 @@ from aries_cloudagent.protocols.issue_credential.v1_0.models.credential_exchange
     V10CredentialExchange,
 )
 from aries_cloudagent.protocols.issue_credential.v1_0.routes import (
-    V10CredentialExchangeListResultSchema,
     V10CredentialProposalRequestMandSchema,
 )
 from aries_cloudagent.protocols.present_proof.v1_0.manager import PresentationManager
@@ -37,10 +36,8 @@ from aries_cloudagent.protocols.present_proof.v1_0.messages.presentation_request
 )
 from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import (
     V10PresentationExchange,
-    V10PresentationExchangeSchema,
 )
 from aries_cloudagent.protocols.present_proof.v1_0.routes import (
-    V10PresentationExchangeListSchema,
     V10PresentationSendRequestRequestSchema,
 )
 from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
@@ -223,18 +220,28 @@ class RequestPres(AdminIssuerMessage):
 
         await responder.send(presentation_request_message, connection_id=connection_id)
 
-        pres_exchange = IssuerPresExchange(**presentation_exchange_record.serialize())
+        pres_exchange = IssuerPresExchange(record=presentation_exchange_record)
         pres_exchange.assign_thread_from(self)
         await responder.send_reply(pres_exchange)
 
 
-@with_generic_init
 @expand_message_class
 class IssuerPresExchange(AdminIssuerMessage):
     """Issuer Presentation Exchange report."""
 
     message_type = "presentation-exchange"
-    fields_from = V10PresentationExchangeSchema
+    class Fields:
+        # TODO Use a toolbox PresentationExchangeRepresentation
+        raw_repr = fields.Mapping(required=True)
+
+    def __init__(self, record: V10PresentationExchange, **kwargs):
+        super().__init__(**kwargs)
+        self.record = record
+        self.raw_repr = record.serialize()
+
+    def serialize(self, **kwargs) -> Mapping:
+        base_msg = super().serialize(**kwargs)
+        return {**self.raw_repr, **base_msg}
 
 
 CredGetList, CredGetListSchema = generate_model_schema(
@@ -299,15 +306,18 @@ PresGetList, PresGetListSchema = generate_model_schema(
     },
 )
 
-PresList, PresListSchema = generate_model_schema(
-    name="PresList",
-    handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=PRESENTATIONS_LIST,
-    schema=V10PresentationExchangeListSchema
-    # schema={
-    #     'results': fields.List(fields.Dict())
-    # }
-)
+
+@with_generic_init
+@expand_message_class
+class PresList(AdminIssuerMessage):
+    message_type = PRESENTATIONS_LIST
+    class Fields:
+        results = fields.List(
+            fields.Dict(),
+            required=True,
+            description="List of presentation exchange records",
+            example=[],
+        )
 
 
 class PresGetListHandler(BaseHandler):
@@ -332,5 +342,5 @@ class PresGetListHandler(BaseHandler):
         records = await V10PresentationExchange.query(
             session, {}, post_filter_positive=post_filter_positive
         )
-        cred_list = PresList(results=records)
+        cred_list = PresList(results=[record.serialize() for record in records])
         await responder.send_reply(cred_list)

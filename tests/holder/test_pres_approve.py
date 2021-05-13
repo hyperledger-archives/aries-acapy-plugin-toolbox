@@ -80,7 +80,7 @@ async def test_handler(
     assert len(mock_responder.messages) == 2
 
     reply, _reply_args = mock_responder.messages.pop()
-    assert reply.presentation_exchange_id == TEST_PRES_EX_ID
+    assert reply.record.presentation_exchange_id == TEST_PRES_EX_ID
 
     _pres, pres_args = mock_responder.messages.pop()
     assert "connection_id" in pres_args

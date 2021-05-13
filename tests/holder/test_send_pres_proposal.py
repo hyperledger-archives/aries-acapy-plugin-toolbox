@@ -48,4 +48,4 @@ async def test_handler(context, mock_responder, message, mock_get_connection):
     assert prop.comment == TEST_COMMENT
     assert prop_recipient["connection_id"] == TEST_CONN_ID
     assert isinstance(response, test_module.PresExchange)
-    assert response.connection_id == TEST_CONN_ID
+    assert response.record.connection_id == TEST_CONN_ID

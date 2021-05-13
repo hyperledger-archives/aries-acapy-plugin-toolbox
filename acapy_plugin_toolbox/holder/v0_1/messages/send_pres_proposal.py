@@ -75,6 +75,6 @@ class SendPresProposal(AdminHolderMessage):
         )
         await responder.send(presentation_proposal, connection_id=connection_id)
 
-        pres_exchange = PresExchange(**presentation_exchange_record.serialize())
+        pres_exchange = PresExchange(record=presentation_exchange_record)
         pres_exchange.assign_thread_from(context.message)
         await responder.send_reply(pres_exchange)

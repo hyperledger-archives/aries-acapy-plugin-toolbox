@@ -157,6 +157,6 @@ class PresRequestApprove(AdminHolderMessage):
 
         await responder.send(message, connection_id=conn_record.connection_id)
 
-        presentation_sent = PresSent(**pres_ex_record.serialize())
+        presentation_sent = PresSent(record=pres_ex_record)
         presentation_sent.assign_thread_from(self)
         await responder.send_reply(presentation_sent)

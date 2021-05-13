@@ -46,4 +46,4 @@ async def test_handler(
     assert req.request_presentations_attach
     assert req_recipient == {"connection_id": str(TEST_CONN_ID)}
     assert isinstance(response, IssuerPresExchange)
-    assert response.connection_id == str(TEST_CONN_ID)
+    assert response.record.connection_id == str(TEST_CONN_ID)

@@ -14,6 +14,11 @@ from ....util import expand_message_class
 from .base import AdminHolderMessage
 
 
+class PresExRecordField(fields.Field):
+    def _serialize(self, value: PresExRecord, attr, obj, **kwargs):
+        return value.serialize()
+
+
 @expand_message_class
 class PresRequestReceived(AdminHolderMessage):
     """Presentation Request Received."""
@@ -25,9 +30,7 @@ class PresRequestReceived(AdminHolderMessage):
     class Fields:
         """Fields of Presentation request received message."""
 
-        record = fields.Nested(
-            PresExRecordSchema, required=True, description="Presentation details."
-        )
+        record = PresExRecordField(required=True, description="Presentation details.")
         matching_credentials = fields.Nested(
             IndyCredPrecisSchema,
             many=True,
