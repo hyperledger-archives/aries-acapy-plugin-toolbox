@@ -24,7 +24,7 @@ and/or the toolbox plugin (paths must be adapted to your environment):
 ```sh
 $ docker run -it -p 3000:3000 -p 3001:3001 --rm \
 	-v ../aries-cloudagent-python/aries_cloudagent:/home/indy/site-packages/aries_cloudagent:z \
-	-v ../aries-acapy-plugin-toolbox/acapy_plugin_toolbox:/home/indy/aries-acapy-plugin-toolbox/acapy_plugin_toolbox:z \
+	-v ./acapy_plugin_toolbox:/home/indy/acapy_plugin_toolbox:z \
 	acapy-toolbox
 ```
 

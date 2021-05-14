@@ -2,8 +2,8 @@
 # pylint: disable=invalid-name, too-few-public-methods
 
 
+from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.connections.models.conn_record import ConnRecord
-from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler, BaseResponder, RequestContext
@@ -55,12 +55,12 @@ MESSAGE_TYPES = {
 
 
 async def setup(
-        session: ProfileSession,
-        protocol_registry: ProblemReport = None
+        context: InjectionContext,
+        protocol_registry: ProtocolRegistry = None
 ):
     """Setup the routing plugin."""
     if not protocol_registry:
-        protocol_registry = session.inject(ProtocolRegistry)
+        protocol_registry = context.inject(ProtocolRegistry)
     protocol_registry.register_message_types(
         MESSAGE_TYPES
     )
@@ -133,7 +133,7 @@ class SendMediationRequestHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         # Verify connection exists
         session = await context.session()
-        manager = MediationManager(session)
+        manager = MediationManager(session.profile)
         try:
             connection = await ConnRecord.retrieve_by_id(
                 session,
@@ -200,7 +200,7 @@ class KeylistUpdateSendHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle KeylistUpdateSend messages."""
         session = await context.session()
-        manager = MediationManager(session)
+        manager = MediationManager(session.profile)
         if context.message.action == KeylistUpdateRule.RULE_ADD:
             update = await manager.add_key(
                 context.message.verkey,
@@ -253,7 +253,7 @@ class RoutesGetHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle RotuesGet."""
         session = await context.session()
-        manager = MediationManager(session)
+        manager = MediationManager(session.profile)
         routes = Routes(routes=await manager.get_my_keylist(context.message.connection_id))
         routes.assign_thread_from(context.message)
         await responder.send_reply(routes)
