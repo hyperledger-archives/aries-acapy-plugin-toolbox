@@ -1,23 +1,18 @@
-FROM bcgovimages/von-image:py36-1.15-1
-
-ARG ACAPY=""
-RUN if [ -n "${ACAPY}" ]; then pip3 install ${ACAPY}; fi
-
-ADD acapy_plugin_toolbox aries-acapy-plugin-toolbox/acapy_plugin_toolbox
-ADD requirements.txt aries-acapy-plugin-toolbox
-ADD setup.py aries-acapy-plugin-toolbox
-ADD README.md aries-acapy-plugin-toolbox
-
-USER root
-RUN chown -R indy:indy aries-acapy-plugin-toolbox
-USER $user
+FROM bcgovimages/von-image:py36-1.16-0
 
 # Make ACA-Py Install location more accessible
-RUN ln -s /home/indy/.pyenv/versions/3.6.9/lib/python3.6/site-packages site-packages
+RUN ln -s $(pyenv prefix)/lib/python3.6/site-packages site-packages
 
-RUN pip3 install --no-cache-dir -e ./aries-acapy-plugin-toolbox
-
+USER root
+ADD acapy_plugin_toolbox acapy_plugin_toolbox
+ADD requirements.txt .
+ADD setup.py .
+ADD README.md .
 ADD docker/default.yml .
+RUN chown -R indy:indy .
+USER $user
+
+RUN pip3 install -e .
 
 ENTRYPOINT ["/bin/bash", "-c", "aca-py \"$@\"", "--"]
 CMD ["start", "--plugin", "acapy_plugin_toolbox", "--arg-file", "default.yml"]

@@ -102,6 +102,7 @@ SendCred, SendCredSchema = generate_model_schema(
 @expand_message_class
 class IssuerCredExchange(AdminIssuerMessage):
     message_type = ISSUER_CRED_EXCHANGE
+
     class Fields:
         # TODO Use a toolbox CredentialRepresentation
         raw_repr = fields.Mapping(required=True)
@@ -130,7 +131,7 @@ class SendCredHandler(BaseHandler):
             conn_record = await ConnRecord.retrieve_by_id(session, connection_id)
         except StorageNotFoundError:
             report = ProblemReport(
-                description={"en":"Connection not found."}, who_retries="none"
+                description={"en": "Connection not found."}, who_retries="none"
             )
             report.assign_thread_from(context.message)
             await responder.send_reply(report)
@@ -138,7 +139,7 @@ class SendCredHandler(BaseHandler):
 
         if not conn_record.is_ready:
             report = ProblemReport(
-                description={"en":"Connection invalid."}, who_retries="none"
+                description={"en": "Connection invalid."}, who_retries="none"
             )
             report.assign_thread_from(context.message)
             await responder.send_reply(report)
@@ -230,6 +231,7 @@ class IssuerPresExchange(AdminIssuerMessage):
     """Issuer Presentation Exchange report."""
 
     message_type = "presentation-exchange"
+
     class Fields:
         # TODO Use a toolbox PresentationExchangeRepresentation
         raw_repr = fields.Mapping(required=True)
@@ -260,6 +262,7 @@ CredGetList, CredGetListSchema = generate_model_schema(
 @expand_message_class
 class CredList(AdminIssuerMessage):
     message_type = CREDENTIALS_LIST
+
     class Fields:
         results = fields.List(
             fields.Dict(),
@@ -311,6 +314,7 @@ PresGetList, PresGetListSchema = generate_model_schema(
 @expand_message_class
 class PresList(AdminIssuerMessage):
     message_type = PRESENTATIONS_LIST
+
     class Fields:
         results = fields.List(
             fields.Dict(),

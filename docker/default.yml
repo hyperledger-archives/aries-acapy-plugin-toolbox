@@ -3,6 +3,8 @@ inbound-transport:
 outbound-transport: http
 endpoint:
     - http://localhost:3000
+plugin:
+  - acapy_plugin_toolbox
 no-ledger: true
 admin: [0.0.0.0, 3001]
 admin-insecure-mode: true

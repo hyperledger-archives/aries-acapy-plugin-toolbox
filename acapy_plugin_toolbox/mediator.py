@@ -2,7 +2,7 @@
 
 # pylint: disable=invalid-name
 # pylint: disable=too-few-public-methods
-from aries_cloudagent.core.profile import ProfileSession
+from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler, BaseResponder, RequestContext
@@ -56,12 +56,12 @@ MESSAGE_TYPES = {
 
 
 async def setup(
-        session: ProfileSession,
-        protocol_registry: ProblemReport = None
+        context: InjectionContext,
+        protocol_registry: ProtocolRegistry = None
 ):
     """Setup the admin-mediator v1_0 plugin."""
     if not protocol_registry:
-        protocol_registry = session.inject(ProtocolRegistry)
+        protocol_registry = context.inject(ProtocolRegistry)
     protocol_registry.register_message_types(
         MESSAGE_TYPES
     )
@@ -134,7 +134,7 @@ class MediationGrantHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle mediation grant request."""
         session = await context.session()
-        manager = MediationManager(session)
+        manager = MediationManager(session.profile)
         record = await MediationRecord.retrieve_by_id(
             session, context.message.mediation_id
         )
@@ -176,7 +176,7 @@ class MediationDenyHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle mediation deny request."""
         session = await context.session()
-        manager = MediationManager(session)
+        manager = MediationManager(session.profile)
         record = await MediationRecord.retrieve_by_id(
             session, context.message.mediation_id
         )

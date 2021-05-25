@@ -130,3 +130,7 @@ $ aca-py start \
 
 Note that you do not need to load any other plugins for this transport but you
 can by specifying `--plugin` as shown in the examples above.
+
+## License
+
+[Apache License Version 2.0](https://github.com/hyperledger/aries-acapy-plugin-toolbox/blob/main/LICENSE)
