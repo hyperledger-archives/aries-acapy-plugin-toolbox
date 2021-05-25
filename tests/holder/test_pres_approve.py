@@ -1,12 +1,18 @@
 """Test PresRequestApprove message and handler."""
 
 import pytest
-
-from asynctest import mock
-from acapy_plugin_toolbox.holder import v0_1 as test_module
-from acapy_plugin_toolbox.holder.v0_1 import PresRequestApprove
-from acapy_plugin_toolbox.holder import PresentationManager, PresExRecord
+from acapy_plugin_toolbox.holder.v0_1.messages import (
+    pres_request_approve as test_module,
+)
+from acapy_plugin_toolbox.holder.v0_1.messages.pres_request_approve import (
+    PresRequestApprove,
+)
 from aries_cloudagent.connections.models.conn_record import ConnRecord
+from aries_cloudagent.protocols.present_proof.v1_0.manager import PresentationManager
+from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import (
+    V10PresentationExchange as PresExRecord,
+)
+from asynctest import mock
 
 TEST_PRES_EX_ID = "test-presentation_exchange_id"
 TEST_CONN_ID = "test-connection-id"
@@ -24,7 +30,7 @@ def message():
         self_attested_attributes=TEST_SELF_ATTESTED_ATTRS,
         requested_attributes=TEST_REQUESTED_ATTRS,
         requested_predicates=TEST_REQUESTED_PREDS,
-        comment=TEST_COMMENT
+        comment=TEST_COMMENT,
     )
 
 
@@ -38,7 +44,7 @@ def context(context, message):
 def record():
     yield PresExRecord(
         presentation_exchange_id=TEST_PRES_EX_ID,
-        connection_id=TEST_CONN_ID
+        connection_id=TEST_CONN_ID,
     )
 
 
@@ -55,28 +61,26 @@ async def test_handler(
     mock_get_connection,
     mock_get_pres_ex_record,
     record,
-    conn_record
+    conn_record,
 ):
     """Test PresRequestApprove handler."""
     mock_presentation_manager = mock.MagicMock(spec=PresentationManager)
     mock_presentation_manager.create_presentation = mock.CoroutineMock(
         return_value=(record, mock.MagicMock())
     )
-    with mock_get_connection(
-        test_module, conn_record
-    ), mock_get_pres_ex_record(
+    with mock_get_connection(test_module, conn_record), mock_get_pres_ex_record(
         PresRequestApprove, record
     ), mock.patch.object(
         test_module,
         "PresentationManager",
-        mock.MagicMock(return_value=mock_presentation_manager)
+        mock.MagicMock(return_value=mock_presentation_manager),
     ):
         await message.handle(context, mock_responder)
 
     assert len(mock_responder.messages) == 2
 
     reply, _reply_args = mock_responder.messages.pop()
-    assert reply.presentation_exchange_id == TEST_PRES_EX_ID
+    assert reply.record.presentation_exchange_id == TEST_PRES_EX_ID
 
     _pres, pres_args = mock_responder.messages.pop()
     assert "connection_id" in pres_args

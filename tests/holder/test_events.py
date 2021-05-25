@@ -3,19 +3,19 @@
 # pylint: disable=redefined-outer-name
 
 import pytest
+from acapy_plugin_toolbox.holder import v0_1 as test_module
 from aries_cloudagent.core.event_bus import Event, EventBus
 from aries_cloudagent.core.in_memory import InMemoryProfile
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
+from aries_cloudagent.indy.holder import IndyHolder
 from aries_cloudagent.messaging.responder import BaseResponder, MockResponder
 from aries_cloudagent.protocols.issue_credential.v1_0.models.credential_exchange import (
-    V10CredentialExchange
+    V10CredentialExchange,
 )
 from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import (
-    V10PresentationExchange
+    V10PresentationExchange,
 )
 from asynctest import mock
-
-from acapy_plugin_toolbox.holder import v0_1 as test_module
 
 
 @pytest.fixture
@@ -29,12 +29,14 @@ def profile(event_bus):
     """Profile fixture."""
     holder = mock.MagicMock()
     holder.get_credentials_for_presentation_request_by_referent = mock.CoroutineMock()
-    yield InMemoryProfile.test_profile(bind={
-        EventBus: event_bus,
-        BaseResponder: MockResponder(),
-        ProtocolRegistry: ProtocolRegistry(),
-        test_module.IndyHolder: holder
-    })
+    yield InMemoryProfile.test_profile(
+        bind={
+            EventBus: event_bus,
+            BaseResponder: MockResponder(),
+            ProtocolRegistry: ProtocolRegistry(),
+            IndyHolder: holder,
+        }
+    )
 
 
 @pytest.fixture
@@ -45,6 +47,7 @@ def context(profile):
 
 class MockSendToAdmins:
     """Mock send_to_admins method."""
+
     def __init__(self):
         self.message = None
 
@@ -64,18 +67,22 @@ def mock_send_to_admins():
 @pytest.mark.parametrize(
     "handler, topic",
     [
-        ("issue_credential_event_handler", f"acapy::record::{V10CredentialExchange.RECORD_TOPIC}::test"),
-        ("present_proof_event_handler", f"acapy::record::{V10PresentationExchange.RECORD_TOPIC}::test")
-    ]
+        (
+            "issue_credential_event_handler",
+            f"acapy::record::{V10CredentialExchange.RECORD_TOPIC}::test",
+        ),
+        (
+            "present_proof_event_handler",
+            f"acapy::record::{V10PresentationExchange.RECORD_TOPIC}::test",
+        ),
+    ],
 )
 async def test_events_subscribed_and_triggered(
     profile, context, event_bus, handler, topic
 ):
     """Test events are correctly registered and triggered."""
     with mock.patch.object(
-        test_module,
-        handler,
-        mock.CoroutineMock()
+        test_module, handler, mock.CoroutineMock()
     ) as mock_event_handler:
         await test_module.setup(context)
         await event_bus.notify(profile, Event(topic, {"test": "payload"}))
@@ -89,19 +96,19 @@ async def test_events_subscribed_and_triggered(
         (
             test_module.issue_credential_event_handler,
             V10CredentialExchange.STATE_OFFER_RECEIVED,
-            test_module.CredOfferRecv
+            test_module.CredOfferRecv,
         ),
         (
             test_module.issue_credential_event_handler,
             V10CredentialExchange.STATE_CREDENTIAL_RECEIVED,
-            test_module.CredReceived
+            test_module.CredReceived,
         ),
         (
             test_module.present_proof_event_handler,
             V10PresentationExchange.STATE_REQUEST_RECEIVED,
-            test_module.PresRequestReceived
-        )
-    ]
+            test_module.PresRequestReceived,
+        ),
+    ],
 )
 async def test_message_sent_on_correct_state(
     profile, mock_send_to_admins, handler, state, message
@@ -139,8 +146,8 @@ async def test_message_sent_on_correct_state(
                 V10PresentationExchange.STATE_REQUEST_SENT,
                 V10PresentationExchange.STATE_VERIFIED,
             ]
-        ]
-    ]
+        ],
+    ],
 )
 async def test_message_not_sent_on_incorrect_state(
     profile, mock_send_to_admins, handler, state
