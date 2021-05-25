@@ -6,6 +6,8 @@ from .cred_get_list import CredGetList
 from .cred_list import CredList
 from .cred_offer_accept import CredOfferAccept
 from .cred_offer_recv import CredOfferRecv
+from .cred_offer_reject import CredOfferReject
+from .cred_offer_reject_sent import CredOfferRejectSent
 from .cred_received import CredReceived
 from .cred_request_sent import CredRequestSent
 from .pres_delete import PresDelete
@@ -30,6 +32,8 @@ __all__ = [
     "CredList",
     "CredOfferAccept",
     "CredOfferRecv",
+    "CredOfferReject",
+    "CredOfferRejectSent",
     "CredReceived",
     "CredRequestSent",
     "PresDelete",
