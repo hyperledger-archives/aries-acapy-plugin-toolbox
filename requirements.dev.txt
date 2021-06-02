@@ -1,1 +1,4 @@
+pytest
+pytest-asyncio
+asynctest==0.13.0
 pre-commit

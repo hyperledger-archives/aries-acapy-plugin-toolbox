@@ -16,6 +16,8 @@ from aries_cloudagent.connections.models.diddoc import (
 )
 from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from aries_cloudagent.storage.error import StorageNotFoundError
+from aries_cloudagent.wallet.did_method import DIDMethod
+from aries_cloudagent.wallet.key_type import KeyType
 
 from .util import generate_model_schema, admin_only
 
@@ -95,7 +97,10 @@ class CreateStaticConnectionHandler(BaseHandler):
         wallet: BaseWallet = session.inject(BaseWallet)
 
         # Make our info for the connection
-        my_info = await wallet.create_local_did()
+        my_info = await wallet.create_local_did(
+            method=DIDMethod.SOV,
+            key_type=KeyType.ED25519,
+        )
 
         # Create connection record
         connection = ConnRecord(
@@ -216,7 +221,7 @@ class StaticConnectionGetListHandler(BaseHandler):
             )
         except StorageNotFoundError:
             report = ProblemReport(
-                explain_ltxt='Connection not found.',
+                description={"en":'Connection not found.'},
                 who_retries='none'
             )
             report.assign_thread_from(context.message)

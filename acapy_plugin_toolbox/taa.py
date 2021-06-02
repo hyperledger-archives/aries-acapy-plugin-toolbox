@@ -83,7 +83,7 @@ class GetHandler(BaseHandler):
         ledger: BaseLedger = session.inject(BaseLedger, required=False)
         if not ledger or ledger.BACKEND_NAME != 'indy':
             report = ProblemReport(
-                explain_ltxt='Invalid ledger.',
+                description={"en":'Invalid ledger.'},
                 who_retries='none'
             )
             report.assign_thread_from(context.message)
@@ -148,7 +148,7 @@ class AcceptHandler(BaseHandler):
         ledger: BaseLedger = session.inject(BaseLedger, required=False)
         if not ledger or ledger.BACKEND_NAME != 'indy':
             report = ProblemReport(
-                explain_ltxt='Invalid ledger.',
+                description={"en":'Invalid ledger.'},
                 who_retries='none'
             )
             report.assign_thread_from(context.message)
@@ -169,10 +169,10 @@ class AcceptHandler(BaseHandler):
             )
         except Exception as err:
             report = ProblemReport(
-                explain_ltxt='An error occured while attempting to accept'
+                description={"en":'An error occured while attempting to accept'
                 ' the Transaction Author Agreement: {}'.format(
                     err
-                ),
+                )},
                 who_retries='none'
             )
             report.assign_thread_from(context.message)
@@ -227,7 +227,7 @@ class GetAcceptanceHandler(BaseHandler):
         ledger: BaseLedger = session.inject(BaseLedger, required=False)
         if not ledger or ledger.BACKEND_NAME != 'indy':
             report = ProblemReport(
-                explain_ltxt='Invalid ledger.',
+                description={"en":'Invalid ledger.'},
                 who_retries='none'
             )
             report.assign_thread_from(context.message)

@@ -28,6 +28,7 @@ debug-credentials: true
 debug-presentations: true
 auto-accept-invites: true
 auto-accept-requests: true
+auto-ping-connection: true
 connections-invite: true
 invite-metadata-json: '{"group": "admin"}'
 

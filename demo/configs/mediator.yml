@@ -25,6 +25,7 @@ connections-invite: true
 invite-multi-use: true
 auto-accept-invites: true
 auto-accept-requests: true
+auto-ping-connection: true
 
 # Mediation
 open-mediation: true

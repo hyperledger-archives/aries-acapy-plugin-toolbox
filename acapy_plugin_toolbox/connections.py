@@ -3,24 +3,29 @@
 # pylint: disable=invalid-name
 # pylint: disable=too-few-public-methods
 
-from typing import Dict, Any
+import re
+from typing import Any, Dict
 
-from marshmallow import Schema, fields, validate
-
-from aries_cloudagent.core.profile import ProfileSession
+from aries_cloudagent.connections.models.conn_record import ConnRecord
+from aries_cloudagent.core.profile import InjectionContext, Profile
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
-from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, RequestContext
-from aries_cloudagent.protocols.connections.v1_0.manager import ConnectionManager
-from aries_cloudagent.connections.models.conn_record import (
-    ConnRecord
+from aries_cloudagent.core.event_bus import Event, EventBus
+from aries_cloudagent.messaging.base_handler import (
+    BaseHandler, BaseResponder, RequestContext
+)
+from aries_cloudagent.protocols.connections.v1_0.manager import (
+    ConnectionManager
 )
 from aries_cloudagent.protocols.connections.v1_0.messages.connection_invitation import (
-    ConnectionInvitation,
+    ConnectionInvitation
 )
-from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
+from aries_cloudagent.protocols.problem_report.v1_0.message import (
+    ProblemReport
+)
 from aries_cloudagent.storage.error import StorageNotFoundError
+from marshmallow import Schema, fields, validate
 
-from .util import generate_model_schema, admin_only
+from .util import admin_only, generate_model_schema, send_to_admins
 
 PROTOCOL = (
     'https://github.com/hyperledger/aries-toolbox/'
@@ -35,6 +40,7 @@ CONNECTION = '{}/connection'.format(PROTOCOL)
 DELETE = '{}/delete'.format(PROTOCOL)
 DELETED = '{}/deleted'.format(PROTOCOL)
 RECEIVE_INVITATION = '{}/receive-invitation'.format(PROTOCOL)
+CONNECTED = '{}/connected'.format(PROTOCOL)
 
 # Message Type string to Message Class map
 MESSAGE_TYPES = {
@@ -46,20 +52,41 @@ MESSAGE_TYPES = {
     DELETED: 'acapy_plugin_toolbox.connections.Deleted',
     RECEIVE_INVITATION: 'acapy_plugin_toolbox.connections.'
                         'ReceiveInvitation',
+    CONNECTED: 'acapy_plugin_toolbox.connections.Connected',
 }
+
+EVENT_PATTERN = re.compile(f"acapy::record::{ConnRecord.RECORD_TOPIC}::.*")
 
 
 async def setup(
-        session: ProfileSession,
+        context: InjectionContext,
         protocol_registry: ProtocolRegistry = None
 ):
     """Setup the connections plugin."""
     if not protocol_registry:
-        protocol_registry = session.inject(ProtocolRegistry)
+        protocol_registry = context.inject(ProtocolRegistry)
 
     protocol_registry.register_message_types(
         MESSAGE_TYPES
     )
+    event_bus = context.inject(EventBus)
+    event_bus.subscribe(EVENT_PATTERN, connections_event_handler)
+
+
+async def connections_event_handler(profile: Profile, event: Event):
+    """Handle connection events.
+
+    Send connected message to admins when connections reach active state.
+    """
+    record: ConnRecord = ConnRecord.deserialize(event.payload)
+    if record.state == ConnRecord.State.RESPONSE:
+        responder = profile.inject(BaseResponder)
+        async with profile.session() as session:
+            await send_to_admins(
+                session,
+                Connected(**conn_record_to_message_repr(record)),
+                responder,
+            )
 
 
 BaseConnectionSchema = Schema.from_dict({
@@ -78,10 +105,19 @@ BaseConnectionSchema = Schema.from_dict({
     'raw_repr': fields.Dict(required=False)
 })
 
+
 Connection, ConnectionSchema = generate_model_schema(
     name='Connection',
     handler='acapy_plugin_toolbox.util.PassHandler',
     msg_type=CONNECTION,
+    schema=BaseConnectionSchema
+)
+
+
+Connected, ConnectedSchema = generate_model_schema(
+    name='Connected',
+    handler='acapy_plugin_toolbox.util.PassHandler',
+    msg_type=CONNECTED,
     schema=BaseConnectionSchema
 )
 
@@ -151,9 +187,13 @@ class GetListHandler(BaseHandler):
                 'their_did': context.message.their_did,
             }.items())
         )
+        # Filter out invitations, admin-invitations will handle those
+        post_filter_negative = {
+            "state": ConnRecord.State.INVITATION.rfc160
+        }
         # TODO: Filter on state (needs mapping back to ACA-Py connection states)
         records = await ConnRecord.query(
-            session, tag_filter
+            session, tag_filter, post_filter_negative=post_filter_negative
         )
         results = [
             Connection(**conn_record_to_message_repr(record))
@@ -189,7 +229,7 @@ class UpdateHandler(BaseHandler):
             )
         except StorageNotFoundError:
             report = ProblemReport(
-                explain_ltxt='Connection not found.',
+                description={"en":'Connection not found.'},
                 who_retries='none'
             )
             report.assign_thread_from(context.message)
@@ -234,7 +274,7 @@ class DeleteHandler(BaseHandler):
                 context.connection_record.connection_id:
 
             report = ProblemReport(
-                explain_ltxt='Current connection cannot be deleted.',
+                description={"en":'Current connection cannot be deleted.'},
                 who_retries='none'
             )
             report.assign_thread_from(context.message)
@@ -249,7 +289,7 @@ class DeleteHandler(BaseHandler):
             )
         except StorageNotFoundError:
             report = ProblemReport(
-                explain_ltxt='Connection not found.',
+                description={"en":'Connection not found.'},
                 who_retries='none'
             )
             report.assign_thread_from(context.message)

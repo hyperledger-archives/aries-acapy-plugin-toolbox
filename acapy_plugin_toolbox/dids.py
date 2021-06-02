@@ -12,6 +12,8 @@ from aries_cloudagent.messaging.base_handler import BaseHandler, BaseResponder, 
 from aries_cloudagent.messaging.models.base_record import BaseRecord, BaseRecordSchema
 from aries_cloudagent.wallet.base import BaseWallet, DIDInfo
 from aries_cloudagent.wallet.error import WalletNotFoundError
+from aries_cloudagent.wallet.did_method import DIDMethod
+from aries_cloudagent.wallet.key_type import KeyType
 
 from .util import generate_model_schema, admin_only
 PROTOCOL = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1'
@@ -233,7 +235,13 @@ class CreateDidHandler(BaseHandler):
         seed = context.message.seed if context.message.seed else None
         metadata = context.message.metadata if context.message.metadata else None
 
-        did_info = await wallet.create_local_did(seed, did, metadata)
+        did_info = await wallet.create_local_did(
+            method=DIDMethod.SOV,
+            key_type=KeyType.ED25519,
+            seed=seed,
+            did=did,
+            metadata=metadata,
+        )
 
         result = get_reply_did(did_info)
         result.assign_thread_from(context.message)
