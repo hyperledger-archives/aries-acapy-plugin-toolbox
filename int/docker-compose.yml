@@ -34,6 +34,8 @@ services:
         - WAIT_HOSTS_TIMEOUT=60
         - WAIT_SLEEP_INTERVAL=1
         - WAIT_HOST_CONNECT_TIMEOUT=30
+        - AGENT_HOST=acapy_plugin_agent
+        - AGENT_PORT=3000
+        - AGENT_BACKCHANNEL_PORT=3001
       depends_on:
         - acapy_plugin_agent
-      command: sh -c "/wait && pytest -v"
