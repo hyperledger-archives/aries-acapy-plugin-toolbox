@@ -205,6 +205,7 @@ paths:
       x-codegen-request-body-name: body
   /connections:
     get:
+      operationId: get_connections
       tags:
       - connection
       summary: Query agent-to-agent connections
@@ -364,6 +365,7 @@ paths:
       x-codegen-request-body-name: body
   /connections/{conn_id}:
     get:
+      operationId: get_connection
       tags:
       - connection
       summary: Fetch a single connection record
@@ -382,6 +384,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ConnRecord'
     delete:
+      operationId: delete_connection
       tags:
       - connection
       summary: Remove an existing connection record
@@ -3223,6 +3226,9 @@ components:
           description: 'Credential revocation ids by revocation registry id: omit
             for all, specify null or empty list for all pending per revocation registry'
     ConnRecord:
+      required:
+        - connection_id
+        - state
       type: object
       properties:
         accept:
@@ -3372,6 +3378,8 @@ components:
           description: Service endpoint at which to reach this agent
           example: http://192.168.56.101:8020
     ConnectionList:
+      required:
+        - results
       type: object
       properties:
         results:

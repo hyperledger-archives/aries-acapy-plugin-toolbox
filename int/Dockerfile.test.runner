@@ -11,6 +11,6 @@ COPY acapy-backchannel acapy-backchannel
 COPY tests/* tests/
 COPY pyproject.toml .
 COPY poetry.lock .
-RUN poetry install
+RUN poetry install --no-dev
 
 ENTRYPOINT ["/bin/sh", "-c", "/wait && poetry run pytest \"$@\"", "--"]
