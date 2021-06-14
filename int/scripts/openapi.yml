@@ -364,6 +364,7 @@ paths:
       x-codegen-request-body-name: body
   /connections/{conn_id}:
     get:
+      operationId: get_connection
       tags:
       - connection
       summary: Fetch a single connection record
@@ -382,6 +383,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ConnRecord'
     delete:
+      operationId: delete_connection
       tags:
       - connection
       summary: Remove an existing connection record
