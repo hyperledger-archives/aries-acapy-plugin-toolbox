@@ -15,9 +15,10 @@ T = TypeVar("T", bound="ConnRecord")
 class ConnRecord:
     """ """
 
+    connection_id: str
+    state: str
     accept: Union[Unset, ConnRecordAccept] = UNSET
     alias: Union[Unset, str] = UNSET
-    connection_id: Union[Unset, str] = UNSET
     created_at: Union[Unset, str] = UNSET
     error_msg: Union[Unset, str] = UNSET
     inbound_connection_id: Union[Unset, str] = UNSET
@@ -28,7 +29,6 @@ class ConnRecord:
     request_id: Union[Unset, str] = UNSET
     rfc_23_state: Union[Unset, str] = UNSET
     routing_state: Union[Unset, ConnRecordRoutingState] = UNSET
-    state: Union[Unset, str] = UNSET
     their_did: Union[Unset, str] = UNSET
     their_label: Union[Unset, str] = UNSET
     their_public_did: Union[Unset, str] = UNSET
@@ -37,12 +37,13 @@ class ConnRecord:
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
+        connection_id = self.connection_id
+        state = self.state
         accept: Union[Unset, str] = UNSET
         if not isinstance(self.accept, Unset):
             accept = self.accept.value
 
         alias = self.alias
-        connection_id = self.connection_id
         created_at = self.created_at
         error_msg = self.error_msg
         inbound_connection_id = self.inbound_connection_id
@@ -59,7 +60,6 @@ class ConnRecord:
         if not isinstance(self.routing_state, Unset):
             routing_state = self.routing_state.value
 
-        state = self.state
         their_did = self.their_did
         their_label = self.their_label
         their_public_did = self.their_public_did
@@ -71,13 +71,16 @@ class ConnRecord:
 
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
-        field_dict.update({})
+        field_dict.update(
+            {
+                "connection_id": connection_id,
+                "state": state,
+            }
+        )
         if accept is not UNSET:
             field_dict["accept"] = accept
         if alias is not UNSET:
             field_dict["alias"] = alias
-        if connection_id is not UNSET:
-            field_dict["connection_id"] = connection_id
         if created_at is not UNSET:
             field_dict["created_at"] = created_at
         if error_msg is not UNSET:
@@ -98,8 +101,6 @@ class ConnRecord:
             field_dict["rfc23_state"] = rfc_23_state
         if routing_state is not UNSET:
             field_dict["routing_state"] = routing_state
-        if state is not UNSET:
-            field_dict["state"] = state
         if their_did is not UNSET:
             field_dict["their_did"] = their_did
         if their_label is not UNSET:
@@ -116,14 +117,16 @@ class ConnRecord:
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
+        connection_id = d.pop("connection_id")
+
+        state = d.pop("state")
+
         accept: Union[Unset, ConnRecordAccept] = UNSET
         _accept = d.pop("accept", UNSET)
         if not isinstance(_accept, Unset):
             accept = ConnRecordAccept(_accept)
 
         alias = d.pop("alias", UNSET)
-
-        connection_id = d.pop("connection_id", UNSET)
 
         created_at = d.pop("created_at", UNSET)
 
@@ -151,8 +154,6 @@ class ConnRecord:
         if not isinstance(_routing_state, Unset):
             routing_state = ConnRecordRoutingState(_routing_state)
 
-        state = d.pop("state", UNSET)
-
         their_did = d.pop("their_did", UNSET)
 
         their_label = d.pop("their_label", UNSET)
@@ -167,9 +168,10 @@ class ConnRecord:
         updated_at = d.pop("updated_at", UNSET)
 
         conn_record = cls(
+            connection_id=connection_id,
+            state=state,
             accept=accept,
             alias=alias,
-            connection_id=connection_id,
             created_at=created_at,
             error_msg=error_msg,
             inbound_connection_id=inbound_connection_id,
@@ -180,7 +182,6 @@ class ConnRecord:
             request_id=request_id,
             rfc_23_state=rfc_23_state,
             routing_state=routing_state,
-            state=state,
             their_did=their_did,
             their_label=their_label,
             their_public_did=their_public_did,
