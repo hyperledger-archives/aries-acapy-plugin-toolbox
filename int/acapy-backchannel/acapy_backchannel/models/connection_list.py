@@ -1,9 +1,8 @@
-from typing import Any, Dict, List, Type, TypeVar, Union
+from typing import Any, Dict, List, Type, TypeVar
 
 import attr
 
 from ..models.conn_record import ConnRecord
-from ..types import UNSET, Unset
 
 T = TypeVar("T", bound="ConnectionList")
 
@@ -12,23 +11,23 @@ T = TypeVar("T", bound="ConnectionList")
 class ConnectionList:
     """ """
 
-    results: Union[Unset, List[ConnRecord]] = UNSET
+    results: List[ConnRecord]
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
-        results: Union[Unset, List[Dict[str, Any]]] = UNSET
-        if not isinstance(self.results, Unset):
-            results = []
-            for results_item_data in self.results:
-                results_item = results_item_data.to_dict()
+        results = []
+        for results_item_data in self.results:
+            results_item = results_item_data.to_dict()
 
-                results.append(results_item)
+            results.append(results_item)
 
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
-        field_dict.update({})
-        if results is not UNSET:
-            field_dict["results"] = results
+        field_dict.update(
+            {
+                "results": results,
+            }
+        )
 
         return field_dict
 
@@ -36,8 +35,8 @@ class ConnectionList:
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
         results = []
-        _results = d.pop("results", UNSET)
-        for results_item_data in _results or []:
+        _results = d.pop("results")
+        for results_item_data in _results:
             results_item = ConnRecord.from_dict(results_item_data)
 
             results.append(results_item)
