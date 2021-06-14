@@ -11,12 +11,12 @@ services:
 
   acapy_plugin_agent:
     image: acapy-plugin-toolbox
-    command: start --arg-file default.yml --plugin acapy_plugin_toolbox -e http://acapy_plugin_agent:3000 --log-level debug
     build:
       context: ../
       dockerfile: ./docker/Dockerfile
     ports:
       - "3001:3001"
+    command: start -it http 0.0.0.0 3000 -ot http -e http://acapy_plugin_agent:3000 --no-ledger --admin 0.0.0.0 3001 --admin-insecure-mode --plugin acapy_plugin_toolbox --log-level debug
 
   #*************************************************************
   # tester: drives tests for acapy_plugin_toolbox in a         *
