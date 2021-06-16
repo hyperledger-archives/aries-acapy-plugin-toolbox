@@ -1,5 +1,7 @@
 """Common fixtures for testing."""
 
+import asyncio
+from contextlib import suppress
 import os
 import base64
 from typing import Optional
@@ -19,6 +21,8 @@ from acapy_backchannel.models import (
 
 from aries_staticagent import StaticConnection, Target
 
+from . import BaseAgent
+
 
 @pytest.fixture(scope="session")
 def host():
@@ -27,9 +31,21 @@ def host():
 
 
 @pytest.fixture(scope="session")
+def suite_host():
+    """Hostname of agent under test."""
+    return os.environ.get("SUITE_HOST", "localhost")
+
+
+@pytest.fixture(scope="session")
 def port():
     """Port of agent under test."""
     return os.environ.get("AGENT_PORT", 3000)
+
+
+@pytest.fixture(scope="session")
+def suite_port():
+    """Port of agent under test."""
+    return os.environ.get("SUITE_PORT", 3002)
 
 
 @pytest.fixture(scope="session")
@@ -47,7 +63,9 @@ def backchannel(host, backchannel_port):
 # 3. Make the connection fixture take in agent as a parameter
 # and yield agent.connection, since the connection creation was moved to the agent fixture
 @pytest.fixture(scope="session")
-def connection(host: str, port: int, backchannel: Client, agent):   # added agent as a parameter
+def connection(
+    host: str, port: int, suite_host: str, suite_port: int, backchannel: Client
+):
     """Yield static connection to agent under test."""
     # Create static connection in agent under test
     test_runner_seed = hashlib.sha256(
@@ -59,7 +77,7 @@ def connection(host: str, port: int, backchannel: Client, agent):   # added agen
         json_body=ConnectionStaticRequest(
             my_seed=agent_seed,
             their_seed=test_runner_seed,
-            their_endpoint="http://example.com",
+            their_endpoint="http://{}:{}".format(suite_host, suite_port),
             their_label="test-runner",
         ),
     )
@@ -85,25 +103,21 @@ def connection(host: str, port: int, backchannel: Client, agent):   # added agen
         ),
     )
 
-    yield agent.connection   # added
-
+    yield agent.connection  # added
 
 
 # 2. Create a new fixture in conftest.py for agent or similar
 # and do this chunk in it, moving logic from the connection fixture
 @pytest.fixture(scope="session")
-def agent(host: str, port: int):           # name of function? take backchannel: Client as a parameter?
-    their_vk, _ = crypto.create_keypair(seed=hashlib.sha256(b"client").digest())
-    conn = StaticConnection.from_seed(
-        hashlib.sha256(b"server").digest(), Target(their_vk=their_vk)
-    )
-    super().__init__(self.HOST, self.PORT, conn)
-
+def agent(
+    suite_host, suite_port, connection: StaticConnection
+):  # name of function? take backchannel: Client as a parameter?
+    yield BaseAgent(suite_host, suite_port, connection)
 
 
 # 4. Yank this fixture from agent-testing and put into our conftest.py
 @pytest.fixture(scope="session", autouse=True)
-async def http_endpoint(agent: Agent):
+async def http_endpoint(agent: BaseAgent):
     """Start up agent and yield a connection to it."""
     server_task = asyncio.ensure_future(agent.start_async())
 
