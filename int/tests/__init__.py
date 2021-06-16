@@ -1,5 +1,9 @@
 # 1. Copy BaseAgent implementation from agent-testing into int/tests/__init__.py
 
+from aiohttp import web
+from aries_staticagent import StaticConnection, Module
+
+
 class BaseAgent:
     """Simple Agent class.
     Used to start up an agent with statically configured handlers.
