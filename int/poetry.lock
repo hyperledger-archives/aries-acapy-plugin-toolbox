@@ -781,7 +781,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pyt
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6.9"
-content-hash = "d4d37b9ff8a00699b5eff34ea41a1387cb7e9382402a9a39f1438aeb800e9997"
+content-hash = "5fae2d0da93b3c45b7924a0fc64ffb9c3ef0a9290bf46fe84307e1d39c8dcf87"
 
 [metadata.files]
 acapy-backchannel = []
