@@ -44,8 +44,10 @@ def backchannel(host, backchannel_port):
     yield Client(base_url="http://{}:{}".format(host, backchannel_port))
 
 
+# 3. Make the connection fixture take in agent as a parameter
+# and yield agent.connection, since the connection creation was moved to the agent fixture
 @pytest.fixture(scope="session")
-def connection(host: str, port: int, backchannel: Client):
+def connection(host: str, port: int, backchannel: Client, agent):   # added agent as a parameter
     """Yield static connection to agent under test."""
     # Create static connection in agent under test
     test_runner_seed = hashlib.sha256(
@@ -82,3 +84,32 @@ def connection(host: str, port: int, backchannel: Client):
             endpoint=create_result.my_endpoint, their_vk=create_result.my_verkey
         ),
     )
+
+    yield agent.connection   # added
+
+
+
+# 2. Create a new fixture in conftest.py for agent or similar
+# and do this chunk in it, moving logic from the connection fixture
+@pytest.fixture(scope="session")
+def agent(host: str, port: int):           # name of function? take backchannel: Client as a parameter?
+    their_vk, _ = crypto.create_keypair(seed=hashlib.sha256(b"client").digest())
+    conn = StaticConnection.from_seed(
+        hashlib.sha256(b"server").digest(), Target(their_vk=their_vk)
+    )
+    super().__init__(self.HOST, self.PORT, conn)
+
+
+
+# 4. Yank this fixture from agent-testing and put into our conftest.py
+@pytest.fixture(scope="session", autouse=True)
+async def http_endpoint(agent: Agent):
+    """Start up agent and yield a connection to it."""
+    server_task = asyncio.ensure_future(agent.start_async())
+
+    yield
+
+    server_task.cancel()
+    with suppress(asyncio.CancelledError):
+        await server_task
+    await agent.cleanup()

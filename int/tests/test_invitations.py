@@ -41,7 +41,7 @@ async def test_create_invitation(connection):
             "label": "Bob",
             "group": "admin",
             "auto_accept": True,
-            "multi_use": True,
+            "multi_use": True
         },
         return_route="all",
     )
@@ -68,7 +68,7 @@ async def test_get_list(connection):
 @pytest.mark.asyncio
 async def test_num_results(connection):
     # Input number of messages to add to the list
-    added_num = 3 
+    added_num = 1
     # Add new messages
     for i in range(added_num):
         await connection.send_and_await_reply_async(
