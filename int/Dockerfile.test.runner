@@ -8,9 +8,10 @@ ADD https://github.com/ufoscout/docker-compose-wait/releases/download/$WAIT_VERS
 RUN chmod +x /wait
 
 COPY acapy-backchannel acapy-backchannel
-COPY tests/* tests/
 COPY pyproject.toml .
 COPY poetry.lock .
 RUN poetry install --no-dev
+
+COPY tests/* tests/
 
 ENTRYPOINT ["/bin/sh", "-c", "/wait && poetry run pytest \"$@\"", "--"]
