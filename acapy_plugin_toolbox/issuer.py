@@ -266,7 +266,7 @@ CredGetList, CredGetListSchema = generate_model_schema(
 @with_generic_init
 @expand_message_class
 class CredList(AdminIssuerMessage):
-    message_type = CREDENTIALS_LIST
+    message_type = "credentials-list"
 
     class Fields:
         results = fields.List(
