@@ -7,6 +7,7 @@ from typing import Optional, Mapping
 from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
+from aries_cloudagent.indy.sdk.models.proof_request import IndyProofRequest
 from aries_cloudagent.indy.util import generate_pr_nonce
 from aries_cloudagent.messaging.agent_message import AgentMessage
 from aries_cloudagent.messaging.base_handler import (
@@ -180,7 +181,11 @@ class RequestPres(AdminIssuerMessage):
     fields_from = V10PresentationSendRequestRequestSchema
 
     def __init__(
-        self, connection_id: UUID, proof_request: dict, comment: str = None, **kwargs
+        self,
+        connection_id: UUID,
+        proof_request: IndyProofRequest,
+        comment: str = None,
+        **kwargs
     ):
         """Initialize message."""
         super().__init__(**kwargs)
@@ -197,14 +202,14 @@ class RequestPres(AdminIssuerMessage):
             async with ExceptionReporter(responder, StorageNotFoundError, self):
                 await get_connection(session, connection_id)
 
-        if not self.proof_request.get("nonce"):
-            self.proof_request["nonce"] = await generate_pr_nonce()
+        if not self.proof_request.nonce:
+            self.proof_request.nonce = await generate_pr_nonce()
 
         presentation_request_message = PresentationRequest(
             comment=self.comment,
             request_presentations_attach=[
                 AttachDecorator.data_base64(
-                    mapping=self.proof_request,
+                    mapping=self.proof_request.serialize(),
                     ident=ATTACH_DECO_IDS[PRESENTATION_REQUEST],
                 )
             ],
