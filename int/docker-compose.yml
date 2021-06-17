@@ -24,18 +24,20 @@ services:
   #*************************************************************
 
   tests:
-      container_name: juggernaut
-      build:
-        context: .
-        dockerfile: ./Dockerfile.test.runner
-      environment:
-        - WAIT_BEFORE_HOSTS=3
-        - WAIT_HOSTS=acapy_plugin_agent:3000
-        - WAIT_HOSTS_TIMEOUT=60
-        - WAIT_SLEEP_INTERVAL=1
-        - WAIT_HOST_CONNECT_TIMEOUT=30
-        - AGENT_HOST=acapy_plugin_agent
-        - AGENT_PORT=3000
-        - AGENT_BACKCHANNEL_PORT=3001
-      depends_on:
-        - acapy_plugin_agent
+    container_name: juggernaut
+    build:
+      context: .
+      dockerfile: ./Dockerfile.test.runner
+    environment:
+      - WAIT_BEFORE_HOSTS=3
+      - WAIT_HOSTS=acapy_plugin_agent:3000
+      - WAIT_HOSTS_TIMEOUT=60
+      - WAIT_SLEEP_INTERVAL=1
+      - WAIT_HOST_CONNECT_TIMEOUT=30
+      - AGENT_HOST=acapy_plugin_agent
+      - AGENT_PORT=3000
+      - AGENT_BACKCHANNEL_PORT=3001
+      - SUITE_HOST=tests
+      - SUITE_PORT=3002
+    depends_on:
+      - acapy_plugin_agent
