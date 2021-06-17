@@ -318,7 +318,7 @@ PresGetList, PresGetListSchema = generate_model_schema(
 @with_generic_init
 @expand_message_class
 class PresList(AdminIssuerMessage):
-    message_type = PRESENTATIONS_LIST
+    message_type = "presentations-list"
 
     class Fields:
         results = fields.List(
