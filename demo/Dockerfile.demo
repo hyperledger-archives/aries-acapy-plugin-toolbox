@@ -3,23 +3,20 @@ FROM bcgovimages/von-image:py36-1.16-0
 # Make ACA-Py Install location more accessible
 RUN ln -s $(pyenv prefix)/lib/python3.6/site-packages site-packages
 
-USER root
-ADD https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 ./jq
+ADD --chown=indy https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 ./jq
 RUN chmod +x ./jq
 
-COPY demo/ngrok-wait.sh ./ngrok-wait.sh
+COPY --chown=indy demo/ngrok-wait.sh ./ngrok-wait.sh
 RUN chmod +x ngrok-wait.sh
 
-ADD acapy_plugin_toolbox acapy_plugin_toolbox
 ADD requirements.txt .
 ADD setup.py .
 ADD README.md .
-ADD demo/configs ./configs/
-
-RUN chown -R indy:indy .
-USER $user
 
 RUN pip3 install -e .
+
+ADD acapy_plugin_toolbox acapy_plugin_toolbox
+ADD demo/configs ./configs/
 
 ENTRYPOINT ["/bin/bash", "-c", "./ngrok-wait.sh \"$@\"", "--"]
 CMD ["aca-py", "start", "--plugin", "acapy_plugin_toolbox", "--arg-file", "configs/default.yml"]
