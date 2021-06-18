@@ -1,8 +1,9 @@
 inbound-transport:
-    - [http, 0.0.0.0, 3000]
+    - [acapy_plugin_toolbox.http_ws, 0.0.0.0, 3000]
 outbound-transport: http
 endpoint:
     - http://localhost:3000
+    - ws://localhost:3000
 plugin:
   - acapy_plugin_toolbox
 no-ledger: true
