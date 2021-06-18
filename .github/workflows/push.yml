@@ -25,7 +25,7 @@ jobs:
           pip install black==20.8b1
       - name: Black Format Check
         run: |
-          black --check .
+          black --check acapy_plugin_toolbox tests int/tests
   test:
     name: Tests
     runs-on: ubuntu-latest
