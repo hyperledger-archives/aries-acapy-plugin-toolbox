@@ -2,6 +2,7 @@
 # pylint: disable=redefined-outer-name
 
 import uuid
+from aries_cloudagent.indy.sdk.models.proof_request import IndyProofRequest
 
 from aries_cloudagent.messaging.request_context import RequestContext
 from aries_cloudagent.messaging.responder import MockResponder
@@ -19,7 +20,9 @@ TEST_CONN_ID = uuid.uuid4()
 @pytest.fixture
 def message():
     """Message fixture."""
-    yield RequestPres(connection_id=TEST_CONN_ID, proof_request={}, comment="comment")
+    yield RequestPres(
+        connection_id=TEST_CONN_ID, proof_request=IndyProofRequest(), comment="comment"
+    )
 
 
 @pytest.fixture

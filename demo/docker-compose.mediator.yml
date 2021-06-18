@@ -12,4 +12,4 @@ services:
       NGROK_NAME: ngrok-mediator
     ports:
       - "3005:3005"
-    command: aca-py start --arg-file ./configs/mediator.yml 
+    command: poetry run aca-py start --arg-file ./configs/mediator.yml

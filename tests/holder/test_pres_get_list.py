@@ -9,17 +9,17 @@ TEST_CONN_ID = "test-connection-id"
 @pytest.fixture
 def pres_record():
     """Factory for test presentation records."""
+
     def _pres_record():
         return test_module.PresExRecord()
+
     yield _pres_record
 
 
 @pytest.fixture
 def message():
     """Message fixture."""
-    yield PresGetList(
-        connection_id=TEST_CONN_ID
-    )
+    yield PresGetList(connection_id=TEST_CONN_ID)
 
 
 @pytest.fixture
