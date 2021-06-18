@@ -14,7 +14,7 @@ services:
       ACAPY_TOOLBOX_LOG_LEVEL: WARNING
     ports:
       - "3001:3001"
-    command: aca-py start --arg-file ./configs/alice.yml
+    command: poetry run aca-py start --arg-file ./configs/alice.yml
 
   ngrok-bob:
     image: wernight/ngrok
@@ -27,4 +27,4 @@ services:
       ACAPY_TOOLBOX_LOG_LEVEL: WARNING
     ports:
       - "3003:3003"
-    command: aca-py start --arg-file ./configs/bob.yml 
+    command: poetry run aca-py start --arg-file ./configs/bob.yml 
