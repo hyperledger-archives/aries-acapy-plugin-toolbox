@@ -41,7 +41,7 @@ async def test_create_invitation(connection):
             "label": "Bob",
             "group": "admin",
             "auto_accept": True,
-            "multi_use": True
+            "multi_use": True,
         },
         return_route="all",
     )
