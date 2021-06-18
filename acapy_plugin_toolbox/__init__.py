@@ -3,20 +3,36 @@
 import os
 import logging
 
-from aries_cloudagent.protocols.problem_report.v1_0.message import (
-    ProblemReport
-)
 from aries_cloudagent.config.injection_context import InjectionContext
 
 from . import (
-    basicmessage, connections, credential_definitions, dids, invitations,
-    issuer, mediator, routing, schemas, static_connections, taa
+    basicmessage,
+    connections,
+    credential_definitions,
+    dids,
+    invitations,
+    issuer,
+    mediator,
+    routing,
+    schemas,
+    static_connections,
+    taa,
 )
 from .holder import v0_1 as holder
 
 MODULES = [
-    basicmessage, connections, credential_definitions, dids, invitations,
-    issuer, mediator, routing, schemas, static_connections, taa, holder
+    basicmessage,
+    connections,
+    credential_definitions,
+    dids,
+    invitations,
+    issuer,
+    mediator,
+    routing,
+    schemas,
+    static_connections,
+    taa,
+    holder,
 ]
 
 
