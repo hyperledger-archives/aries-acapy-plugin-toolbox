@@ -3,6 +3,7 @@
 import os
 import logging
 
+from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from aries_cloudagent.config.injection_context import InjectionContext
 
 from . import (
@@ -43,3 +44,6 @@ async def setup(context: InjectionContext):
     print("Setting logging level of acapy_plugin_toolbox to", log_level)
     for mod in MODULES:
         await mod.setup(context)
+
+
+__all__ = ["ProblemReport"]
