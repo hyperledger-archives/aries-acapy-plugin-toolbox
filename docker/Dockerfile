@@ -1,18 +1,20 @@
 FROM bcgovimages/von-image:py36-1.16-0
 
-# Make ACA-Py Install location more accessible
-RUN ln -s $(pyenv prefix)/lib/python3.6/site-packages site-packages
+RUN pip3 install --no-cache-dir poetry
 
+COPY acapy_plugin_toolbox acapy_plugin_toolbox
+COPY pyproject.toml .
+COPY poetry.lock .
+COPY README.md .
+COPY docker/default.yml .
 USER root
-ADD acapy_plugin_toolbox acapy_plugin_toolbox
-ADD requirements.txt .
-ADD setup.py .
-ADD README.md .
-ADD docker/default.yml .
-RUN chown -R indy:indy .
-USER $user
+RUN chown indy:indy -R .
+USER indy
 
-RUN pip3 install -e .
+RUN poetry install --no-dev
 
-ENTRYPOINT ["/bin/bash", "-c", "aca-py \"$@\"", "--"]
+# Make site packages location more accessible (for use with volumes)
+RUN ln -s $(poetry env info -p)/lib/python3.6/site-packages site-packages
+
+ENTRYPOINT ["/bin/bash", "-c", "poetry run aca-py \"$@\"", "--"]
 CMD ["start", "--plugin", "acapy_plugin_toolbox", "--arg-file", "default.yml"]
