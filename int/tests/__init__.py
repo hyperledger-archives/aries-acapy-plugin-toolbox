@@ -2,7 +2,7 @@
 
 from aiohttp import web
 from aries_staticagent import StaticConnection, Module
-
+import logging
 
 class BaseAgent:
     """Simple Agent class.
@@ -21,6 +21,16 @@ class BaseAgent:
         response = []
         with self.connection.session(response.append) as session:
             await self.connection.handle(await request.read(), session)
+
+        # create logger
+        logger = logging.getLogger(__name__)
+        logger.setLevel(logging.DEBUG)
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
+        logger.warning('No suitable message handler for this type')
 
         if response:
             return web.Response(body=response.pop())

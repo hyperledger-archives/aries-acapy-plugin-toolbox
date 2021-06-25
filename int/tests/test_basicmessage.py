@@ -4,6 +4,7 @@ import pytest
 
 from aries_staticagent import StaticConnection
 
+
 @pytest.mark.asyncio
 async def test_send(connection: StaticConnection, connection_id: str):
     with connection.next() as future_recip_message:
@@ -12,7 +13,7 @@ async def test_send(connection: StaticConnection, connection_id: str):
                 {
                     "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/send",
                     "connection_id": connection_id,
-                    "content": "Message #1: Your hovercraft is full of eels.",
+                    "content": "Your hovercraft is full of eels.",
                 },
                 return_route="all",
             ),
@@ -20,7 +21,7 @@ async def test_send(connection: StaticConnection, connection_id: str):
         )
         recip_message = await asyncio.wait_for(future_recip_message, 60)
     assert recip_message["@type"] == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/sent"
-    assert recip_message["message"]["content"] == "Message #1: Your hovercraft is full of eels."
+    assert recip_message["message"]["content"] == "Your hovercraft is full of eels."
     # Delete messages to clear the state between tests
     await connection.send_and_await_reply_async(
         {
@@ -67,7 +68,7 @@ async def test_get(connection: StaticConnection, connection_id: str):
                 {
                     "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/send",
                     "connection_id": connection_id,
-                    "content": "Message #2: Are you suggesting coconuts migrate?",
+                    "content": "Are you suggesting coconuts migrate?",
                 },
                 return_route="all",
             ),
@@ -80,7 +81,7 @@ async def test_get(connection: StaticConnection, connection_id: str):
                 {
                     "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/send",
                     "connection_id": connection_id,
-                    "content": "Message #3: 'Tis but a flesh wound.",
+                    "content": "'Tis but a flesh wound.",
                 },
                 return_route="all",
             ),
