@@ -4,9 +4,6 @@ import pytest
 from acapy_backchannel import Client
 from acapy_backchannel.api.connection import delete_connection, get_connections
 import time
-import logging
-
-logging.basicConfig(level=logging.INFO)
 
 
 @pytest.mark.asyncio
@@ -41,8 +38,6 @@ async def test_get_list_before_connection(connection):
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/get-list"
         }
     )
-    logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO)
-    logging.warning("Log of test_get_list_before_connection")
     print("get_list before connection: ", get_list_before_connection["connections"])
     assert True  # False
 
