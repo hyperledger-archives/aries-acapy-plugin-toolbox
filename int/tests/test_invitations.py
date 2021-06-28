@@ -34,15 +34,17 @@ async def clear_invitation_state(backchannel: Client):
 
 @pytest.mark.asyncio
 async def test_create_invitation(connection):
-    reply = await connection.send_and_await_reply_async(
-        {
+    msg = {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create",
             "alias": "Invitation I sent to Alice",
             "label": "Bob",
             "group": "admin",
             "auto_accept": True,
             "multi_use": True,
-        },
+        }
+    reply = await connection.send_and_await_reply_async(
+        msg,
+    #    condition=lambda reply: reply.thread["thid"] == msg.id,
         return_route="all",
     )
     print(reply)
