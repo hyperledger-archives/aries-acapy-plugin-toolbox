@@ -4,9 +4,6 @@ import pytest
 from acapy_backchannel import Client
 from acapy_backchannel.api.connection import delete_connection, get_connections
 import time
-import logging
-
-logging.basicConfig(level=logging.INFO)
 
 
 @pytest.mark.asyncio
@@ -38,13 +35,11 @@ time.sleep(3)
 async def test_get_list_before_connection(connection):
     get_list_before_connection = await connection.send_and_await_reply_async(
         {
-        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/get-list"
+            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/get-list"
         }
     )
-    logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
-    logging.warning('Log of test_get_list_before_connection')
-    print("get_list before connection: ",get_list_before_connection["connections"])
-    assert True#False
+    print("get_list before connection: ", get_list_before_connection["connections"])
+    assert True  # False
 
 
 @pytest.mark.asyncio
@@ -68,7 +63,10 @@ async def test_create_connection(connection):
             "auto_accept": True,
         }
     )
-    assert received["@type"] == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connection"
+    assert (
+        received["@type"]
+        == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connection"
+    )
 
 
 # Temporary Test: after connection
@@ -79,8 +77,8 @@ async def test_get_list_after_connection(connection):
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/get-list"
         }
     )
-    print("get_list after connection: ",get_list_after_connection["connections"])
-    assert True#False
+    print("get_list after connection: ", get_list_after_connection["connections"])
+    assert True  # False
 
 
 @pytest.mark.asyncio
@@ -103,8 +101,8 @@ async def test_get_list(connection):
             "auto_accept": True,
         }
     )
-    print("Invitation: ",invitation)
-    print("Received: ",received)
+    print("Invitation: ", invitation)
+    print("Received: ", received)
     invitation2 = await connection.send_and_await_reply_async(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create",
@@ -125,10 +123,13 @@ async def test_get_list(connection):
     )
     get_list = await connection.send_and_await_reply_async(
         {
-        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/get-list"
+            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/get-list"
         }
     )
-    assert get_list["@type"] == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/list"
+    assert (
+        get_list["@type"]
+        == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/list"
+    )
 
 
 @pytest.mark.asyncio
@@ -185,15 +186,18 @@ async def test_delete(connection):
     )
     get_list_beforedelete = await connection.send_and_await_reply_async(
         {
-        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/get-list"
+            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/get-list"
         }
     )
-    print('Connections before delete: ',get_list_beforedelete["connections"])
-    assert received["@type"] == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connection"
+    print("Connections before delete: ", get_list_beforedelete["connections"])
+    assert (
+        received["@type"]
+        == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connection"
+    )
     delete_connection = await connection.send_and_await_reply_async(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/delete",
-            "connection_id": received["connection_id"]
+            "connection_id": received["connection_id"],
         }
     )
     get_list_afterdelete = await connection.send_and_await_reply_async(
@@ -201,8 +205,11 @@ async def test_delete(connection):
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/get-list"
         }
     )
-    print("List after delete",get_list_afterdelete["connections"])
+    print("List after delete", get_list_afterdelete["connections"])
     # for i in get_list_beforedelete["connections"]:
     #     if i not in get_list_afterdelete["connections"]:
     #         print(i)
-    assert delete_connection["@type"] == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/deleted"
+    assert (
+        delete_connection["@type"]
+        == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/deleted"
+    )
