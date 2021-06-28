@@ -311,4 +311,5 @@ class ReceiveInvitationHandler(BaseHandler):
             mediation_id=context.message.mediation_id,
         )
         connection_resp = Connection(**conn_record_to_message_repr(connection))
+        connection_resp.assign_thread_from(context.message)
         await responder.send_reply(connection_resp)
