@@ -76,7 +76,7 @@ async def test_num_results(connection):
         return_route="all",
     )
     assert len(reply["results"]) == added_num
-   
+
 
 @pytest.mark.asyncio
 async def test_empty_list(connection):

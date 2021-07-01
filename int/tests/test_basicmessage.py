@@ -25,7 +25,7 @@ async def test_send(connection: StaticConnection, connection_id: str):
         == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/sent"
     )
     assert recip_message["message"]["content"] == "Your hovercraft is full of eels."
-    # TODO add proper backchannel for clearing messages 
+    # TODO add proper backchannel for clearing messages
     await connection.send_and_await_reply_async(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/delete",
@@ -37,15 +37,18 @@ async def test_send(connection: StaticConnection, connection_id: str):
 async def test_new(connection: StaticConnection):
     """Test new message notification"""
     new_response = await connection.send_and_await_reply_async(
-                {
-                    "@type": "https://didcomm.org/basicmessage/1.0/message",
-                    "~l10n": { "locale": "en" },
-                    "sent_time": utils.timestamp(),
-                    "content": "Your hovercraft is full of eels."
-                },
-                return_route="all",
-            )
-    assert new_response["@type"] == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/new"
+        {
+            "@type": "https://didcomm.org/basicmessage/1.0/message",
+            "~l10n": {"locale": "en"},
+            "sent_time": utils.timestamp(),
+            "content": "Your hovercraft is full of eels.",
+        },
+        return_route="all",
+    )
+    assert (
+        new_response["@type"]
+        == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/new"
+    )
     assert new_response["message"]["content"] == "Your hovercraft is full of eels."
     # Delete messages to clear the state between tests
     await connection.send_and_await_reply_async(
@@ -94,7 +97,9 @@ async def test_get(connection: StaticConnection, connection_id: str):
         == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/messages"
     )
     assert get_messages["count"] == 2
-    assert get_messages["messages"][1]["content"] == "Are you suggesting coconuts migrate?"
+    assert (
+        get_messages["messages"][1]["content"] == "Are you suggesting coconuts migrate?"
+    )
     assert get_messages["messages"][0]["content"] == "'Tis but a flesh wound."
     # Delete messages to clear the state between tests
     await connection.send_and_await_reply_async(
