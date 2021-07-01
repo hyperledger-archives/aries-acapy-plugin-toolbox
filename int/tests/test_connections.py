@@ -1,51 +1,27 @@
-"""Connection Tests"""
+"""Connections Tests"""
 import asyncio
 import pytest
 from acapy_backchannel import Client
 from acapy_backchannel.api.connection import delete_connection, get_connections
-import time
+from aries_staticagent import Message
 
 
-@pytest.mark.asyncio
-async def clear_connections(client: Client):
-    """Clear all connections, if any."""
-    connections = await get_connections.asyncio(client=client)
-    for connection in connections.results:
-        if connection.state == "connection":
-            await delete_connection.asyncio(
-                client=client, conn_id=connection.connection_id
-            )
-    # return(connections)
-
-
-@pytest.mark.asyncio
 @pytest.fixture(autouse=True)
-async def clear_connection_state(backchannel: Client):
-    """Clear invitations after each test."""
-    # yield
-    # await clear_connections(backchannel)
-    yield await clear_connections(backchannel)
-
-
-time.sleep(3)
-
-
-# Temporary Test: before connection
-@pytest.mark.asyncio
-async def test_get_list_before_connection(connection):
-    get_list_before_connection = await connection.send_and_await_reply_async(
-        {
-            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/get-list"
-        }
-    )
-    print("get_list before connection: ", get_list_before_connection["connections"])
-    assert True  # False
+async def clear_connection_state(backchannel: Client, connection_id: str):
+    """Clear connections after each test."""
+    yield
+    connections = await get_connections.asyncio(client=backchannel)
+    for connection in connections.results:
+        if connection.connection_id != connection_id:
+            await delete_connection.asyncio(
+                client=backchannel, conn_id=connection.connection_id
+            )
 
 
 @pytest.mark.asyncio
 async def test_create_connection(connection):
     """Send an invitation and receive it to create a new connection"""
-    invitation = await connection.send_and_await_reply_async(
+    msg_invitation = Message(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create",
             "alias": "Invitation I sent to Alice",
@@ -53,37 +29,34 @@ async def test_create_connection(connection):
             "group": "admin",
             "auto_accept": True,
             "multi_use": True,
-        },
+        }
+    )
+    invitation = await connection.send_and_await_reply_async(
+        msg_invitation,
+        condition=lambda reply: reply.thread["thid"] == msg_invitation.id,
         return_route="all",
     )
-    received = await connection.send_and_await_reply_async(
+    msg_received = Message(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/receive-invitation",
             "invitation": invitation["invitation_url"],
             "auto_accept": True,
         }
+    )
+    received = await connection.send_and_await_reply_async(
+        msg_received, condition=lambda reply: reply.thread["thid"] == msg_received.id
     )
     assert (
         received["@type"]
         == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connection"
     )
-
-
-# Temporary Test: after connection
-@pytest.mark.asyncio
-async def test_get_list_after_connection(connection):
-    get_list_after_connection = await connection.send_and_await_reply_async(
-        {
-            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/get-list"
-        }
-    )
-    print("get_list after connection: ", get_list_after_connection["connections"])
-    assert True  # False
+    assert received["label"] == msg_invitation["label"]
 
 
 @pytest.mark.asyncio
 async def test_get_list(connection):
-    invitation = await connection.send_and_await_reply_async(
+    """Create two connections and verify that their connection_ids are in connections list"""
+    msg_invitation = Message(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create",
             "alias": "Invitation I sent to Alice",
@@ -91,19 +64,24 @@ async def test_get_list(connection):
             "group": "admin",
             "auto_accept": True,
             "multi_use": True,
-        },
+        }
+    )
+    invitation = await connection.send_and_await_reply_async(
+        msg_invitation,
+        condition=lambda reply: reply.thread["thid"] == msg_invitation.id,
         return_route="all",
     )
-    received = await connection.send_and_await_reply_async(
+    msg_received = Message(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/receive-invitation",
             "invitation": invitation["invitation_url"],
             "auto_accept": True,
         }
     )
-    print("Invitation: ", invitation)
-    print("Received: ", received)
-    invitation2 = await connection.send_and_await_reply_async(
+    received = await connection.send_and_await_reply_async(
+        msg_received, condition=lambda reply: reply.thread["thid"] == msg_received.id
+    )
+    msg_invitation2 = Message(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create",
             "alias": "Second invitation I sent to Alice",
@@ -111,15 +89,22 @@ async def test_get_list(connection):
             "group": "admin",
             "auto_accept": True,
             "multi_use": True,
-        },
+        }
+    )
+    invitation2 = await connection.send_and_await_reply_async(
+        msg_invitation2,
+        condition=lambda reply: reply.thread["thid"] == msg_invitation2.id,
         return_route="all",
     )
-    received2 = await connection.send_and_await_reply_async(
+    msg_received2 = Message(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/receive-invitation",
             "invitation": invitation2["invitation_url"],
             "auto_accept": True,
         }
+    )
+    received2 = await connection.send_and_await_reply_async(
+        msg_received2, condition=lambda reply: reply.thread["thid"] == msg_received2.id
     )
     get_list = await connection.send_and_await_reply_async(
         {
@@ -130,12 +115,18 @@ async def test_get_list(connection):
         get_list["@type"]
         == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/list"
     )
+    assert received["connection_id"] in [
+        connection_item["connection_id"] for connection_item in get_list["connections"]
+    ]
+    assert received2["connection_id"] in [
+        connection_item["connection_id"] for connection_item in get_list["connections"]
+    ]
 
 
 @pytest.mark.asyncio
 async def test_update(connection):
-    """Update connection attribute"""
-    invitation = await connection.send_and_await_reply_async(
+    """Test update of connection attribute"""
+    msg_invitation = Message(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create",
             "alias": "Invitation I sent to Alice",
@@ -143,17 +134,25 @@ async def test_update(connection):
             "group": "admin",
             "auto_accept": True,
             "multi_use": True,
-        },
+        }
+    )
+    invitation = await connection.send_and_await_reply_async(
+        msg_invitation,
+        condition=lambda reply: reply.thread["thid"] == msg_invitation.id,
         return_route="all",
     )
-    received = await connection.send_and_await_reply_async(
+    msg_received = Message(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/receive-invitation",
             "invitation": invitation["invitation_url"],
             "auto_accept": True,
         }
     )
-    update = await connection.send_and_await_reply_async(
+    received = await connection.send_and_await_reply_async(
+        msg_received,
+        condition=lambda reply: reply.thread["thid"] == msg_received.id,
+    )
+    msg_update = Message(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/update",
             "connection_id": received["connection_id"],
@@ -161,12 +160,18 @@ async def test_update(connection):
             "role": "Updated role",
         }
     )
+    update = await connection.send_and_await_reply_async(
+        msg_update,
+        condition=lambda reply: reply.thread["thid"] == msg_update.id,
+    )
     assert update["label"] == "Updated label"
 
 
 @pytest.mark.asyncio
 async def test_delete(connection):
-    invitation = await connection.send_and_await_reply_async(
+    """Create an invitation, delete it, and verify that its label and connectio_id
+    is no longer in the connections list"""
+    invitation_msg = Message(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create",
             "alias": "Invitation I sent to Alice",
@@ -174,25 +179,23 @@ async def test_delete(connection):
             "group": "admin",
             "auto_accept": True,
             "multi_use": True,
-        },
+        }
+    )
+    invitation = await connection.send_and_await_reply_async(
+        invitation_msg,
+        condition=lambda reply: reply.thread["thid"] == invitation_msg.id,
         return_route="all",
     )
-    received = await connection.send_and_await_reply_async(
+    msg_received = Message(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/receive-invitation",
             "invitation": invitation["invitation_url"],
             "auto_accept": True,
         }
     )
-    get_list_beforedelete = await connection.send_and_await_reply_async(
-        {
-            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/get-list"
-        }
-    )
-    print("Connections before delete: ", get_list_beforedelete["connections"])
-    assert (
-        received["@type"]
-        == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connection"
+    received = await connection.send_and_await_reply_async(
+        msg_received,
+        condition=lambda reply: reply.thread["thid"] == msg_received.id,
     )
     delete_connection = await connection.send_and_await_reply_async(
         {
@@ -200,16 +203,19 @@ async def test_delete(connection):
             "connection_id": received["connection_id"],
         }
     )
-    get_list_afterdelete = await connection.send_and_await_reply_async(
-        {
-            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/get-list"
-        }
-    )
-    print("List after delete", get_list_afterdelete["connections"])
-    # for i in get_list_beforedelete["connections"]:
-    #     if i not in get_list_afterdelete["connections"]:
-    #         print(i)
     assert (
         delete_connection["@type"]
         == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/deleted"
     )
+    assert delete_connection["connection_id"] == received["connection_id"]
+    get_list = await connection.send_and_await_reply_async(
+        {
+            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/get-list"
+        }
+    )
+    assert invitation_msg["label"] not in [
+        connection_item["label"] for connection_item in get_list["connections"]
+    ]
+    assert received["connection_id"] not in [
+        connection_item["connection_id"] for connection_item in get_list["connections"]
+    ]
