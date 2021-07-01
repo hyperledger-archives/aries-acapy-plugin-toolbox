@@ -54,7 +54,7 @@ async def test_get_list(connection):
 
 @pytest.mark.asyncio
 async def test_num_results(connection):
-    """Test that create message causes new item in results list"""
+    """Test that the create message protocol causes new item in results list"""
     # Input number of messages to add to the list
     added_num = 2
     for i in range(added_num):

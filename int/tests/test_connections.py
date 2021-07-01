@@ -1,4 +1,4 @@
-"""Connection Tests"""
+"""Connections Tests"""
 import asyncio
 import pytest
 from acapy_backchannel import Client
@@ -52,6 +52,7 @@ async def test_create_connection(connection):
 
 @pytest.mark.asyncio
 async def test_get_list(connection):
+    """Create two connections and verify that their connection_ids are in connections list"""
     msg_invitation = Message({
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create",
             "alias": "Invitation I sent to Alice",
@@ -110,7 +111,7 @@ async def test_get_list(connection):
 
 @pytest.mark.asyncio
 async def test_update(connection):
-    """Update connection attribute"""
+    """Test update of connection attribute"""
     msg_invitation = Message({
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create",
             "alias": "Invitation I sent to Alice",
@@ -148,6 +149,8 @@ async def test_update(connection):
 
 @pytest.mark.asyncio
 async def test_delete(connection):
+    """Create an invitation, delete it, and verify that its label and connectio_id
+    is no longer in the connections list"""
     invitation_msg = Message(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create",
@@ -185,6 +188,5 @@ async def test_delete(connection):
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/get-list"
         }
     )
-    for connection_item in get_list["connections"]:
-       assert connection_item["label"] != invitation_msg["label"]
-       assert connection_item["connection_id"] != received["connection_id"]
+    assert invitation_msg["label"] not in [connection_item["label"] for connection_item in get_list["connections"]]
+    assert received["connection_id"] not in [connection_item["connection_id"] for connection_item in get_list["connections"]]
