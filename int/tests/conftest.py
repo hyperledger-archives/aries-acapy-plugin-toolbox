@@ -22,7 +22,6 @@ from acapy_backchannel.models import (
     ConnectionStaticResult,
     ConnectionMetadataSetRequest,
 )
-
 from aries_staticagent import StaticConnection, Target
 
 from . import BaseAgent
@@ -206,3 +205,19 @@ async def make_endorser_did(make_did):
         return did
 
     yield _make_endorser_did
+
+
+@pytest.fixture
+async def accept_taa(scope="session"):
+    result = describe(
+        "Retrieve Transaction Author Agreement from the ledger", fetch_taa
+    )(client=issuer).result
+
+    result = describe("Sign transaction author agreement", accept_taa)(
+        client=issuer,
+        json_body=TAAAccept(
+            mechanism="on_file",
+            text=result.taa_record.text,
+            version=result.taa_record.version,
+        ),
+    )
