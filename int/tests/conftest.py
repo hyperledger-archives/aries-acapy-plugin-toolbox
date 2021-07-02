@@ -8,6 +8,7 @@ from typing import Iterator, Optional
 from acapy_backchannel.models.conn_record import ConnRecord
 import pytest
 import hashlib
+import httpx
 
 from acapy_backchannel import Client
 from acapy_backchannel.api.connection import (
@@ -15,6 +16,7 @@ from acapy_backchannel.api.connection import (
     set_metadata,
     delete_connection,
 )
+from acapy_backchannel.api.wallet import create_did
 from acapy_backchannel.models import (
     ConnectionStaticRequest,
     ConnectionStaticResult,
@@ -168,3 +170,39 @@ async def http_endpoint(agent: BaseAgent):
     with suppress(asyncio.CancelledError):
         await server_task
     await agent.cleanup()
+
+
+@pytest.fixture
+async def make_did():
+    """DID factory fixture"""
+
+    def _make_did():
+        did = create_did.asyncio(client=backchannel)
+        return did
+
+    yield _make_did()
+    # TODO create DID deletion method
+
+
+@pytest.fixture
+async def make_endorser_did(make_did):
+    """Endorser DID factory fixture"""
+
+    def _make_endorser_did():
+        did = make_did()
+        print("Publishing DID through https://selfserve.indiciotech.io")
+        response = httpx.post(
+            url="https://selfserve.indiciotech.io/nym",
+            json={
+                "network": "testnet",
+                "did": did.result.did,
+                "verkey": did.result.verkey,
+            },
+        )
+        if response.is_error:
+            print("Failed to publish DID:", response.text)
+            return
+        print("DID Published")
+        return did
+
+    yield _make_endorser_did
