@@ -31,7 +31,7 @@ from . import BaseAgent
 
 import logging
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="session")
@@ -195,7 +195,7 @@ async def make_endorser_did(make_did):
 
     def _make_endorser_did():
         did = make_did()
-        logger.info("Publishing DID through https://selfserve.indiciotech.io")
+        LOGGER.info("Publishing DID through https://selfserve.indiciotech.io")
         response = httpx.post(
             url="https://selfserve.indiciotech.io/nym",
             json={
@@ -205,16 +205,16 @@ async def make_endorser_did(make_did):
             },
         )
         if response.is_error:
-            logger.info("Failed to publish DID:", response.text)
+            LOGGER.info("Failed to publish DID:", response.text)
             return
-        logger.info("DID Published")
+        LOGGER.info("DID Published")
         return did
 
     yield _make_endorser_did
 
 
-@pytest.fixture
-async def accept_taa(scope="session"):
+@pytest.fixture(scope="session")
+async def accept_taa():
     result = await fetch_taa.asyncio(client=issuer).result
     result = await accept_taa.asyncio(
         client=issuer,
