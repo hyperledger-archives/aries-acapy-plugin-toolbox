@@ -17,14 +17,21 @@ from acapy_backchannel.api.connection import (
     delete_connection,
 )
 from acapy_backchannel.api.wallet import create_did
+from acapy_backchannel.api.ledger import accept_taa, fetch_taa
 from acapy_backchannel.models import (
     ConnectionStaticRequest,
     ConnectionStaticResult,
     ConnectionMetadataSetRequest,
+    TAAAccept,
 )
+
 from aries_staticagent import StaticConnection, Target
 
 from . import BaseAgent
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="session")
@@ -175,11 +182,10 @@ async def http_endpoint(agent: BaseAgent):
 async def make_did():
     """DID factory fixture"""
 
-    def _make_did():
-        did = create_did.asyncio(client=backchannel)
-        return did
+    async def _make_did():
+        return await create_did.asyncio(client=backchannel)
 
-    yield _make_did()
+    yield _make_did
     # TODO create DID deletion method
 
 
@@ -189,7 +195,7 @@ async def make_endorser_did(make_did):
 
     def _make_endorser_did():
         did = make_did()
-        print("Publishing DID through https://selfserve.indiciotech.io")
+        logger.info("Publishing DID through https://selfserve.indiciotech.io")
         response = httpx.post(
             url="https://selfserve.indiciotech.io/nym",
             json={
@@ -199,9 +205,9 @@ async def make_endorser_did(make_did):
             },
         )
         if response.is_error:
-            print("Failed to publish DID:", response.text)
+            logger.info("Failed to publish DID:", response.text)
             return
-        print("DID Published")
+        logger.info("DID Published")
         return did
 
     yield _make_endorser_did
@@ -209,11 +215,8 @@ async def make_endorser_did(make_did):
 
 @pytest.fixture
 async def accept_taa(scope="session"):
-    result = describe(
-        "Retrieve Transaction Author Agreement from the ledger", fetch_taa
-    )(client=issuer).result
-
-    result = describe("Sign transaction author agreement", accept_taa)(
+    result = await fetch_taa.asyncio(client=issuer).result
+    result = await accept_taa.asyncio(
         client=issuer,
         json_body=TAAAccept(
             mechanism="on_file",
