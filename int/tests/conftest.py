@@ -205,7 +205,7 @@ async def make_endorser_did(make_did):
             },
         )
         if response.is_error:
-            LOGGER.info("Failed to publish DID:", response.text)
+            raise response.error("Failed to publish DID:", response.text)
             return
         LOGGER.info("DID Published")
         return did
