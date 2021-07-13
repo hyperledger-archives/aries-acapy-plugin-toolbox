@@ -16,7 +16,10 @@ from acapy_backchannel.api.connection import (
     set_metadata,
     delete_connection,
 )
-from acapy_backchannel.api.wallet import create_did
+from acapy_backchannel.api.wallet import (
+    create_did,
+    set_public_did,
+)
 from acapy_backchannel.api.ledger import accept_taa, fetch_taa
 from acapy_backchannel.models import (
     ConnectionStaticRequest,
@@ -224,3 +227,7 @@ async def accept_taa():
             version=result.taa_record.version,
         ),
     )
+    result = await set_public_did.asyncio(
+        client=issuer,
+        did=did_info.did,
+    ).result
