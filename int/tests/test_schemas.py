@@ -5,8 +5,9 @@ from aries_staticagent import MessageDeliveryError
 
 
 @pytest.mark.asyncio
-async def test_send_schema(connection):
+async def test_send_schema(connection, make_endorser_did):
     """Send a schema and verify message type"""
+    await make_endorser_did()
     try:
         schema = await connection.send_and_await_reply_async(
             {
