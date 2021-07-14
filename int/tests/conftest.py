@@ -6,6 +6,7 @@ import os
 import base64
 from typing import Iterator, Optional
 from acapy_backchannel.models.conn_record import ConnRecord
+from acapy_backchannel.models.did import DID
 import pytest
 import hashlib
 import httpx
@@ -182,52 +183,53 @@ async def http_endpoint(agent: BaseAgent):
 
 
 @pytest.fixture
-async def make_did():
+async def make_did(backchannel):
     """DID factory fixture"""
 
     async def _make_did():
-        return await create_did.asyncio(client=backchannel)
+        return (await create_did.asyncio(client=backchannel)).result
 
     yield _make_did
     # TODO create DID deletion method
 
 
-@pytest.fixture
-async def make_endorser_did(make_did):
-    """Endorser DID factory fixture"""
-
-    def _make_endorser_did():
-        did = make_did()
-        LOGGER.info("Publishing DID through https://selfserve.indiciotech.io")
-        response = httpx.post(
-            url="https://selfserve.indiciotech.io/nym",
-            json={
-                "network": "testnet",
-                "did": did.result.did,
-                "verkey": did.result.verkey,
-            },
-        )
-        if response.is_error:
-            raise response.error("Failed to publish DID:", response.text)
-            return
-        LOGGER.info("DID Published")
-        return did
-
-    yield _make_endorser_did
-
-
 @pytest.fixture(scope="session")
-async def accept_taa():
-    result = await fetch_taa.asyncio(client=issuer).result
+async def accepted_taa(backchannel):
+    result = (await fetch_taa.asyncio(client=backchannel)).result
     result = await accept_taa.asyncio(
-        client=issuer,
+        client=backchannel,
         json_body=TAAAccept(
             mechanism="on_file",
             text=result.taa_record.text,
             version=result.taa_record.version,
         ),
     )
-    result = await set_public_did.asyncio(
-        client=issuer,
-        did=did_info.did,
-    ).result
+
+
+@pytest.fixture
+async def make_endorser_did(make_did, backchannel, accepted_taa):
+    """Endorser DID factory fixture"""
+
+    async def _make_endorser_did():
+        did: DID = await make_did()
+        LOGGER.info("Publishing DID through https://selfserve.indiciotech.io")
+        response = httpx.post(
+            url="https://selfserve.indiciotech.io/nym",
+            json={
+                "network": "testnet",
+                "did": did.did,
+                "verkey": did.verkey,
+            },
+        )
+        if response.is_error:
+            raise Exception("Failed to publish DID:", response.text)
+
+        LOGGER.info("DID Published")
+        result = await set_public_did.asyncio_detailed(
+            client=backchannel,
+            did=did.did,
+        )
+        assert result.status_code == 200
+        return did
+
+    yield _make_endorser_did
