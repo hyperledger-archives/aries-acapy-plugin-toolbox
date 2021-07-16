@@ -182,7 +182,7 @@ async def http_endpoint(agent: BaseAgent):
     await agent.cleanup()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 async def make_did(backchannel):
     """DID factory fixture"""
 
@@ -206,36 +206,28 @@ async def accepted_taa(backchannel):
     )
 
 
-@pytest.fixture(scope="module")
-async def make_endorser_did(make_did, backchannel, accepted_taa):
+@pytest.fixture(scope="session")
+async def endorser_did(make_did, backchannel, accepted_taa):
     """Endorser DID factory fixture"""
 
-    async def _make_endorser_did():
-        did: DID = await make_did()
-        LOGGER.info("Publishing DID through https://selfserve.indiciotech.io")
-        response = httpx.post(
-            url="https://selfserve.indiciotech.io/nym",
-            json={
-                "network": "testnet",
-                "did": did.did,
-                "verkey": did.verkey,
-            },
-            timeout=30,
-        )
-        if response.is_error:
-            raise Exception("Failed to publish DID:", response.text)
+    did: DID = await make_did()
+    LOGGER.info("Publishing DID through https://selfserve.indiciotech.io")
+    response = httpx.post(
+        url="https://selfserve.indiciotech.io/nym",
+        json={
+            "network": "testnet",
+            "did": did.did,
+            "verkey": did.verkey,
+        },
+        timeout=30,
+    )
+    if response.is_error:
+        raise Exception("Failed to publish DID:", response.text)
 
-        LOGGER.info("DID Published")
-        result = await set_public_did.asyncio_detailed(
-            client=backchannel,
-            did=did.did,
-        )
-        assert result.status_code == 200
-        return did
-
-    yield _make_endorser_did
-
-
-@pytest.fixture(scope="module", autouse=True)
-async def endorser_did(make_endorser_did):
-    yield make_endorser_did()
+    LOGGER.info("DID Published")
+    result = await set_public_did.asyncio_detailed(
+        client=backchannel,
+        did=did.did,
+    )
+    assert result.status_code == 200
+    yield did
