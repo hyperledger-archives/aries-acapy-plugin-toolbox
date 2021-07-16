@@ -6,8 +6,10 @@ import os
 import base64
 from typing import Iterator, Optional
 from acapy_backchannel.models.conn_record import ConnRecord
+from acapy_backchannel.models.did import DID
 import pytest
 import hashlib
+import httpx
 
 from acapy_backchannel import Client
 from acapy_backchannel.api.connection import (
@@ -15,15 +17,25 @@ from acapy_backchannel.api.connection import (
     set_metadata,
     delete_connection,
 )
+from acapy_backchannel.api.wallet import (
+    create_did,
+    set_public_did,
+)
+from acapy_backchannel.api.ledger import accept_taa, fetch_taa
 from acapy_backchannel.models import (
     ConnectionStaticRequest,
     ConnectionStaticResult,
     ConnectionMetadataSetRequest,
+    TAAAccept,
 )
 
 from aries_staticagent import StaticConnection, Target
 
 from . import BaseAgent
+
+import logging
+
+LOGGER = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="session")
@@ -168,3 +180,54 @@ async def http_endpoint(agent: BaseAgent):
     with suppress(asyncio.CancelledError):
         await server_task
     await agent.cleanup()
+
+
+@pytest.fixture(scope="session")
+async def make_did(backchannel):
+    """DID factory fixture"""
+
+    async def _make_did():
+        return (await create_did.asyncio(client=backchannel)).result
+
+    yield _make_did
+    # TODO create DID deletion method
+
+
+@pytest.fixture(scope="session")
+async def accepted_taa(backchannel):
+    result = (await fetch_taa.asyncio(client=backchannel)).result
+    result = await accept_taa.asyncio(
+        client=backchannel,
+        json_body=TAAAccept(
+            mechanism="on_file",
+            text=result.taa_record.text,
+            version=result.taa_record.version,
+        ),
+    )
+
+
+@pytest.fixture(scope="session")
+async def endorser_did(make_did, backchannel, accepted_taa):
+    """Endorser DID factory fixture"""
+
+    did: DID = await make_did()
+    LOGGER.info("Publishing DID through https://selfserve.indiciotech.io")
+    response = httpx.post(
+        url="https://selfserve.indiciotech.io/nym",
+        json={
+            "network": "testnet",
+            "did": did.did,
+            "verkey": did.verkey,
+        },
+        timeout=30,
+    )
+    if response.is_error:
+        raise Exception("Failed to publish DID:", response.text)
+
+    LOGGER.info("DID Published")
+    result = await set_public_did.asyncio_detailed(
+        client=backchannel,
+        did=did.did,
+    )
+    assert result.status_code == 200
+    yield did
