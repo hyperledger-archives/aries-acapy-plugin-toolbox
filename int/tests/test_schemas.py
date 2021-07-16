@@ -5,9 +5,9 @@ from aries_staticagent import MessageDeliveryError
 
 
 @pytest.mark.asyncio
-async def test_send_schema(connection, make_endorser_did):
+async def test_send_schema(connection, endorser_did):
     """Send a schema and verify message type"""
-    await make_endorser_did()
+    await endorser_did()
     schema = await connection.send_and_await_reply_async(
         {
             "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1/send-schema",
@@ -24,9 +24,9 @@ async def test_send_schema(connection, make_endorser_did):
 
 
 @pytest.mark.asyncio
-async def test_schema_get(connection, make_endorser_did):
+async def test_schema_get(connection, endorser_did):
     """Retrieve a pre-existing schema"""
-    await make_endorser_did()
+    await endorser_did()
     schema = await connection.send_and_await_reply_async(
         {
             "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1/send-schema",
@@ -54,9 +54,9 @@ async def test_schema_get(connection, make_endorser_did):
 
 
 @pytest.mark.asyncio
-async def test_schema_get_list(connection, make_endorser_did):
+async def test_schema_get_list(connection, endorser_did):
     """Retrieve the list of schemas"""
-    await make_endorser_did()
+    await endorser_did()
     schema = await connection.send_and_await_reply_async(
         {
             "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1/send-schema",
