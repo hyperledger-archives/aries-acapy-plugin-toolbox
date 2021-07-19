@@ -2,7 +2,7 @@
 # pylint: disable=redefined-outer-name
 
 import uuid
-from aries_cloudagent.indy.sdk.models.proof_request import IndyProofRequest
+from aries_cloudagent.indy.models.proof_request import IndyProofRequest
 
 from aries_cloudagent.messaging.request_context import RequestContext
 from aries_cloudagent.messaging.responder import MockResponder
