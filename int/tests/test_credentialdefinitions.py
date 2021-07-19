@@ -7,12 +7,12 @@ import pytest
 async def create_schema(connection, endorser_did):
     """Schema factory fixture"""
 
-    async def _create_schema():
+    async def _create_schema(version):
         return await connection.send_and_await_reply_async(
             {
                 "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1/send-schema",
                 "schema_name": "Test Schema",
-                "schema_version": "1.0",
+                "schema_version": version,
                 "attributes": ["attr_1_0", "attr_1_1", "attr_1_2"],
                 "return_route": "all",
             }
@@ -24,7 +24,7 @@ async def create_schema(connection, endorser_did):
 @pytest.mark.asyncio
 async def test_send_cred_def(connection, endorser_did, create_schema):
     """Create a credential definition"""
-    schema = await create_schema()
+    schema = await create_schema(version="1.0")
     send_cred_def = await connection.send_and_await_reply_async(
         {
             "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/send-credential-definition",
@@ -41,7 +41,7 @@ async def test_send_cred_def(connection, endorser_did, create_schema):
 @pytest.mark.asyncio
 async def test_cred_def_get(connection, endorser_did, create_schema):
     """Create and retrieve a credential definition"""
-    schema = await create_schema()
+    schema = await create_schema(version="1.1")
     send_cred_def = await connection.send_and_await_reply_async(
         {
             "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/send-credential-definition",
@@ -60,24 +60,26 @@ async def test_cred_def_get(connection, endorser_did, create_schema):
         cred_def_get["@type"]
         == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/credential-definition"
     )
+    assert schema["schema_id"] == cred_def_get["schema_id"]
+    assert send_cred_def["cred_def_id"] == cred_def_get["cred_def_id"]
 
 
 @pytest.mark.asyncio
 async def test_cred_def_get_list(connection, endorser_did, create_schema):
     """Create and retrieve a credential definition"""
-    schema1 = await create_schema()
-    await connection.send_and_await_reply_async(
+    schema1_2 = await create_schema(version="1.2")
+    send_schema1_2 = await connection.send_and_await_reply_async(
         {
             "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/send-credential-definition",
-            "schema_id": schema1["schema_id"],
+            "schema_id": schema1_2["schema_id"],
             "~transport": {"return_route": "all"},
         }
     )
-    schema2 = await create_schema()
-    await connection.send_and_await_reply_async(
+    schema1_3 = await create_schema(version="1.3")
+    send_schema1_3 = await connection.send_and_await_reply_async(
         {
             "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/send-credential-definition",
-            "schema_id": schema2["schema_id"],
+            "schema_id": schema1_3["schema_id"],
             "~transport": {"return_route": "all"},
         }
     )
@@ -91,3 +93,9 @@ async def test_cred_def_get_list(connection, endorser_did, create_schema):
         cred_def_get_list["@type"]
         == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/credential-definition-list"
     )
+    assert send_schema1_2["cred_def_id"] in [
+        result["cred_def_id"] for result in cred_def_get_list["results"]
+    ]
+    assert send_schema1_3["cred_def_id"] in [
+        result["cred_def_id"] for result in cred_def_get_list["results"]
+    ]
