@@ -44,7 +44,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
-          key: ${{ runner.os }}-testing-${{ matrix.python-version }} #-${{ hashFiles('poetry.lock') }}
+          key: ${{ runner.os }}-testing-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
       - name: Install poetry   # (use poetry?)
         if: steps.cache-env.outputs.cache-hit != 'true'
         run: |
@@ -59,7 +59,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ steps.setup-poetry-env.outputs.poetry-env }}
-          key: ${{ runner.os }}-poetry-${{ matrix.python-version }} #-${{ hashFiles('poetry.lock') }}
+          key: ${{ runner.os }}-poetry-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
       - name: Install dependencies
         if: steps.cache-poetry.outputs.cache-hit != 'true'
         run: |
