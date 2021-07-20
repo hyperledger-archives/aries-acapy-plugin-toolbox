@@ -2,12 +2,12 @@ from typing import Any, Dict, List, Type, TypeVar
 
 import attr
 
-T = TypeVar("T", bound="SchemaSendResultsSchema")
+T = TypeVar("T", bound="SchemaSentSchema")
 
 
 @attr.s(auto_attribs=True)
-class SchemaSendResultsSchema:
-    """Schema result"""
+class SchemaSentSchema:
+    """schema"""
 
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
@@ -22,10 +22,10 @@ class SchemaSendResultsSchema:
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        schema_send_results_schema = cls()
+        schema_sent_schema = cls()
 
-        schema_send_results_schema.additional_properties = d
-        return schema_send_results_schema
+        schema_sent_schema.additional_properties = d
+        return schema_sent_schema
 
     @property
     def additional_keys(self) -> List[str]:

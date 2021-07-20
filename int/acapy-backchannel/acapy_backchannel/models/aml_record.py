@@ -40,9 +40,11 @@ class AMLRecord:
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        aml: Union[Unset, AMLRecordAml] = UNSET
         _aml = d.pop("aml", UNSET)
-        if not isinstance(_aml, Unset):
+        aml: Union[Unset, AMLRecordAml]
+        if isinstance(_aml, Unset):
+            aml = UNSET
+        else:
             aml = AMLRecordAml.from_dict(_aml)
 
         aml_context = d.pop("amlContext", UNSET)

@@ -1,49 +1,50 @@
-from typing import Any, Dict, List, Type, TypeVar, Union
+from typing import Any, Dict, List, Type, TypeVar
 
 import attr
 
-from ..models.query_result_results import QueryResultResults
-from ..types import UNSET, Unset
+from ..models.schema_sent_schema import SchemaSentSchema
 
-T = TypeVar("T", bound="QueryResult")
+T = TypeVar("T", bound="SchemaSent")
 
 
 @attr.s(auto_attribs=True)
-class QueryResult:
+class SchemaSent:
     """ """
 
-    results: Union[Unset, QueryResultResults] = UNSET
+    schema: SchemaSentSchema
+    schema_id: str
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
-        results: Union[Unset, Dict[str, Any]] = UNSET
-        if not isinstance(self.results, Unset):
-            results = self.results.to_dict()
+        schema = self.schema.to_dict()
+
+        schema_id = self.schema_id
 
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
-        field_dict.update({})
-        if results is not UNSET:
-            field_dict["results"] = results
+        field_dict.update(
+            {
+                "schema": schema,
+                "schema_id": schema_id,
+            }
+        )
 
         return field_dict
 
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        _results = d.pop("results", UNSET)
-        results: Union[Unset, QueryResultResults]
-        if isinstance(_results, Unset):
-            results = UNSET
-        else:
-            results = QueryResultResults.from_dict(_results)
+        schema = SchemaSentSchema.from_dict(d.pop("schema"))
 
-        query_result = cls(
-            results=results,
+        schema_id = d.pop("schema_id")
+
+        schema_sent = cls(
+            schema=schema,
+            schema_id=schema_id,
         )
 
-        query_result.additional_properties = d
-        return query_result
+        schema_sent.additional_properties = d
+        return schema_sent
 
     @property
     def additional_keys(self) -> List[str]:
