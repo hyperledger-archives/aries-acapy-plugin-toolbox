@@ -158,53 +158,71 @@ class V20CredExRecord:
 
         cred_id_stored = d.pop("cred_id_stored", UNSET)
 
-        cred_issue: Union[Unset, V20CredExRecordCredIssue] = UNSET
         _cred_issue = d.pop("cred_issue", UNSET)
-        if not isinstance(_cred_issue, Unset):
+        cred_issue: Union[Unset, V20CredExRecordCredIssue]
+        if isinstance(_cred_issue, Unset):
+            cred_issue = UNSET
+        else:
             cred_issue = V20CredExRecordCredIssue.from_dict(_cred_issue)
 
-        cred_offer: Union[Unset, V20CredExRecordCredOffer] = UNSET
         _cred_offer = d.pop("cred_offer", UNSET)
-        if not isinstance(_cred_offer, Unset):
+        cred_offer: Union[Unset, V20CredExRecordCredOffer]
+        if isinstance(_cred_offer, Unset):
+            cred_offer = UNSET
+        else:
             cred_offer = V20CredExRecordCredOffer.from_dict(_cred_offer)
 
-        cred_preview: Union[Unset, V20CredExRecordCredPreview] = UNSET
         _cred_preview = d.pop("cred_preview", UNSET)
-        if not isinstance(_cred_preview, Unset):
+        cred_preview: Union[Unset, V20CredExRecordCredPreview]
+        if isinstance(_cred_preview, Unset):
+            cred_preview = UNSET
+        else:
             cred_preview = V20CredExRecordCredPreview.from_dict(_cred_preview)
 
-        cred_proposal: Union[Unset, V20CredExRecordCredProposal] = UNSET
         _cred_proposal = d.pop("cred_proposal", UNSET)
-        if not isinstance(_cred_proposal, Unset):
+        cred_proposal: Union[Unset, V20CredExRecordCredProposal]
+        if isinstance(_cred_proposal, Unset):
+            cred_proposal = UNSET
+        else:
             cred_proposal = V20CredExRecordCredProposal.from_dict(_cred_proposal)
 
-        cred_request: Union[Unset, V20CredExRecordCredRequest] = UNSET
         _cred_request = d.pop("cred_request", UNSET)
-        if not isinstance(_cred_request, Unset):
+        cred_request: Union[Unset, V20CredExRecordCredRequest]
+        if isinstance(_cred_request, Unset):
+            cred_request = UNSET
+        else:
             cred_request = V20CredExRecordCredRequest.from_dict(_cred_request)
 
-        cred_request_metadata: Union[Unset, V20CredExRecordCredRequestMetadata] = UNSET
         _cred_request_metadata = d.pop("cred_request_metadata", UNSET)
-        if not isinstance(_cred_request_metadata, Unset):
+        cred_request_metadata: Union[Unset, V20CredExRecordCredRequestMetadata]
+        if isinstance(_cred_request_metadata, Unset):
+            cred_request_metadata = UNSET
+        else:
             cred_request_metadata = V20CredExRecordCredRequestMetadata.from_dict(_cred_request_metadata)
 
         error_msg = d.pop("error_msg", UNSET)
 
-        initiator: Union[Unset, V20CredExRecordInitiator] = UNSET
         _initiator = d.pop("initiator", UNSET)
-        if not isinstance(_initiator, Unset):
+        initiator: Union[Unset, V20CredExRecordInitiator]
+        if isinstance(_initiator, Unset):
+            initiator = UNSET
+        else:
             initiator = V20CredExRecordInitiator(_initiator)
 
         parent_thread_id = d.pop("parent_thread_id", UNSET)
 
-        role: Union[Unset, V20CredExRecordRole] = UNSET
         _role = d.pop("role", UNSET)
-        if not isinstance(_role, Unset):
+        role: Union[Unset, V20CredExRecordRole]
+        if isinstance(_role, Unset):
+            role = UNSET
+        else:
             role = V20CredExRecordRole(_role)
 
-        state: Union[Unset, V20CredExRecordState] = UNSET
         _state = d.pop("state", UNSET)
-        if not isinstance(_state, Unset):
+        state: Union[Unset, V20CredExRecordState]
+        if isinstance(_state, Unset):
+            state = UNSET
+        else:
             state = V20CredExRecordState(_state)
 
         thread_id = d.pop("thread_id", UNSET)

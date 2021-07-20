@@ -1,49 +1,31 @@
-from typing import Any, Dict, List, Type, TypeVar, Union
+from typing import Any, Dict, List, Type, TypeVar
 
 import attr
 
-from ..models.query_result_results import QueryResultResults
-from ..types import UNSET, Unset
-
-T = TypeVar("T", bound="QueryResult")
+T = TypeVar("T", bound="SchemaSendResultsTxn")
 
 
 @attr.s(auto_attribs=True)
-class QueryResult:
-    """ """
+class SchemaSendResultsTxn:
+    """Schema transaction"""
 
-    results: Union[Unset, QueryResultResults] = UNSET
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
-        results: Union[Unset, Dict[str, Any]] = UNSET
-        if not isinstance(self.results, Unset):
-            results = self.results.to_dict()
 
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update({})
-        if results is not UNSET:
-            field_dict["results"] = results
 
         return field_dict
 
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        _results = d.pop("results", UNSET)
-        results: Union[Unset, QueryResultResults]
-        if isinstance(_results, Unset):
-            results = UNSET
-        else:
-            results = QueryResultResults.from_dict(_results)
+        schema_send_results_txn = cls()
 
-        query_result = cls(
-            results=results,
-        )
-
-        query_result.additional_properties = d
-        return query_result
+        schema_send_results_txn.additional_properties = d
+        return schema_send_results_txn
 
     @property
     def additional_keys(self) -> List[str]:

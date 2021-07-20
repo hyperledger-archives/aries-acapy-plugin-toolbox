@@ -52,9 +52,11 @@ class CredBrief:
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        attrs: Union[Unset, CredBriefAttrs] = UNSET
         _attrs = d.pop("attrs", UNSET)
-        if not isinstance(_attrs, Unset):
+        attrs: Union[Unset, CredBriefAttrs]
+        if isinstance(_attrs, Unset):
+            attrs = UNSET
+        else:
             attrs = CredBriefAttrs.from_dict(_attrs)
 
         cred_def_id = d.pop("cred_def_id", UNSET)

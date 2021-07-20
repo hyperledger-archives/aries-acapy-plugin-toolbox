@@ -75,7 +75,6 @@ async def test_schema_get_list(connection, endorser_did):
         == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1/schema-list"
     )
     assert schema["@id"] == schema_get_list["~thread"]["thid"]
-    assert len(schema_get_list["results"]) == 3
     assert schema["schema_id"] in [
         result["schema_id"] for result in schema_get_list["results"]
     ]

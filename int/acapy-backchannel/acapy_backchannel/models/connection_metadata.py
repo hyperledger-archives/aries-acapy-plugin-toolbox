@@ -31,9 +31,11 @@ class ConnectionMetadata:
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        results: Union[Unset, ConnectionMetadataResults] = UNSET
         _results = d.pop("results", UNSET)
-        if not isinstance(_results, Unset):
+        results: Union[Unset, ConnectionMetadataResults]
+        if isinstance(_results, Unset):
+            results = UNSET
+        else:
             results = ConnectionMetadataResults.from_dict(_results)
 
         connection_metadata = cls(

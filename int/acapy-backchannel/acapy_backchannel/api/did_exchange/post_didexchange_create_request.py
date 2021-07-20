@@ -36,7 +36,7 @@ def _get_kwargs(
     }
 
 
-def _build_response(*, response: httpx.Response) -> Response[None]:
+def _build_response(*, response: httpx.Response) -> Response[Any]:
     return Response(
         status_code=response.status_code,
         content=response.content,
@@ -52,7 +52,7 @@ def sync_detailed(
     mediation_id: Union[Unset, str] = UNSET,
     my_endpoint: Union[Unset, str] = UNSET,
     my_label: Union[Unset, str] = UNSET,
-) -> Response[None]:
+) -> Response[Any]:
     kwargs = _get_kwargs(
         client=client,
         their_public_did=their_public_did,
@@ -75,7 +75,7 @@ async def asyncio_detailed(
     mediation_id: Union[Unset, str] = UNSET,
     my_endpoint: Union[Unset, str] = UNSET,
     my_label: Union[Unset, str] = UNSET,
-) -> Response[None]:
+) -> Response[Any]:
     kwargs = _get_kwargs(
         client=client,
         their_public_did=their_public_did,

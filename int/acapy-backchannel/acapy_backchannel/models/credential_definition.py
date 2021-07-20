@@ -62,14 +62,18 @@ class CredentialDefinition:
 
         tag = d.pop("tag", UNSET)
 
-        type: Union[Unset, CredentialDefinitionType] = UNSET
         _type = d.pop("type", UNSET)
-        if not isinstance(_type, Unset):
+        type: Union[Unset, CredentialDefinitionType]
+        if isinstance(_type, Unset):
+            type = UNSET
+        else:
             type = CredentialDefinitionType.from_dict(_type)
 
-        value: Union[Unset, CredentialDefinitionValue] = UNSET
         _value = d.pop("value", UNSET)
-        if not isinstance(_value, Unset):
+        value: Union[Unset, CredentialDefinitionValue]
+        if isinstance(_value, Unset):
+            value = UNSET
+        else:
             value = CredentialDefinitionValue.from_dict(_value)
 
         ver = d.pop("ver", UNSET)
