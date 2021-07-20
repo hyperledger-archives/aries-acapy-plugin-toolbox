@@ -38,7 +38,7 @@ def _get_kwargs(
     }
 
 
-def _build_response(*, response: httpx.Response) -> Response[None]:
+def _build_response(*, response: httpx.Response) -> Response[Any]:
     return Response(
         status_code=response.status_code,
         content=response.content,
@@ -54,7 +54,7 @@ def sync_detailed(
     json_body: KeylistQueryFilterRequest,
     paginate_limit: Union[Unset, int] = -1,
     paginate_offset: Union[Unset, int] = 0,
-) -> Response[None]:
+) -> Response[Any]:
     kwargs = _get_kwargs(
         client=client,
         mediation_id=mediation_id,
@@ -77,7 +77,7 @@ async def asyncio_detailed(
     json_body: KeylistQueryFilterRequest,
     paginate_limit: Union[Unset, int] = -1,
     paginate_offset: Union[Unset, int] = 0,
-) -> Response[None]:
+) -> Response[Any]:
     kwargs = _get_kwargs(
         client=client,
         mediation_id=mediation_id,

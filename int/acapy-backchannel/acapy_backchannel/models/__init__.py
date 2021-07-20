@@ -138,7 +138,8 @@ from .schema import Schema
 from .schema_get_results import SchemaGetResults
 from .schema_send_request import SchemaSendRequest
 from .schema_send_results import SchemaSendResults
-from .schema_send_results_schema import SchemaSendResultsSchema
+from .schema_send_results_sent import SchemaSendResultsSent
+from .schema_send_results_txn import SchemaSendResultsTxn
 from .schemas_created_results import SchemasCreatedResults
 from .send_message import SendMessage
 from .service import Service

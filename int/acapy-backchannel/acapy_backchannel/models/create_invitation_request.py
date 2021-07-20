@@ -56,9 +56,11 @@ class CreateInvitationRequest:
         d = src_dict.copy()
         mediation_id = d.pop("mediation_id", UNSET)
 
-        metadata: Union[Unset, CreateInvitationRequestMetadata] = UNSET
         _metadata = d.pop("metadata", UNSET)
-        if not isinstance(_metadata, Unset):
+        metadata: Union[Unset, CreateInvitationRequestMetadata]
+        if isinstance(_metadata, Unset):
+            metadata = UNSET
+        else:
             metadata = CreateInvitationRequestMetadata.from_dict(_metadata)
 
         recipient_keys = cast(List[str], d.pop("recipient_keys", UNSET))

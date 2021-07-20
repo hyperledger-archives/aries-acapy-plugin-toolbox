@@ -37,9 +37,11 @@ class AttachmentDef:
         d = src_dict.copy()
         id = d.pop("id", UNSET)
 
-        type: Union[Unset, AttachmentDefType] = UNSET
         _type = d.pop("type", UNSET)
-        if not isinstance(_type, Unset):
+        type: Union[Unset, AttachmentDefType]
+        if isinstance(_type, Unset):
+            type = UNSET
+        else:
             type = AttachmentDefType(_type)
 
         attachment_def = cls(

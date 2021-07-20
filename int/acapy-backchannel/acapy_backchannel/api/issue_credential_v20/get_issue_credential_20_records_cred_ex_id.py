@@ -24,7 +24,7 @@ def _get_kwargs(
     }
 
 
-def _build_response(*, response: httpx.Response) -> Response[None]:
+def _build_response(*, response: httpx.Response) -> Response[Any]:
     return Response(
         status_code=response.status_code,
         content=response.content,
@@ -37,7 +37,7 @@ def sync_detailed(
     *,
     client: Client,
     cred_ex_id: str,
-) -> Response[None]:
+) -> Response[Any]:
     kwargs = _get_kwargs(
         client=client,
         cred_ex_id=cred_ex_id,
@@ -54,7 +54,7 @@ async def asyncio_detailed(
     *,
     client: Client,
     cred_ex_id: str,
-) -> Response[None]:
+) -> Response[Any]:
     kwargs = _get_kwargs(
         client=client,
         cred_ex_id=cred_ex_id,

@@ -31,9 +31,11 @@ class ClearPendingRevocationsRequest:
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        purge: Union[Unset, ClearPendingRevocationsRequestPurge] = UNSET
         _purge = d.pop("purge", UNSET)
-        if not isinstance(_purge, Unset):
+        purge: Union[Unset, ClearPendingRevocationsRequestPurge]
+        if isinstance(_purge, Unset):
+            purge = UNSET
+        else:
             purge = ClearPendingRevocationsRequestPurge.from_dict(_purge)
 
         clear_pending_revocations_request = cls(

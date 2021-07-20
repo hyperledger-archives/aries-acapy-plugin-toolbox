@@ -1,8 +1,10 @@
-from typing import Any, Dict, List, Type, TypeVar
+from typing import Any, Dict, List, Type, TypeVar, Union
 
 import attr
 
-from ..models.schema_send_results_schema import SchemaSendResultsSchema
+from ..models.schema_send_results_sent import SchemaSendResultsSent
+from ..models.schema_send_results_txn import SchemaSendResultsTxn
+from ..types import UNSET, Unset
 
 T = TypeVar("T", bound="SchemaSendResults")
 
@@ -11,36 +13,49 @@ T = TypeVar("T", bound="SchemaSendResults")
 class SchemaSendResults:
     """ """
 
-    schema: SchemaSendResultsSchema
-    schema_id: str
+    sent: Union[Unset, SchemaSendResultsSent] = UNSET
+    txn: Union[Unset, SchemaSendResultsTxn] = UNSET
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
-        schema = self.schema.to_dict()
+        sent: Union[Unset, Dict[str, Any]] = UNSET
+        if not isinstance(self.sent, Unset):
+            sent = self.sent.to_dict()
 
-        schema_id = self.schema_id
+        txn: Union[Unset, Dict[str, Any]] = UNSET
+        if not isinstance(self.txn, Unset):
+            txn = self.txn.to_dict()
 
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
-        field_dict.update(
-            {
-                "schema": schema,
-                "schema_id": schema_id,
-            }
-        )
+        field_dict.update({})
+        if sent is not UNSET:
+            field_dict["sent"] = sent
+        if txn is not UNSET:
+            field_dict["txn"] = txn
 
         return field_dict
 
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        schema = SchemaSendResultsSchema.from_dict(d.pop("schema"))
+        _sent = d.pop("sent", UNSET)
+        sent: Union[Unset, SchemaSendResultsSent]
+        if isinstance(_sent, Unset):
+            sent = UNSET
+        else:
+            sent = SchemaSendResultsSent.from_dict(_sent)
 
-        schema_id = d.pop("schema_id")
+        _txn = d.pop("txn", UNSET)
+        txn: Union[Unset, SchemaSendResultsTxn]
+        if isinstance(_txn, Unset):
+            txn = UNSET
+        else:
+            txn = SchemaSendResultsTxn.from_dict(_txn)
 
         schema_send_results = cls(
-            schema=schema,
-            schema_id=schema_id,
+            sent=sent,
+            txn=txn,
         )
 
         schema_send_results.additional_properties = d

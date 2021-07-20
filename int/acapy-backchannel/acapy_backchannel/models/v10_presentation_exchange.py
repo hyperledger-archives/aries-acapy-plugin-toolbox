@@ -125,40 +125,52 @@ class V10PresentationExchange:
 
         error_msg = d.pop("error_msg", UNSET)
 
-        initiator: Union[Unset, V10PresentationExchangeInitiator] = UNSET
         _initiator = d.pop("initiator", UNSET)
-        if not isinstance(_initiator, Unset):
+        initiator: Union[Unset, V10PresentationExchangeInitiator]
+        if isinstance(_initiator, Unset):
+            initiator = UNSET
+        else:
             initiator = V10PresentationExchangeInitiator(_initiator)
 
-        presentation: Union[Unset, V10PresentationExchangePresentation] = UNSET
         _presentation = d.pop("presentation", UNSET)
-        if not isinstance(_presentation, Unset):
+        presentation: Union[Unset, V10PresentationExchangePresentation]
+        if isinstance(_presentation, Unset):
+            presentation = UNSET
+        else:
             presentation = V10PresentationExchangePresentation.from_dict(_presentation)
 
         presentation_exchange_id = d.pop("presentation_exchange_id", UNSET)
 
-        presentation_proposal_dict: Union[Unset, V10PresentationExchangePresentationProposalDict] = UNSET
         _presentation_proposal_dict = d.pop("presentation_proposal_dict", UNSET)
-        if not isinstance(_presentation_proposal_dict, Unset):
+        presentation_proposal_dict: Union[Unset, V10PresentationExchangePresentationProposalDict]
+        if isinstance(_presentation_proposal_dict, Unset):
+            presentation_proposal_dict = UNSET
+        else:
             presentation_proposal_dict = V10PresentationExchangePresentationProposalDict.from_dict(
                 _presentation_proposal_dict
             )
 
-        presentation_request: Union[Unset, V10PresentationExchangePresentationRequest] = UNSET
         _presentation_request = d.pop("presentation_request", UNSET)
-        if not isinstance(_presentation_request, Unset):
+        presentation_request: Union[Unset, V10PresentationExchangePresentationRequest]
+        if isinstance(_presentation_request, Unset):
+            presentation_request = UNSET
+        else:
             presentation_request = V10PresentationExchangePresentationRequest.from_dict(_presentation_request)
 
-        presentation_request_dict: Union[Unset, V10PresentationExchangePresentationRequestDict] = UNSET
         _presentation_request_dict = d.pop("presentation_request_dict", UNSET)
-        if not isinstance(_presentation_request_dict, Unset):
+        presentation_request_dict: Union[Unset, V10PresentationExchangePresentationRequestDict]
+        if isinstance(_presentation_request_dict, Unset):
+            presentation_request_dict = UNSET
+        else:
             presentation_request_dict = V10PresentationExchangePresentationRequestDict.from_dict(
                 _presentation_request_dict
             )
 
-        role: Union[Unset, V10PresentationExchangeRole] = UNSET
         _role = d.pop("role", UNSET)
-        if not isinstance(_role, Unset):
+        role: Union[Unset, V10PresentationExchangeRole]
+        if isinstance(_role, Unset):
+            role = UNSET
+        else:
             role = V10PresentationExchangeRole(_role)
 
         state = d.pop("state", UNSET)
@@ -169,9 +181,11 @@ class V10PresentationExchange:
 
         updated_at = d.pop("updated_at", UNSET)
 
-        verified: Union[Unset, V10PresentationExchangeVerified] = UNSET
         _verified = d.pop("verified", UNSET)
-        if not isinstance(_verified, Unset):
+        verified: Union[Unset, V10PresentationExchangeVerified]
+        if isinstance(_verified, Unset):
+            verified = UNSET
+        else:
             verified = V10PresentationExchangeVerified(_verified)
 
         v10_presentation_exchange = cls(
