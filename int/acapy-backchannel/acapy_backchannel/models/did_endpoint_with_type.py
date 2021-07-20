@@ -45,9 +45,11 @@ class DIDEndpointWithType:
 
         endpoint = d.pop("endpoint", UNSET)
 
-        endpoint_type: Union[Unset, DIDEndpointWithTypeEndpointType] = UNSET
         _endpoint_type = d.pop("endpoint_type", UNSET)
-        if not isinstance(_endpoint_type, Unset):
+        endpoint_type: Union[Unset, DIDEndpointWithTypeEndpointType]
+        if isinstance(_endpoint_type, Unset):
+            endpoint_type = UNSET
+        else:
             endpoint_type = DIDEndpointWithTypeEndpointType(_endpoint_type)
 
         did_endpoint_with_type = cls(

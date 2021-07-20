@@ -4773,15 +4773,14 @@ components:
       - schema_id
       type: object
       properties:
-        schema:
+        sent:
           type: object
           properties: {}
           description: Schema result
-        schema_id:
-          pattern: ^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{21,22}:2:.+:[0-9.]+$
-          type: string
-          description: Schema identifier
-          example: WgWxqztrNooG92RXvxSTWv:2:schema_name:1.0
+        txn:
+          type: object
+          properties: {}
+          description: Schema transaction
     SchemasCreatedResults:
       type: object
       properties:

@@ -64,9 +64,11 @@ class InvitationRecord:
 
         invi_msg_id = d.pop("invi_msg_id", UNSET)
 
-        invitation: Union[Unset, InvitationRecordInvitation] = UNSET
         _invitation = d.pop("invitation", UNSET)
-        if not isinstance(_invitation, Unset):
+        invitation: Union[Unset, InvitationRecordInvitation]
+        if isinstance(_invitation, Unset):
+            invitation = UNSET
+        else:
             invitation = InvitationRecordInvitation.from_dict(_invitation)
 
         invitation_id = d.pop("invitation_id", UNSET)
