@@ -4769,18 +4769,30 @@ components:
           example: "1.0"
     SchemaSendResults:
       required:
-      - schema
-      - schema_id
+      - sent
       type: object
       properties:
         sent:
-          type: object
-          properties: {}
-          description: Schema result
+          $ref: '#/components/schemas/SchemaSent'
         txn:
           type: object
           properties: {}
           description: Schema transaction
+    SchemaSent:
+      type: object
+      required:
+      - schema
+      - schema_id
+      properties:
+        schema:
+          type: object
+          properties: {}
+          description: schema
+        schema_id:
+          pattern: ^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{21,22}:2:.+:[0-9.]+$
+          type: string
+          description: Schema identifier
+          example: WgWxqztrNooG92RXvxSTWv:2:schema_name:1.0
     SchemasCreatedResults:
       type: object
       properties:

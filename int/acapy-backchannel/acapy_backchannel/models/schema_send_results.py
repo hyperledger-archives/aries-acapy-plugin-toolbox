@@ -2,8 +2,8 @@ from typing import Any, Dict, List, Type, TypeVar, Union
 
 import attr
 
-from ..models.schema_send_results_sent import SchemaSendResultsSent
 from ..models.schema_send_results_txn import SchemaSendResultsTxn
+from ..models.schema_sent import SchemaSent
 from ..types import UNSET, Unset
 
 T = TypeVar("T", bound="SchemaSendResults")
@@ -13,14 +13,12 @@ T = TypeVar("T", bound="SchemaSendResults")
 class SchemaSendResults:
     """ """
 
-    sent: Union[Unset, SchemaSendResultsSent] = UNSET
+    sent: SchemaSent
     txn: Union[Unset, SchemaSendResultsTxn] = UNSET
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
-        sent: Union[Unset, Dict[str, Any]] = UNSET
-        if not isinstance(self.sent, Unset):
-            sent = self.sent.to_dict()
+        sent = self.sent.to_dict()
 
         txn: Union[Unset, Dict[str, Any]] = UNSET
         if not isinstance(self.txn, Unset):
@@ -28,9 +26,11 @@ class SchemaSendResults:
 
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
-        field_dict.update({})
-        if sent is not UNSET:
-            field_dict["sent"] = sent
+        field_dict.update(
+            {
+                "sent": sent,
+            }
+        )
         if txn is not UNSET:
             field_dict["txn"] = txn
 
@@ -39,12 +39,7 @@ class SchemaSendResults:
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        _sent = d.pop("sent", UNSET)
-        sent: Union[Unset, SchemaSendResultsSent]
-        if isinstance(_sent, Unset):
-            sent = UNSET
-        else:
-            sent = SchemaSendResultsSent.from_dict(_sent)
+        sent = SchemaSent.from_dict(d.pop("sent"))
 
         _txn = d.pop("txn", UNSET)
         txn: Union[Unset, SchemaSendResultsTxn]
