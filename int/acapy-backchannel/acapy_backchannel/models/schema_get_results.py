@@ -31,9 +31,11 @@ class SchemaGetResults:
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        schema: Union[Unset, Schema] = UNSET
         _schema = d.pop("schema", UNSET)
-        if not isinstance(_schema, Unset):
+        schema: Union[Unset, Schema]
+        if isinstance(_schema, Unset):
+            schema = UNSET
+        else:
             schema = Schema.from_dict(_schema)
 
         schema_get_results = cls(

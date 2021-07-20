@@ -66,9 +66,11 @@ class V20CredExRecordIndy:
 
         cred_ex_indy_id = d.pop("cred_ex_indy_id", UNSET)
 
-        cred_request_metadata: Union[Unset, V20CredExRecordIndyCredRequestMetadata] = UNSET
         _cred_request_metadata = d.pop("cred_request_metadata", UNSET)
-        if not isinstance(_cred_request_metadata, Unset):
+        cred_request_metadata: Union[Unset, V20CredExRecordIndyCredRequestMetadata]
+        if isinstance(_cred_request_metadata, Unset):
+            cred_request_metadata = UNSET
+        else:
             cred_request_metadata = V20CredExRecordIndyCredRequestMetadata.from_dict(_cred_request_metadata)
 
         cred_rev_id = d.pop("cred_rev_id", UNSET)

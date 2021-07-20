@@ -82,9 +82,11 @@ class V10CredentialProposalRequestOpt:
 
         cred_def_id = d.pop("cred_def_id", UNSET)
 
-        credential_proposal: Union[Unset, CredentialPreview] = UNSET
         _credential_proposal = d.pop("credential_proposal", UNSET)
-        if not isinstance(_credential_proposal, Unset):
+        credential_proposal: Union[Unset, CredentialPreview]
+        if isinstance(_credential_proposal, Unset):
+            credential_proposal = UNSET
+        else:
             credential_proposal = CredentialPreview.from_dict(_credential_proposal)
 
         issuer_did = d.pop("issuer_did", UNSET)

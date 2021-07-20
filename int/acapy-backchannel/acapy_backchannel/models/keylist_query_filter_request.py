@@ -31,9 +31,11 @@ class KeylistQueryFilterRequest:
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        filter_: Union[Unset, KeylistQueryFilterRequestFilter] = UNSET
         _filter_ = d.pop("filter", UNSET)
-        if not isinstance(_filter_, Unset):
+        filter_: Union[Unset, KeylistQueryFilterRequestFilter]
+        if isinstance(_filter_, Unset):
+            filter_ = UNSET
+        else:
             filter_ = KeylistQueryFilterRequestFilter.from_dict(_filter_)
 
         keylist_query_filter_request = cls(
