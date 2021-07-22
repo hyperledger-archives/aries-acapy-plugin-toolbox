@@ -195,6 +195,7 @@ async def make_did(backchannel):
 
 @pytest.fixture(scope="session")
 async def accepted_taa(backchannel):
+    backchannel.timeout = 15
     result = (await fetch_taa.asyncio(client=backchannel)).result
     result = await accept_taa.asyncio(
         client=backchannel,
@@ -209,7 +210,7 @@ async def accepted_taa(backchannel):
 @pytest.fixture(scope="session")
 async def endorser_did(make_did, backchannel, accepted_taa):
     """Endorser DID factory fixture"""
-
+    backchannel.timeout = 15
     did: DID = await make_did()
     LOGGER.info("Publishing DID through https://selfserve.indiciotech.io")
     response = httpx.post(
@@ -219,12 +220,13 @@ async def endorser_did(make_did, backchannel, accepted_taa):
             "did": did.did,
             "verkey": did.verkey,
         },
-        timeout=30,
+        timeout=15,
     )
     if response.is_error:
         raise Exception("Failed to publish DID:", response.text)
 
     LOGGER.info("DID Published")
+    backchannel.timeout = 15
     result = await set_public_did.asyncio_detailed(
         client=backchannel,
         did=did.did,
