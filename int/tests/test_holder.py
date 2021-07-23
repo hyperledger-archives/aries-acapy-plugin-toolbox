@@ -1,15 +1,22 @@
 """Holder Tests"""
 import asyncio
 import pytest
+from typing import cast
 
 from acapy_backchannel import Client
 from acapy_backchannel.models.create_invitation_request import CreateInvitationRequest
 from acapy_backchannel.models.conn_record import ConnRecord
 from acapy_backchannel.models.receive_invitation_request import ReceiveInvitationRequest
 from acapy_backchannel.models.schema_send_request import SchemaSendRequest
+from acapy_backchannel.models.v10_credential_proposal_request_mand import (
+    V10CredentialProposalRequestMand,
+)
+from acapy_backchannel.models.credential_preview import CredentialPreview
 from acapy_backchannel.models.credential_definition_send_request import (
     CredentialDefinitionSendRequest,
 )
+from acapy_backchannel.models.cred_attr_spec import CredAttrSpec
+from acapy_backchannel.models.v10_credential_exchange import V10CredentialExchange
 from acapy_backchannel.api.connection import (
     create_invitation,
     receive_invitation,
@@ -17,6 +24,7 @@ from acapy_backchannel.api.connection import (
 )
 from acapy_backchannel.api.schema import publish_schema
 from acapy_backchannel.api.credential_definition import publish_cred_def
+from acapy_backchannel.api.issue_credential_v10 import issue_credential_automated
 
 
 @pytest.fixture(scope="module")
@@ -38,9 +46,14 @@ async def issuer_holder_connection(backchannel: Client):
             service_endpoint=invitation_created.invitation.service_endpoint,
         ),
     )
-    return await get_connection.asyncio(
+    ensure_connected = await get_connection.asyncio(
         client=backchannel, conn_id=connection_created.connection_id
     )
+    return invitation_created, connection_created
+    # To access the connection ids
+    # something = issuer_holder_connection
+    # conn_id_invitation = something[0].connection_id
+    # conn_id_received = something[1].connection_id
 
 
 @pytest.fixture(scope="module")
@@ -65,8 +78,8 @@ async def create_cred_def(backchannel: Client, endorser_did, create_schema):
     """Credential definition fixture"""
 
     async def _create_cred_def(version):
-        schema = await create_schema(version="1.0")
-        backchannel.timeout = 20
+        schema = await create_schema(version)
+        backchannel.timeout = 15
         return await publish_cred_def.asyncio(
             client=backchannel,
             json_body=CredentialDefinitionSendRequest(
@@ -75,3 +88,52 @@ async def create_cred_def(backchannel: Client, endorser_did, create_schema):
         )
 
     yield _create_cred_def
+
+
+@pytest.mark.asyncio
+async def test_holder_credential_exchange(
+    backchannel: Client,
+    connection,
+    issuer_holder_connection,
+    endorser_did,
+    create_schema,
+    create_cred_def,
+):
+    connected = issuer_holder_connection
+    cred_def = await create_cred_def(version="1.0")
+    with connection.next() as future_cred_offer_received:
+        if (
+            future_cred_offer_received["@type"]
+            == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-received"
+        ):
+            issue_result = await issue_credential_automated.asyncio(
+                client=backchannel,
+                json_body=V10CredentialProposalRequestMand(
+                    connection_id=connected[0].connection_id,
+                    credential_proposal=CredentialPreview(
+                        [
+                            CredAttrSpec(name="attr_1_0", value="test_0"),
+                            CredAttrSpec(name="attr_1_1", value="test_1"),
+                            CredAttrSpec(name="attr_1_2", value="test_2"),
+                        ]
+                    ),
+                    cred_def_id=cred_def.additional_properties["sent"][
+                        "credential_definition_id"
+                    ],
+                ),
+                timeout=60,
+            )
+            issue_result = cast(V10CredentialExchange, issue_result)
+            cred_offer_received = await asyncio.wait_for(future_cred_offer_received, 60)
+    print("cred_offer_received: ", cred_offer_received)
+    assert False
+
+
+# @pytest.mark.asyncio
+# async def test_credentials_get_list(connection, endorser_did, create_schema, create_cred_def):
+#     credentials_get_list = await connection.send_and_await_reply_async(
+#         {
+#             "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-get-list",
+#         }
+#     )
+#     assert credentials_get_list["@type"] == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-list"
