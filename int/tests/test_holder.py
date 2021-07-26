@@ -28,11 +28,16 @@ from acapy_backchannel.api.issue_credential_v10 import issue_credential_automate
 
 
 @pytest.fixture(scope="module")
-async def issuer_holder_connection(backchannel: Client):
+async def issuer_holder_connection(backchannel: Client, connection):
     """Invitation creation fixture"""
     invitation_created = await create_invitation.asyncio(
-        client=backchannel, json_body=CreateInvitationRequest()
+        client=backchannel,
+        json_body=CreateInvitationRequest(),
+        auto_accept="true",
     )
+    # with connection.next(
+    #     type_="https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connected"
+    # ) as future_connected_message:
     connection_created = await receive_invitation.asyncio(
         client=backchannel,
         json_body=ReceiveInvitationRequest(
@@ -45,10 +50,9 @@ async def issuer_holder_connection(backchannel: Client):
             routing_keys=invitation_created.invitation.routing_keys,
             service_endpoint=invitation_created.invitation.service_endpoint,
         ),
+        auto_accept="true",
     )
-    ensure_connected = await get_connection.asyncio(
-        client=backchannel, conn_id=connection_created.connection_id
-    )
+    # await asyncio.wait_for(future_connected_message, 10)
     return invitation_created, connection_created
     # To access the connection ids
     # something = issuer_holder_connection
@@ -79,7 +83,7 @@ async def create_cred_def(backchannel: Client, endorser_did, create_schema):
 
     async def _create_cred_def(version):
         schema = await create_schema(version)
-        backchannel.timeout = 15
+        backchannel.timeout = 30
         return await publish_cred_def.asyncio(
             client=backchannel,
             json_body=CredentialDefinitionSendRequest(
