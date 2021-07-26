@@ -101,12 +101,11 @@ async def test_holder_credential_exchange(
 ):
     connected = issuer_holder_connection
     cred_def = await create_cred_def(version="1.0")
-    with connection.next() as future_cred_offer_received:
-        if (
-            future_cred_offer_received["@type"]
-            == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-received"
-        ):
-            issue_result = await issue_credential_automated.asyncio(
+    with connection.next(
+        type_="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-received"
+    ) as future_cred_offer_received:
+        issue_result = await asyncio.wait_for(
+            issue_credential_automated.asyncio(
                 client=backchannel,
                 json_body=V10CredentialProposalRequestMand(
                     connection_id=connected[0].connection_id,
@@ -121,10 +120,11 @@ async def test_holder_credential_exchange(
                         "credential_definition_id"
                     ],
                 ),
-                timeout=60,
-            )
-            issue_result = cast(V10CredentialExchange, issue_result)
-            cred_offer_received = await asyncio.wait_for(future_cred_offer_received, 60)
+            ),
+            timeout=60,
+        )
+        issue_result = cast(V10CredentialExchange, issue_result)
+        cred_offer_received = await asyncio.wait_for(future_cred_offer_received, 60)
     print("cred_offer_received: ", cred_offer_received)
     assert False
 
