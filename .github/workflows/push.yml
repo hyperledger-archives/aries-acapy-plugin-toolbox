@@ -81,7 +81,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: integration tests
         run: |
-          docker-compose -f int/docker-compose.yml up -d && docker attach juggernaut
+          docker-compose -f int/docker-compose.yml run tests
       - name: teardown
         run: |
           docker-compose -f int/docker-compose.yml down
