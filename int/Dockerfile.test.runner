@@ -8,6 +8,7 @@ ADD https://github.com/ufoscout/docker-compose-wait/releases/download/$WAIT_VERS
 RUN chmod +x /wait
 
 COPY acapy-backchannel acapy-backchannel
+COPY echo-agent echo-agent
 COPY pyproject.toml .
 COPY poetry.lock .
 RUN poetry install --no-dev

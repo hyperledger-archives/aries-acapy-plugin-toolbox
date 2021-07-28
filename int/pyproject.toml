@@ -13,6 +13,7 @@ pytest-cov = "^2.12.1"
 asynctest = "0.13.0"
 requests = "^2.25.1"
 acapy-backchannel = {path = "acapy-backchannel", develop = true}
+echo-agent-client = {path = "echo-agent/echo-agent-client", develop = true}
 aries-staticagent = "^0.8.0"
 aiohttp = "^3.7.4"
 
