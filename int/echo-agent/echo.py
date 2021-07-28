@@ -15,7 +15,7 @@ Required operations include:
 from asyncio import Queue
 import json
 import logging
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Optional
 from uuid import uuid4
 from aries_staticagent.static_connection import StaticConnection, Target
 from aries_staticagent.message import Message
@@ -120,20 +120,18 @@ async def receive_message(request: Request):
     response_model=List[Message],
     operation_id="retrieve_messages",
 )
-async def retreive_messages(connection_id: str, poll: bool = False):
+async def retreive_messages(connection_id: str):
     """Retrieve all received messages for recipient key."""
     if connection_id not in messages:
-        messages[connection_id] = Queue()
+        raise HTTPException(
+            status_code=404,
+            detail=f"No messages found for connection id {connection_id}",
+        )
 
-    if poll:
-        LOGGER.debug(
-            "Retrieving messages for connection_id %s with long polling", connection_id
-        )
-    else:
-        LOGGER.debug(
-            "Retrieving messages for connection_id %s without long polling",
-            connection_id,
-        )
+    LOGGER.debug(
+        "Retrieving messages for connection_id %s",
+        connection_id,
+    )
     queue = messages[connection_id]
     if not queue.empty():
         to_return = []
@@ -142,16 +140,50 @@ async def retreive_messages(connection_id: str, poll: bool = False):
             queue.task_done()
         LOGGER.debug("Returning messages: %s", to_return)
         return to_return
-    elif poll:
-        LOGGER.debug(
-            "Waiting for message on queue for connection with id %s...", connection_id
-        )
-        message = await queue.get()
-        queue.task_done()
-        LOGGER.debug("Message received, returning: %s", message)
-        return [message]
     else:
         return []
+
+
+@app.get(
+    "/wait-for/{connection_id}", response_model=Message, operation_id="wait_for_message"
+)
+async def wait_for_message(
+    connection_id: str, thid: Optional[str] = None, msg_type: Optional[str] = None
+):
+    """Wait for a message matching criteria."""
+
+    def _matcher(message: Message):
+        """Matcher for messages."""
+        thid_match = True if thid is None else message.thread["thid"] == thid
+        msg_type_match = True if msg_type is None else message.type == msg_type
+        return thid_match and msg_type_match
+
+    if connection_id not in messages:
+        if connection_id in connections:
+            messages[connection_id] = Queue()
+        else:
+            raise HTTPException(
+                status_code=404, detail=f"No connection id matching {connection_id}"
+            )
+
+    queue = messages[connection_id]
+    while not queue.empty():
+        message = queue.get_nowait()
+        queue.task_done()
+        if _matcher(message):
+            LOGGER.debug("Found message: %s", message)
+            return message
+        else:
+            LOGGER.info("Dropping message: %s", message)
+
+    while True:
+        message = await queue.get()
+        queue.task_done()
+        if _matcher(message):
+            LOGGER.debug("Found message: %s", message)
+            return message
+        else:
+            LOGGER.info("Dropping message: %s", message)
 
 
 @app.post("/send/{connection_id}", operation_id="send_message")
