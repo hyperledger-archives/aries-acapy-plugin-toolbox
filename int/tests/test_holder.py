@@ -35,9 +35,6 @@ async def issuer_holder_connection(backchannel: Client, connection):
         json_body=CreateInvitationRequest(),
         auto_accept="true",
     )
-    # with connection.next(
-    #     type_="https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connected"
-    # ) as future_connected_message:
     connection_created = await receive_invitation.asyncio(
         client=backchannel,
         json_body=ReceiveInvitationRequest(
@@ -52,12 +49,7 @@ async def issuer_holder_connection(backchannel: Client, connection):
         ),
         auto_accept="true",
     )
-    # await asyncio.wait_for(future_connected_message, 10)
     return invitation_created, connection_created
-    # To access the connection ids
-    # something = issuer_holder_connection
-    # conn_id_invitation = something[0].connection_id
-    # conn_id_received = something[1].connection_id
 
 
 @pytest.fixture(scope="module")
@@ -105,32 +97,36 @@ async def test_holder_credential_exchange(
 ):
     connected = issuer_holder_connection
     cred_def = await create_cred_def(version="1.0")
-    with connection.next(
-        type_="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-received"
-    ) as future_cred_offer_received:
-        issue_result = await asyncio.wait_for(
-            issue_credential_automated.asyncio(
-                client=backchannel,
-                json_body=V10CredentialProposalRequestMand(
-                    connection_id=connected[0].connection_id,
-                    credential_proposal=CredentialPreview(
-                        [
-                            CredAttrSpec(name="attr_1_0", value="test_0"),
-                            CredAttrSpec(name="attr_1_1", value="test_1"),
-                            CredAttrSpec(name="attr_1_2", value="test_2"),
-                        ]
-                    ),
-                    cred_def_id=cred_def.additional_properties["sent"][
-                        "credential_definition_id"
-                    ],
+    issue_result = await asyncio.wait_for(
+        issue_credential_automated.asyncio(
+            client=backchannel,
+            json_body=V10CredentialProposalRequestMand(
+                connection_id=connected[1].connection_id,
+                credential_proposal=CredentialPreview(
+                    [
+                        CredAttrSpec(name="attr_1_0", value="test_0"),
+                        CredAttrSpec(name="attr_1_1", value="test_1"),
+                        CredAttrSpec(name="attr_1_2", value="test_2"),
+                    ]
                 ),
+                cred_def_id=cred_def.additional_properties["sent"][
+                    "credential_definition_id"
+                ],
             ),
-            timeout=60,
-        )
-        issue_result = cast(V10CredentialExchange, issue_result)
-        cred_offer_received = await asyncio.wait_for(future_cred_offer_received, 60)
-    print("cred_offer_received: ", cred_offer_received)
-    assert False
+        ),
+        timeout=60,
+    )
+    issue_result = cast(V10CredentialExchange, issue_result)
+    credential_offer_accept = await connection.send_and_await_reply_async(
+        {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-accept",
+            "credential_exchange_id": issue_result.credential_exchange_id,
+        }
+    )
+    assert (
+        credential_offer_accept["@type"]
+        == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-received"
+    )
 
 
 # @pytest.mark.asyncio
