@@ -11,4 +11,5 @@ COPY ./pyproject.toml ./poetry.lock /app/
 RUN poetry install --no-root
 
 COPY ./echo.py /app/
-CMD poetry run python -m uvicorn echo:app --host 0.0.0.0 --port 80
+ENTRYPOINT ["/bin/sh", "-c", "poetry run \"$@\"", "--"]
+CMD python -m uvicorn echo:app --host 0.0.0.0 --port 80
