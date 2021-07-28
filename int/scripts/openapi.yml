@@ -560,6 +560,7 @@ paths:
       x-codegen-request-body-name: body
   /connections/{conn_id}/send-message:
     post:
+      operationId: send_basicmessage
       tags:
       - basicmessage
       summary: Send a basic message to a connection
