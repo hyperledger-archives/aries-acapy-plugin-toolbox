@@ -94,6 +94,7 @@ async def test_holder_credential_exchange(
     endorser_did,
     create_schema,
     create_cred_def,
+    wait_for_message
 ):
     connected = issuer_holder_connection
     cred_def = await create_cred_def(version="1.0")
@@ -116,17 +117,21 @@ async def test_holder_credential_exchange(
         ),
         timeout=60,
     )
+    credential_offer_received = await wait_for_message(
+        msg_type="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-received"
+    )
     issue_result = cast(V10CredentialExchange, issue_result)
     credential_offer_accept = await connection.send_and_await_reply_async(
         {
             "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-accept",
-            "credential_exchange_id": issue_result.credential_exchange_id,
+            "credential_exchange_id": credential_offer_received["credential_exchange_id"],
         }
     )
     assert (
         credential_offer_accept["@type"]
-        == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-received"
+        == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-request-sent"
     )
+    # TODO verify holder "agent" has a credential matching the accepted one
 
 
 # @pytest.mark.asyncio
