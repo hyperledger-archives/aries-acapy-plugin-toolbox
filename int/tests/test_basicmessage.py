@@ -67,7 +67,7 @@ async def test_new(connection: StaticConnection):
     """Test new message notification"""
     # "new" message notifications are sent only over sessions.
     # This call must be done as a send_and_await_reply_async
-    new_message = await connection.send_and_await_reply_async(
+    new_message = await connection.send_and_await_returned_async(
         {
             "@type": "https://didcomm.org/basicmessage/1.0/message",
             "~l10n": {"locale": "en"},

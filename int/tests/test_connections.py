@@ -61,10 +61,7 @@ async def test_create_connection(connection):
             "multi_use": True,
         }
     )
-    invitation = await connection.send_and_await_reply_async(
-        msg_invitation,
-        condition=lambda reply: reply.thread["thid"] == msg_invitation.id,
-    )
+    invitation = await connection.send_and_await_reply_async(msg_invitation)
     msg_received = Message(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/receive-invitation",
@@ -72,9 +69,7 @@ async def test_create_connection(connection):
             "auto_accept": True,
         }
     )
-    received = await connection.send_and_await_reply_async(
-        msg_received, condition=lambda reply: reply.thread["thid"] == msg_received.id
-    )
+    received = await connection.send_and_await_reply_async(msg_received)
     assert (
         received["@type"]
         == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connection"
@@ -117,10 +112,7 @@ async def test_update(connection):
             "multi_use": True,
         }
     )
-    invitation = await connection.send_and_await_reply_async(
-        msg_invitation,
-        condition=lambda reply: reply.thread["thid"] == msg_invitation.id,
-    )
+    invitation = await connection.send_and_await_reply_async(msg_invitation)
     msg_received = Message(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/receive-invitation",
@@ -128,10 +120,7 @@ async def test_update(connection):
             "auto_accept": True,
         }
     )
-    received = await connection.send_and_await_reply_async(
-        msg_received,
-        condition=lambda reply: reply.thread["thid"] == msg_received.id,
-    )
+    received = await connection.send_and_await_reply_async(msg_received)
     msg_update = Message(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/update",
@@ -140,10 +129,7 @@ async def test_update(connection):
             "role": "Updated role",
         }
     )
-    update = await connection.send_and_await_reply_async(
-        msg_update,
-        condition=lambda reply: reply.thread["thid"] == msg_update.id,
-    )
+    update = await connection.send_and_await_reply_async(msg_update)
     assert update["label"] == "Updated label"
 
 
@@ -161,10 +147,7 @@ async def test_delete(connection):
             "multi_use": True,
         }
     )
-    invitation = await connection.send_and_await_reply_async(
-        invitation_msg,
-        condition=lambda reply: reply.thread["thid"] == invitation_msg.id,
-    )
+    invitation = await connection.send_and_await_reply_async(invitation_msg)
     msg_received = Message(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/receive-invitation",
@@ -172,10 +155,7 @@ async def test_delete(connection):
             "auto_accept": True,
         }
     )
-    received = await connection.send_and_await_reply_async(
-        msg_received,
-        condition=lambda reply: reply.thread["thid"] == msg_received.id,
-    )
+    received = await connection.send_and_await_reply_async(msg_received)
     delete_connection = await connection.send_and_await_reply_async(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/delete",
