@@ -65,22 +65,19 @@ python-versions = "*"
 
 [[package]]
 name = "aries-staticagent"
-version = "0.8.0"
-description = "Python Static Agent Library and Examples for Aries"
+version = "0.9.0rc2"
+description = "Aries Static Agent library for Python"
 category = "main"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.6.9,<4.0.0"
 
 [package.dependencies]
-aiohttp = "*"
-base58 = "*"
-msgpack = "*"
-pynacl = "*"
-semver = "*"
-sortedcontainers = "*"
-
-[package.extras]
-test = ["coverage", "flake8", "pytest", "pytest-asyncio"]
+aiohttp = ">=3.7.4,<4.0.0"
+base58 = ">=2.1.0,<3.0.0"
+msgpack = ">=1.0.2,<2.0.0"
+PyNaCl = ">=1.4.0,<2.0.0"
+semver = ">=2.13.0,<3.0.0"
+sortedcontainers = ">=2.4.0,<3.0.0"
 
 [[package]]
 name = "async-generator"
@@ -426,7 +423,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 
 [[package]]
 name = "importlib-resources"
-version = "5.2.0"
+version = "5.2.1"
 description = "Read resources from Python packages"
 category = "dev"
 optional = false
@@ -508,7 +505,7 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 
 [[package]]
 name = "platformdirs"
-version = "2.1.0"
+version = "2.2.0"
 description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
 category = "dev"
 optional = false
@@ -846,7 +843,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6.9"
-content-hash = "5317644905dc6f91087b0a73d7c5e193237617c91c362ffa6d47153f138f400e"
+content-hash = "1a3210ce508020a4fd36e0572aaee7962acd2f2b40e1ba6fbd9a605bf175051b"
 
 [metadata.files]
 acapy-backchannel = []
@@ -898,8 +895,8 @@ appdirs = [
     {file = "appdirs-1.4.4.tar.gz", hash = "sha256:7d5d0167b2b1ba821647616af46a749d1c653740dd0d2415100fe26e27afdf41"},
 ]
 aries-staticagent = [
-    {file = "aries-staticagent-0.8.0.tar.gz", hash = "sha256:0672d479ca64fc085f55012cdad68c43871c417f371f7669634d5300646c0ff9"},
-    {file = "aries_staticagent-0.8.0-py3-none-any.whl", hash = "sha256:648fec4a630421df27a0db652d3ca3d0ccaca8b2eac06c61ccdfad4b8f19ec78"},
+    {file = "aries-staticagent-0.9.0rc2.tar.gz", hash = "sha256:2e108df617c2ece130f5e69ac28f0ed4cef2fc945a99e1377e3ea518990ec359"},
+    {file = "aries_staticagent-0.9.0rc2-py3-none-any.whl", hash = "sha256:86a54d040815d19f3396da8a4c040e7b3571c7ffa024ce43354008b21fb1dc55"},
 ]
 async-generator = [
     {file = "async_generator-1.10-py3-none-any.whl", hash = "sha256:01c7bf666359b4967d2cda0000cc2e4af16a0ae098cbffcb8472fb9e8ad6585b"},
@@ -1118,8 +1115,8 @@ importlib-metadata = [
     {file = "importlib_metadata-4.6.1.tar.gz", hash = "sha256:079ada16b7fc30dfbb5d13399a5113110dab1aa7c2bc62f66af75f0b717c8cac"},
 ]
 importlib-resources = [
-    {file = "importlib_resources-5.2.0-py3-none-any.whl", hash = "sha256:a0143290bef3cbc99de9e40176e4987780939a955b8632f02ce6c935f42e9bfc"},
-    {file = "importlib_resources-5.2.0.tar.gz", hash = "sha256:22a2c42d8c6a1d30aa8a0e1f57293725bfd5c013d562585e46aff469e0ff78b3"},
+    {file = "importlib_resources-5.2.1-py3-none-any.whl", hash = "sha256:b9a075a844a03e0fb0ab70e5b0ea138c92e9f07f3a21fc11a656cf9492dbf64f"},
+    {file = "importlib_resources-5.2.1.tar.gz", hash = "sha256:c3789472eacdf3e20a4d746f7fe7cdf53c122e76f78813fbfb04d618e0152b6a"},
 ]
 iniconfig = [
     {file = "iniconfig-1.1.1-py2.py3-none-any.whl", hash = "sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3"},
@@ -1215,8 +1212,8 @@ pathspec = [
     {file = "pathspec-0.9.0.tar.gz", hash = "sha256:e564499435a2673d586f6b2130bb5b95f04a3ba06f81b8f895b651a3c76aabb1"},
 ]
 platformdirs = [
-    {file = "platformdirs-2.1.0-py3-none-any.whl", hash = "sha256:b2b30ae52404f93e2024e85bba29329b85715d6b2f18ffe90ecd25a5c67553df"},
-    {file = "platformdirs-2.1.0.tar.gz", hash = "sha256:1964be5aba107a7ccb7de0e6f1f1bfde0dee51641f0e733028121f8e02e2e16b"},
+    {file = "platformdirs-2.2.0-py3-none-any.whl", hash = "sha256:4666d822218db6a262bdfdc9c39d21f23b4cfdb08af331a81e92751daf6c866c"},
+    {file = "platformdirs-2.2.0.tar.gz", hash = "sha256:632daad3ab546bd8e6af0537d09805cec458dce201bccfe23012df73332e181e"},
 ]
 pluggy = [
     {file = "pluggy-0.13.1-py2.py3-none-any.whl", hash = "sha256:966c145cd83c96502c3c3868f50408687b38434af77734af1e9ca461a4081d2d"},
