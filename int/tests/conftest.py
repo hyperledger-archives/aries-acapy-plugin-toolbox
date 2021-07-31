@@ -206,7 +206,7 @@ async def echo_connection(echo_client, suite_seed, agent_connection):
 
 
 @pytest.fixture(scope="session")
-def asynchronously_recevied_messages(
+def asynchronously_received_messages(
     echo_client: EchoClient, echo_connection: EchoConnection
 ):
     """Get asynchronously recevied messages from the echo agent."""

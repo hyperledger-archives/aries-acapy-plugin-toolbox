@@ -40,7 +40,7 @@ async def clear_messages(connection):
 
 @pytest.mark.asyncio
 async def test_send(
-    connection: StaticConnection, connection_id: str, asynchronously_recevied_messages
+    connection: StaticConnection, connection_id: str, asynchronously_received_messages
 ):
     """Test send message"""
     sent_message = await connection.send_and_await_reply_async(
@@ -50,7 +50,7 @@ async def test_send(
             "content": "Your hovercraft is full of eels.",
         },
     )
-    [recip_message] = await asynchronously_recevied_messages()
+    [recip_message] = await asynchronously_received_messages()
     assert (
         sent_message["@type"]
         == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/sent"
