@@ -13,10 +13,13 @@ import pytest
 
 
 @pytest.fixture
-def new_connection(backchannel: Client, wait_for_message):
+def new_connection(
+    backchannel: Client, wait_for_message, asynchronously_received_messages
+):
     """Factory for new connections."""
 
     async def _new_connection():
+        await asynchronously_received_messages()
         lhs_conn = await create_invitation.asyncio(
             client=backchannel, json_body=CreateInvitationRequest(), auto_accept="true"
         )
