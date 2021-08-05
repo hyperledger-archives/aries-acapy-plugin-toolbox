@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aries-acapy-plugin-toolbox"
-version = "0.1.0"
+version = "0.2.0"
 description = "Aries Cloud Agent - Python Plugin for Aries Toolbox"
 authors = [
     "Daniel Bluhm <dbluhm@pm.me>",
