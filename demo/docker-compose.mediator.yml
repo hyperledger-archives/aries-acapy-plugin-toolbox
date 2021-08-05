@@ -2,7 +2,7 @@ version: "3"
 services:
   ngrok-mediator:
     image: wernight/ngrok
-    command: ngrok http agent-mediator:3004 --log stdout
+    command: ngrok http agent-mediator:3004 --bind-tls false --log stdout
   agent-mediator:
     image: acapy-toolbox-ngrok
     build:
