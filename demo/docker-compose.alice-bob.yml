@@ -24,6 +24,9 @@ services:
     command: agent-bob:3002 -p 4040
   agent-bob:
     image: acapy-toolbox-tunnel
+    build:
+      context: ../
+      dockerfile: ./demo/Dockerfile.demo
     environment:
       TUNNEL_HOST: tunnel-bob
       TUNNEL_PORT: 4040
