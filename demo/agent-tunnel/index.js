@@ -42,5 +42,5 @@ app.get("/status", async (req, res) => {
 })
 
 app.listen(argv.port, () => {
-  console.log(`Server running on ${argv.port}`)
+  console.log(`Tunnel to ${localhost}:${localport} running; mangement available on ${argv.port}`)
 })

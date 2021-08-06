@@ -5,14 +5,13 @@ RUN pip3 install --no-cache-dir poetry
 ADD --chown=indy https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 ./jq
 RUN chmod +x ./jq
 
-COPY --chown=indy demo/ngrok-wait.sh ./ngrok-wait.sh
-RUN chmod +x ngrok-wait.sh
+COPY --chown=indy demo/agent-tunnel-wait.sh ./agent-tunnel-wait.sh
+RUN chmod +x agent-tunnel-wait.sh
 
-COPY acapy_plugin_toolbox acapy_plugin_toolbox
+RUN mkdir acapy_plugin_toolbox && touch acapy_plugin_toolbox/__init__.py
 COPY pyproject.toml .
 COPY poetry.lock .
 COPY README.md .
-COPY demo/configs ./configs/
 USER root
 RUN chown indy:indy -R .
 USER indy
@@ -22,5 +21,9 @@ RUN poetry install --no-dev
 # Make site packages location more accessible (for use with volumes)
 RUN ln -s $(poetry env info -p)/lib/python3.6/site-packages site-packages
 
-ENTRYPOINT ["/bin/bash", "-c", "./ngrok-wait.sh \"$@\"", "--"]
+COPY demo/configs ./configs/
+COPY acapy_plugin_toolbox acapy_plugin_toolbox
+
+
+ENTRYPOINT ["/bin/bash", "-c", "./agent-tunnel-wait.sh \"$@\"", "--"]
 CMD ["poetry", "run", "aca-py", "start", "--plugin", "acapy_plugin_toolbox", "--arg-file", "configs/default.yml"]

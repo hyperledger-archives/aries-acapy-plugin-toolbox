@@ -1,5 +1,5 @@
 {
-  "name": "agenttunnel",
+  "name": "agent-tunnel",
   "version": "0.1.0",
   "description": "Provide a tunnel for local agents",
   "main": "index.js",
