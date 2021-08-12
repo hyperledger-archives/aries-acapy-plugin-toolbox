@@ -1,9 +1,8 @@
 version: "3"
 services:
   tunnel:
-    image: agent-tunnel
-    build: agent-tunnel
-    command: agent:3000 -p 4040
+    image: reflectivedevelopment/agent-tunnel
+    command: agent:3000 -p 4040 --host ${AGENT_TUNNEL_HOST}
     ports:
       - 4040:4040
   agent:

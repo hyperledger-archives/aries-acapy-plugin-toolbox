@@ -1,9 +1,8 @@
 version: "3"
 services:
   tunnel-mediator:
-    image: agent-tunnel
-    build: agent-tunnel
-    command: agent-mediator:3004 -p 4040
+    image: reflectivedevelopment/agent-tunnel
+    command: agent-mediator:3004 -p 4040 --host ${AGENT_TUNNEL_HOST}
   agent-mediator:
     image: acapy-toolbox-tunnel
     build:
