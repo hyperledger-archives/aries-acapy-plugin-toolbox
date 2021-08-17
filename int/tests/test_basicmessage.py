@@ -23,7 +23,7 @@ async def test_messages(connection, connection_id):
                 "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/send",
                 "connection_id": connection_id,
                 "content": "Test Message #{}".format(i),
-            },
+            }
         )
 
 
@@ -32,7 +32,7 @@ async def clear_messages(connection):
     yield
     await connection.send_and_await_reply_async(
         {
-            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/delete",
+            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/delete"
         },
         timeout=5,
     )
@@ -48,7 +48,7 @@ async def test_send(
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/send",
             "connection_id": connection_id,
             "content": "Your hovercraft is full of eels.",
-        },
+        }
     )
     [recip_message] = await asynchronously_received_messages()
     assert (
@@ -97,7 +97,7 @@ async def test_get(connection: StaticConnection, connection_id: str):
         )
     get_messages = await connection.send_and_await_reply_async(
         {
-            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/get",
+            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/get"
         }
     )
     assert (
@@ -136,12 +136,12 @@ async def test_delete(connection: StaticConnection, connection_id: str, test_mes
     """Send multiple messages, delete them, and verify that the messages count is zero"""
     delete_message = await connection.send_and_await_reply_async(
         {
-            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/delete",
+            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/delete"
         }
     )
     get_messages = await connection.send_and_await_reply_async(
         {
-            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/get",
+            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/get"
         }
     )
     assert (

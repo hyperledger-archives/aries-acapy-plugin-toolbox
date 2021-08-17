@@ -18,9 +18,7 @@ def mock_record_query():
         with mock.patch.object(
             obj,
             "query",
-            mock.CoroutineMock(
-                return_value=result or mock.MagicMock(spec=spec),
-            ),
+            mock.CoroutineMock(return_value=result or mock.MagicMock(spec=spec)),
         ) as record_query:
             yield record_query
 

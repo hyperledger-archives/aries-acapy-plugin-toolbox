@@ -102,12 +102,7 @@ class CredDefRecord(BaseRecord):
         """Get tags for record."""
         return {
             prop: getattr(self, prop)
-            for prop in (
-                "cred_def_id",
-                "schema_id",
-                "state",
-                "author",
-            )
+            for prop in ("cred_def_id", "schema_id", "state", "author")
         }
 
     @classmethod
