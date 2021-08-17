@@ -1,15 +1,16 @@
 version: "3"
 services:
-  ngrok-mediator:
-    image: wernight/ngrok
-    command: ngrok http agent-mediator:3004 --log stdout
+  tunnel-mediator:
+    image: reflectivedevelopment/agent-tunnel
+    command: agent-mediator:3004 -p 4040 --host ${AGENT_TUNNEL_HOST}
   agent-mediator:
-    image: acapy-toolbox-ngrok
+    image: acapy-toolbox-tunnel
     build:
       context: ../
       dockerfile: ./demo/Dockerfile.demo
     environment:
-      NGROK_NAME: ngrok-mediator
+      TUNNEL_HOST: tunnel-mediator
+      TUNNEL_PORT: 4040
     ports:
       - "3005:3005"
     command: poetry run aca-py start --arg-file ./configs/mediator.yml

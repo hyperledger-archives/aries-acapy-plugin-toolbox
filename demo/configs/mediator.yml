@@ -9,7 +9,7 @@ plugin:
 label: Mindy Mediator
 endpoint: http://localhost:3004
 inbound-transport:
-  - [http, 0.0.0.0, 3004]
+  - [acapy_plugin_toolbox.http_ws, 0.0.0.0, 3004]
 outbound-transport: http
 
 # Mediator does not use ledger
