@@ -32,9 +32,7 @@ from acapy_backchannel.api.issue_credential_v10 import get_issue_credential_reco
 async def issuer_holder_connection(backchannel: Client, connection):
     """Invitation creation fixture"""
     invitation_created = await create_invitation.asyncio(
-        client=backchannel,
-        json_body=CreateInvitationRequest(),
-        auto_accept="true",
+        client=backchannel, json_body=CreateInvitationRequest(), auto_accept="true"
     )
     connection_created = await receive_invitation.asyncio(
         client=backchannel,
@@ -79,9 +77,7 @@ async def create_cred_def(backchannel: Client, endorser_did, create_schema):
         backchannel.timeout = 30
         return await publish_cred_def.asyncio(
             client=backchannel,
-            json_body=CredentialDefinitionSendRequest(
-                schema_id=schema.sent.schema_id,
-            ),
+            json_body=CredentialDefinitionSendRequest(schema_id=schema.sent.schema_id),
         )
 
     yield _create_cred_def
@@ -138,10 +134,7 @@ async def test_holder_credential_exchange(
         msg_type="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-received"
     )
     records = await asyncio.wait_for(
-        get_issue_credential_records.asyncio(
-            client=backchannel,
-        ),
-        timeout=20,
+        get_issue_credential_records.asyncio(client=backchannel), timeout=20
     )
     assert credential_received["credential_exchange_id"] in [
         record.credential_exchange_id for record in records.results
@@ -160,7 +153,7 @@ async def test_credentials_get_list(
 ):
     credentials_get_list = await connection.send_and_await_reply_async(
         {
-            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-get-list",
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-get-list"
         }
     )
     assert (

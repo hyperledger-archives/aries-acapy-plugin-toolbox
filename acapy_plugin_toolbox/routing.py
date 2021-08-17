@@ -143,10 +143,7 @@ class SendMediationRequestHandler(BaseHandler):
 
         _record, request = await manager.prepare_request(connection.connection_id)
         # Send mediation request
-        await responder.send(
-            request,
-            connection_id=connection.connection_id,
-        )
+        await responder.send(request, connection_id=connection.connection_id)
 
         # Send notification of mediation request sent
         sent = MediationRequestSent(connection_id=connection.connection_id)
@@ -195,10 +192,7 @@ class KeylistUpdateSendHandler(BaseHandler):
                 context.message.verkey, context.message.connection_id
             )
 
-        await responder.send(
-            update,
-            connection_id=context.message.connection_id,
-        )
+        await responder.send(update, connection_id=context.message.connection_id)
 
         sent = KeylistUpdateSent(
             connection_id=context.message.connection_id,

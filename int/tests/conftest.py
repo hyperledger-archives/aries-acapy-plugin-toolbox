@@ -295,11 +295,7 @@ async def endorser_did(make_did, backchannel, accepted_taa):
     LOGGER.info("Publishing DID through https://selfserve.indiciotech.io")
     response = httpx.post(
         url="https://selfserve.indiciotech.io/nym",
-        json={
-            "network": "testnet",
-            "did": did.did,
-            "verkey": did.verkey,
-        },
+        json={"network": "testnet", "did": did.did, "verkey": did.verkey},
         timeout=15,
     )
     if response.is_error:
@@ -307,9 +303,6 @@ async def endorser_did(make_did, backchannel, accepted_taa):
 
     LOGGER.info("DID Published")
     backchannel.timeout = 15
-    result = await set_public_did.asyncio_detailed(
-        client=backchannel,
-        did=did.did,
-    )
+    result = await set_public_did.asyncio_detailed(client=backchannel, did=did.did)
     assert result.status_code == 200
     yield did
