@@ -29,11 +29,9 @@ def new_connection(
             auto_accept="true",
         )
 
-        print(await get_connections.asyncio(client=backchannel))
         message = await wait_for_message(
             msg_type="https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connected"
         )
-        print(message)
         return (lhs_conn.connection_id, rhs_conn.connection_id)
 
     yield _new_connection
