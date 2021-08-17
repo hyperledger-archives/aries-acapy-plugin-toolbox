@@ -35,7 +35,6 @@ services:
 
   tests:
     container_name: juggernaut
-    command: -k test_holder_credential_exchange
     build:
       context: .
       dockerfile: ./Dockerfile.test.runner
