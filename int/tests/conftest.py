@@ -275,8 +275,7 @@ async def make_did(backchannel):
 
 @pytest.fixture(scope="session")
 async def accepted_taa(backchannel):
-    backchannel.timeout = 15
-    result = (await fetch_taa.asyncio(client=backchannel)).result
+    result = (await fetch_taa.asyncio(client=backchannel.with_timeout(15))).result
     result = await accept_taa.asyncio(
         client=backchannel,
         json_body=TAAAccept(
