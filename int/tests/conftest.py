@@ -267,7 +267,7 @@ async def make_did(backchannel):
     """DID factory fixture"""
 
     async def _make_did():
-        return (await create_did.asyncio(client=backchannel)).result
+        return (await create_did.asyncio(client=backchannel.with_timeout(15))).result
 
     yield _make_did
     # TODO create DID deletion method
@@ -290,7 +290,6 @@ async def accepted_taa(backchannel):
 @pytest.fixture(scope="session")
 async def endorser_did(make_did, backchannel, accepted_taa):
     """Endorser DID factory fixture"""
-    backchannel.timeout = 15
     did: DID = await make_did()
     LOGGER.info("Publishing DID through https://selfserve.indiciotech.io")
     response = httpx.post(
@@ -302,7 +301,8 @@ async def endorser_did(make_did, backchannel, accepted_taa):
         raise Exception("Failed to publish DID:", response.text)
 
     LOGGER.info("DID Published")
-    backchannel.timeout = 15
-    result = await set_public_did.asyncio_detailed(client=backchannel, did=did.did)
+    result = await set_public_did.asyncio_detailed(
+        client=backchannel.with_timeout(15), did=did.did
+    )
     assert result.status_code == 200
     yield did
