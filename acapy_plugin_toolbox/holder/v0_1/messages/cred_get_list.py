@@ -71,4 +71,5 @@ class CredGetList(AdminHolderMessage):
         cred_list = CredList(
             results=[credential.serialize() for credential in credentials], page=page
         )
+        cred_list.assign_thread_from(context.message)  # self
         await responder.send_reply(cred_list)

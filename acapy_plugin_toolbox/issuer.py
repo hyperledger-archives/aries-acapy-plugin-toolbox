@@ -185,7 +185,7 @@ class RequestPres(AdminIssuerMessage):
         connection_id: UUID,
         proof_request: IndyProofRequest,
         comment: str = None,
-        **kwargs
+        **kwargs,
     ):
         """Initialize message."""
         super().__init__(**kwargs)
@@ -270,10 +270,7 @@ class CredList(AdminIssuerMessage):
 
     class Fields:
         results = fields.List(
-            fields.Dict(),
-            required=True,
-            description="List of credentials",
-            example=[],
+            fields.Dict(), required=True, description="List of credentials", example=[]
         )
 
 

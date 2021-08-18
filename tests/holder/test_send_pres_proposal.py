@@ -12,10 +12,7 @@ from aries_cloudagent.indy.sdk.models.pres_preview import (
 
 TEST_CONN_ID = "test-connection-id"
 TEST_PROPOSAL = IndyPresPreview(
-    attributes=[
-        IndyPresAttrSpec(name="test-proposal"),
-    ],
-    predicates=[],
+    attributes=[IndyPresAttrSpec(name="test-proposal")], predicates=[]
 )
 TEST_COMMENT = "test-comment"
 

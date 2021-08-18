@@ -290,9 +290,7 @@ class CreateAddressHandler(BaseHandler):
             return
 
         address = Address(
-            address=address_str,
-            method=SOV_METHOD,
-            balance=sovatoms_to_tokens(balance),
+            address=address_str, method=SOV_METHOD, balance=sovatoms_to_tokens(balance)
         )
         address.assign_thread_from(context.message)
         await responder.send_reply(address)
@@ -341,9 +339,7 @@ async def fetch_transfer_auth(ledger: BaseLedger):
         )
     if ledger.cache:
         await ledger.cache.set(
-            ["admin-payments::xfer_auth"],
-            xfer_auth_fee,
-            ledger.cache_duration,
+            ["admin-payments::xfer_auth"], xfer_auth_fee, ledger.cache_duration
         )
     return xfer_auth_fee
 

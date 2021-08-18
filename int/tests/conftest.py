@@ -4,7 +4,7 @@ import asyncio
 import hashlib
 import logging
 import os
-from typing import Iterator, Optional
+from typing import Iterator, Optional, Union
 
 from acapy_backchannel import Client
 from acapy_backchannel.api.connection import (
@@ -23,6 +23,8 @@ from acapy_backchannel.models import (
 from acapy_backchannel.models.conn_record import ConnRecord
 from acapy_backchannel.models.did import DID
 from aries_staticagent import StaticConnection, Target
+from aries_staticagent.message import Message
+from aries_staticagent.utils import http_send
 from echo_agent_client import Client as EchoClient
 from echo_agent_client.api.default import (
     new_connection,
@@ -154,11 +156,31 @@ def connection_id(conn_record: ConnRecord):
     yield conn_record.connection_id
 
 
+class IntegrationTestConnection(StaticConnection):
+    async def send_and_await_reply_async(
+        self,
+        msg: Union[dict, Message],
+        *,
+        return_route: str = "all",
+        plaintext: bool = False,
+        anoncrypt: bool = False,
+        timeout: int = 1,
+    ) -> Message:
+        return await super().send_and_await_reply_async(
+            msg,
+            return_route=return_route,
+            plaintext=plaintext,
+            anoncrypt=anoncrypt,
+            timeout=timeout,
+        )
+
+
 @pytest.fixture(scope="session")
 def connection(agent_connection: ConnectionStaticResult, suite_seed: str):
     """Yield static connection to agent under test."""
+
     # Create and yield static connection
-    yield StaticConnection.from_seed(
+    yield IntegrationTestConnection.from_seed(
         seed=suite_seed.encode("ascii"),
         target=Target(
             endpoint=agent_connection.my_endpoint, their_vk=agent_connection.my_verkey
@@ -184,7 +206,7 @@ async def echo_connection(echo_client, suite_seed, agent_connection):
 
 
 @pytest.fixture(scope="session")
-def asynchronously_recevied_messages(
+def asynchronously_received_messages(
     echo_client: EchoClient, echo_connection: EchoConnection
 ):
     """Get asynchronously recevied messages from the echo agent."""
@@ -245,7 +267,7 @@ async def make_did(backchannel):
     """DID factory fixture"""
 
     async def _make_did():
-        return (await create_did.asyncio(client=backchannel)).result
+        return (await create_did.asyncio(client=backchannel.with_timeout(15))).result
 
     yield _make_did
     # TODO create DID deletion method
@@ -253,7 +275,7 @@ async def make_did(backchannel):
 
 @pytest.fixture(scope="session")
 async def accepted_taa(backchannel):
-    result = (await fetch_taa.asyncio(client=backchannel)).result
+    result = (await fetch_taa.asyncio(client=backchannel.with_timeout(15))).result
     result = await accept_taa.asyncio(
         client=backchannel,
         json_body=TAAAccept(
@@ -267,25 +289,19 @@ async def accepted_taa(backchannel):
 @pytest.fixture(scope="session")
 async def endorser_did(make_did, backchannel, accepted_taa):
     """Endorser DID factory fixture"""
-
     did: DID = await make_did()
     LOGGER.info("Publishing DID through https://selfserve.indiciotech.io")
     response = httpx.post(
         url="https://selfserve.indiciotech.io/nym",
-        json={
-            "network": "testnet",
-            "did": did.did,
-            "verkey": did.verkey,
-        },
-        timeout=30,
+        json={"network": "testnet", "did": did.did, "verkey": did.verkey},
+        timeout=15,
     )
     if response.is_error:
         raise Exception("Failed to publish DID:", response.text)
 
     LOGGER.info("DID Published")
     result = await set_public_did.asyncio_detailed(
-        client=backchannel,
-        did=did.did,
+        client=backchannel.with_timeout(15), did=did.did
     )
     assert result.status_code == 200
     yield did
