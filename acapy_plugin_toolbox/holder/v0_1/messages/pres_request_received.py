@@ -3,9 +3,6 @@ from aries_cloudagent.indy.holder import IndyHolder
 from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import (
     V10PresentationExchange as PresExRecord,
 )
-from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import (
-    V10PresentationExchangeSchema as PresExRecordSchema,
-)
 from aries_cloudagent.protocols.present_proof.v1_0.routes import IndyCredPrecisSchema
 from marshmallow import fields
 
@@ -50,7 +47,7 @@ class PresRequestReceived(AdminHolderMessage):
         holder = profile.inject(IndyHolder)
         self.matching_credentials = (
             await holder.get_credentials_for_presentation_request_by_referent(
-                self.record.presentation_request,
+                self.record.presentation_request.serialize(),
                 (),
                 0,
                 self.DEFAULT_COUNT,

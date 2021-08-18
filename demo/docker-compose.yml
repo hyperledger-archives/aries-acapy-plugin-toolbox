@@ -1,14 +1,17 @@
 version: "3"
 services:
-  ngrok:
-    image: wernight/ngrok
-    command: ngrok http agent:3000 --log stdout
+  tunnel:
+    image: reflectivedevelopment/agent-tunnel
+    command: agent:3000 -p 4040 --host ${AGENT_TUNNEL_HOST}
+    ports:
+      - 4040:4040
   agent:
-    image: acapy-toolbox-ngrok
+    image: acapy-toolbox-tunnel
     build:
       context: ../
       dockerfile: ./demo/Dockerfile.demo
     environment:
-      NGROK_NAME: ngrok
+      TUNNEL_HOST: tunnel
+      TUNNEL_PORT: 4040
     ports:
       - "3001:3001"
