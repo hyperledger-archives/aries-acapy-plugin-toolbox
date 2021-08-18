@@ -49,9 +49,11 @@ class TAAInfo:
 
         taa_required = d.pop("taa_required")
 
-        taa_accepted = None
         _taa_accepted = d.pop("taa_accepted")
-        if _taa_accepted is not None:
+        taa_accepted: Optional[TAAAcceptance]
+        if _taa_accepted is None:
+            taa_accepted = None
+        else:
             taa_accepted = TAAAcceptance.from_dict(_taa_accepted)
 
         taa_info = cls(

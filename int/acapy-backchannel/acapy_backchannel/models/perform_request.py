@@ -37,9 +37,11 @@ class PerformRequest:
         d = src_dict.copy()
         name = d.pop("name", UNSET)
 
-        params: Union[Unset, PerformRequestParams] = UNSET
         _params = d.pop("params", UNSET)
-        if not isinstance(_params, Unset):
+        params: Union[Unset, PerformRequestParams]
+        if isinstance(_params, Unset):
+            params = UNSET
+        else:
             params = PerformRequestParams.from_dict(_params)
 
         perform_request = cls(

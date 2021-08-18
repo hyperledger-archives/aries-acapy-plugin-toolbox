@@ -63,9 +63,11 @@ class IndyProofReqPredSpec:
 
         p_value = d.pop("p_value")
 
-        non_revoked: Union[Unset, IndyProofReqNonRevoked] = UNSET
         _non_revoked = d.pop("non_revoked", UNSET)
-        if not isinstance(_non_revoked, Unset):
+        non_revoked: Union[Unset, IndyProofReqNonRevoked]
+        if isinstance(_non_revoked, Unset):
+            non_revoked = UNSET
+        else:
             non_revoked = IndyProofReqNonRevoked.from_dict(_non_revoked)
 
         restrictions = []

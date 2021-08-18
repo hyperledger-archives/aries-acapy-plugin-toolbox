@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "echo-agent"
+version = "0.1.0"
+description = "A \"hollow\" agent for use in testing"
+authors = ["Daniel Bluhm <dbluhm@pm.me>"]
+license = "Apache-2.0"
+
+[tool.poetry.dependencies]
+python = "^3.6.9"
+aries-staticagent = "^0.8.0"
+fastapi = "^0.67.0"
+pydantic = "^1.8.2"
+
+[tool.poetry.dev-dependencies]
+uvicorn = "^0.14.0"
+black = "^21.7b0"
+flake8 = "^3.9.2"
+pre-commit = "^2.13.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

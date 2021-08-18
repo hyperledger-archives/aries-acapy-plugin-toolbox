@@ -119,12 +119,7 @@ class BasicMessageRecord(BaseRecord):
         """Get record value."""
         return {
             prop: getattr(self, prop)
-            for prop in (
-                "content",
-                "locale",
-                "sent_time",
-                "state",
-            )
+            for prop in ("content", "locale", "sent_time", "state")
         }
 
     @property
@@ -214,9 +209,7 @@ class GetHandler(BaseHandler):
         tag_filter = dict(
             filter(
                 lambda item: item[1] is not None,
-                {
-                    "connection_id": context.message.connection_id,
-                }.items(),
+                {"connection_id": context.message.connection_id}.items(),
             )
         )
         msgs = sorted(

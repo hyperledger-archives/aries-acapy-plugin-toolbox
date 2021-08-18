@@ -51,9 +51,11 @@ class AttachDecoratorDataJWS:
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        header: Union[Unset, AttachDecoratorDataJWSHeader] = UNSET
         _header = d.pop("header", UNSET)
-        if not isinstance(_header, Unset):
+        header: Union[Unset, AttachDecoratorDataJWSHeader]
+        if isinstance(_header, Unset):
+            header = UNSET
+        else:
             header = AttachDecoratorDataJWSHeader.from_dict(_header)
 
         protected = d.pop("protected", UNSET)
