@@ -28,7 +28,10 @@ def new_connection(
             json_body=ReceiveInvitationRequest.from_dict(lhs_conn.invitation.to_dict()),
             auto_accept="true",
         )
-        message = await wait_for_message(
+        first_connected = await wait_for_message(
+            msg_type="https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connected"
+        )
+        second_connected = await wait_for_message(
             msg_type="https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connected"
         )
         return (lhs_conn.connection_id, rhs_conn.connection_id)
