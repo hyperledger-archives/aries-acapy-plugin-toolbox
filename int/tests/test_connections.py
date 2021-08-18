@@ -28,7 +28,6 @@ def new_connection(
             json_body=ReceiveInvitationRequest.from_dict(lhs_conn.invitation.to_dict()),
             auto_accept="true",
         )
-
         message = await wait_for_message(
             msg_type="https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connected"
         )
@@ -50,7 +49,7 @@ async def clear_connection_state(backchannel: Client, connection_id: str):
 
 
 @pytest.mark.asyncio
-async def test_create_connection(connection):
+async def test_create_connection(connection, wait_for_message):
     """Send an invitation and receive it to create a new connection"""
     msg_invitation = Message(
         {
@@ -71,6 +70,9 @@ async def test_create_connection(connection):
         }
     )
     received = await connection.send_and_await_reply_async(msg_received)
+    message = await wait_for_message(
+        msg_type="https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connected"
+    )
     assert (
         received["@type"]
         == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connection"
@@ -101,31 +103,13 @@ async def test_get_list(connection, new_connection):
 
 
 @pytest.mark.asyncio
-async def test_update(connection):
+async def test_update(connection, new_connection):
     """Test update of connection attribute"""
-    msg_invitation = Message(
-        {
-            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create",
-            "alias": "Invitation I sent to Alice",
-            "label": "Bob",
-            "group": "default",
-            "auto_accept": True,
-            "multi_use": True,
-        }
-    )
-    invitation = await connection.send_and_await_reply_async(msg_invitation)
-    msg_received = Message(
-        {
-            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/receive-invitation",
-            "invitation": invitation["invitation_url"],
-            "auto_accept": True,
-        }
-    )
-    received = await connection.send_and_await_reply_async(msg_received)
+    conn = await new_connection()
     msg_update = Message(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/update",
-            "connection_id": received["connection_id"],
+            "connection_id": conn[0],
             "label": "Updated label",
             "role": "Updated role",
         }
@@ -135,47 +119,26 @@ async def test_update(connection):
 
 
 @pytest.mark.asyncio
-async def test_delete(connection):
-    """Create an invitation, delete it, and verify that its label and connectio_id
+async def test_delete(connection, new_connection):
+    """Create an invitation, delete it, and verify that its label and connection_id
     is no longer in the connections list"""
-    invitation_msg = Message(
-        {
-            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create",
-            "alias": "Invitation I sent to Alice",
-            "label": "Bob",
-            "group": "default",
-            "auto_accept": True,
-            "multi_use": True,
-        }
-    )
-    invitation = await connection.send_and_await_reply_async(invitation_msg)
-    msg_received = Message(
-        {
-            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/receive-invitation",
-            "invitation": invitation["invitation_url"],
-            "auto_accept": True,
-        }
-    )
-    received = await connection.send_and_await_reply_async(msg_received)
+    conn = await new_connection()
     delete_connection = await connection.send_and_await_reply_async(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/delete",
-            "connection_id": received["connection_id"],
+            "connection_id": conn[0],
         }
     )
     assert (
         delete_connection["@type"]
         == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/deleted"
     )
-    assert delete_connection["connection_id"] == received["connection_id"]
+    assert delete_connection["connection_id"] == conn[0]
     get_list = await connection.send_and_await_reply_async(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/get-list"
         }
     )
-    assert invitation_msg["label"] not in [
-        connection_item["label"] for connection_item in get_list["connections"]
-    ]
-    assert received["connection_id"] not in [
+    assert conn[0] not in [
         connection_item["connection_id"] for connection_item in get_list["connections"]
     ]
