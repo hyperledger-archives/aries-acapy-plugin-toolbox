@@ -103,11 +103,6 @@ async def test_events_subscribed_and_triggered(
             V10CredentialExchange.STATE_CREDENTIAL_RECEIVED,
             test_module.CredReceived,
         ),
-        (
-            test_module.present_proof_event_handler,
-            V10PresentationExchange.STATE_REQUEST_RECEIVED,
-            test_module.PresRequestReceived,
-        ),
     ],
 )
 async def test_message_sent_on_correct_state(
@@ -116,6 +111,20 @@ async def test_message_sent_on_correct_state(
     """Test message sent on handle given correct state."""
     event = Event("anything", {"state": state})
     await handler(profile, event)
+    assert isinstance(mock_send_to_admins.message, message)
+
+
+@pytest.mark.asyncio
+async def test_pres_req_received_sent_on_state(profile, mock_send_to_admins):
+    """Test message sent on handle given correct state."""
+    handler = test_module.present_proof_event_handler
+    state = V10PresentationExchange.STATE_REQUEST_RECEIVED
+    message = test_module.PresRequestReceived
+    event = Event("anything", {"state": state})
+    with mock.patch.object(
+        message, "retrieve_matching_credentials", mock.CoroutineMock()
+    ):
+        await handler(profile, event)
     assert isinstance(mock_send_to_admins.message, message)
 
 
