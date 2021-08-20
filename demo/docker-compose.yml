@@ -2,7 +2,7 @@ version: "3"
 services:
   ngrok:
     image: wernight/ngrok
-    command: ngrok http agent:3000 --bind-tls false --log stdout
+    command: ngrok http agent:3000 --log stdout
   agent:
     image: acapy-toolbox-ngrok
     build:
