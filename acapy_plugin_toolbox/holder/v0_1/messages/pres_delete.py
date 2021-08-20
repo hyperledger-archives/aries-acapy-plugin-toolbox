@@ -50,8 +50,6 @@ class PresDelete(AdminHolderMessage):
 
             await pres_ex_record.delete_record(session)
 
-        message = PresDeleted(
-            presentation_exchange_id=self.presentation_exchange_id,
-        )
+        message = PresDeleted(presentation_exchange_id=self.presentation_exchange_id)
         message.assign_thread_from(self)
         await responder.send_reply(message)

@@ -14,9 +14,19 @@ services:
     build:
       context: ../
       dockerfile: ./docker/Dockerfile
+    environment:
+      ACAPY_TOOLBOX_LOG_LEVEL: DEBUG
     ports:
       - "3001:3001"
-    command: start -it http 0.0.0.0 3000 -ot http -e http://acapy_plugin_agent:3000 --no-ledger --admin 0.0.0.0 3001 --admin-insecure-mode --plugin acapy_plugin_toolbox --log-level debug
+    command: start -it http 0.0.0.0 3000 -ot http -e http://acapy_plugin_agent:3000 --admin 0.0.0.0 3001 --admin-insecure-mode --plugin acapy_plugin_toolbox --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis --wallet-type indy --wallet-name default --wallet-key "insecure, for use in testing only" --auto-provision --auto-ping-connection
+
+  echo:
+    image: echo-agent
+    build:
+      context: ./echo-agent/
+    ports:
+      - "3002:3002"
+    command: python -m uvicorn echo:app --host 0.0.0.0 --port 3002 --log-level debug
 
   #*************************************************************
   # tester: drives tests for acapy_plugin_toolbox in a         *
@@ -30,14 +40,16 @@ services:
       dockerfile: ./Dockerfile.test.runner
     environment:
       - WAIT_BEFORE_HOSTS=3
-      - WAIT_HOSTS=acapy_plugin_agent:3000
+      - WAIT_HOSTS=acapy_plugin_agent:3000,echo:3002
       - WAIT_HOSTS_TIMEOUT=60
       - WAIT_SLEEP_INTERVAL=1
       - WAIT_HOST_CONNECT_TIMEOUT=30
       - AGENT_HOST=acapy_plugin_agent
       - AGENT_PORT=3000
       - AGENT_BACKCHANNEL_PORT=3001
-      - SUITE_HOST=tests
+      - SUITE_ENDPOINT=http://echo:3002/receive
+      - SUITE_HOST=echo
       - SUITE_PORT=3002
     depends_on:
       - acapy_plugin_agent
+      - echo

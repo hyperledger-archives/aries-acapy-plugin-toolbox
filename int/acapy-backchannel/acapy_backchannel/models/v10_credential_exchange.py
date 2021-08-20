@@ -174,9 +174,11 @@ class V10CredentialExchange:
 
         created_at = d.pop("created_at", UNSET)
 
-        credential: Union[Unset, V10CredentialExchangeCredential] = UNSET
         _credential = d.pop("credential", UNSET)
-        if not isinstance(_credential, Unset):
+        credential: Union[Unset, V10CredentialExchangeCredential]
+        if isinstance(_credential, Unset):
+            credential = UNSET
+        else:
             credential = V10CredentialExchangeCredential.from_dict(_credential)
 
         credential_definition_id = d.pop("credential_definition_id", UNSET)
@@ -185,54 +187,70 @@ class V10CredentialExchange:
 
         credential_id = d.pop("credential_id", UNSET)
 
-        credential_offer: Union[Unset, V10CredentialExchangeCredentialOffer] = UNSET
         _credential_offer = d.pop("credential_offer", UNSET)
-        if not isinstance(_credential_offer, Unset):
+        credential_offer: Union[Unset, V10CredentialExchangeCredentialOffer]
+        if isinstance(_credential_offer, Unset):
+            credential_offer = UNSET
+        else:
             credential_offer = V10CredentialExchangeCredentialOffer.from_dict(_credential_offer)
 
-        credential_offer_dict: Union[Unset, V10CredentialExchangeCredentialOfferDict] = UNSET
         _credential_offer_dict = d.pop("credential_offer_dict", UNSET)
-        if not isinstance(_credential_offer_dict, Unset):
+        credential_offer_dict: Union[Unset, V10CredentialExchangeCredentialOfferDict]
+        if isinstance(_credential_offer_dict, Unset):
+            credential_offer_dict = UNSET
+        else:
             credential_offer_dict = V10CredentialExchangeCredentialOfferDict.from_dict(_credential_offer_dict)
 
-        credential_proposal_dict: Union[Unset, V10CredentialExchangeCredentialProposalDict] = UNSET
         _credential_proposal_dict = d.pop("credential_proposal_dict", UNSET)
-        if not isinstance(_credential_proposal_dict, Unset):
+        credential_proposal_dict: Union[Unset, V10CredentialExchangeCredentialProposalDict]
+        if isinstance(_credential_proposal_dict, Unset):
+            credential_proposal_dict = UNSET
+        else:
             credential_proposal_dict = V10CredentialExchangeCredentialProposalDict.from_dict(_credential_proposal_dict)
 
-        credential_request: Union[Unset, V10CredentialExchangeCredentialRequest] = UNSET
         _credential_request = d.pop("credential_request", UNSET)
-        if not isinstance(_credential_request, Unset):
+        credential_request: Union[Unset, V10CredentialExchangeCredentialRequest]
+        if isinstance(_credential_request, Unset):
+            credential_request = UNSET
+        else:
             credential_request = V10CredentialExchangeCredentialRequest.from_dict(_credential_request)
 
-        credential_request_metadata: Union[Unset, V10CredentialExchangeCredentialRequestMetadata] = UNSET
         _credential_request_metadata = d.pop("credential_request_metadata", UNSET)
-        if not isinstance(_credential_request_metadata, Unset):
+        credential_request_metadata: Union[Unset, V10CredentialExchangeCredentialRequestMetadata]
+        if isinstance(_credential_request_metadata, Unset):
+            credential_request_metadata = UNSET
+        else:
             credential_request_metadata = V10CredentialExchangeCredentialRequestMetadata.from_dict(
                 _credential_request_metadata
             )
 
         error_msg = d.pop("error_msg", UNSET)
 
-        initiator: Union[Unset, V10CredentialExchangeInitiator] = UNSET
         _initiator = d.pop("initiator", UNSET)
-        if not isinstance(_initiator, Unset):
+        initiator: Union[Unset, V10CredentialExchangeInitiator]
+        if isinstance(_initiator, Unset):
+            initiator = UNSET
+        else:
             initiator = V10CredentialExchangeInitiator(_initiator)
 
         parent_thread_id = d.pop("parent_thread_id", UNSET)
 
-        raw_credential: Union[Unset, V10CredentialExchangeRawCredential] = UNSET
         _raw_credential = d.pop("raw_credential", UNSET)
-        if not isinstance(_raw_credential, Unset):
+        raw_credential: Union[Unset, V10CredentialExchangeRawCredential]
+        if isinstance(_raw_credential, Unset):
+            raw_credential = UNSET
+        else:
             raw_credential = V10CredentialExchangeRawCredential.from_dict(_raw_credential)
 
         revoc_reg_id = d.pop("revoc_reg_id", UNSET)
 
         revocation_id = d.pop("revocation_id", UNSET)
 
-        role: Union[Unset, V10CredentialExchangeRole] = UNSET
         _role = d.pop("role", UNSET)
-        if not isinstance(_role, Unset):
+        role: Union[Unset, V10CredentialExchangeRole]
+        if isinstance(_role, Unset):
+            role = UNSET
+        else:
             role = V10CredentialExchangeRole(_role)
 
         schema_id = d.pop("schema_id", UNSET)

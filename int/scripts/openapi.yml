@@ -560,6 +560,7 @@ paths:
       x-codegen-request-body-name: body
   /connections/{conn_id}/send-message:
     post:
+      operationId: send_basicmessage
       tags:
       - basicmessage
       summary: Send a basic message to a connection
@@ -4769,14 +4770,25 @@ components:
           example: "1.0"
     SchemaSendResults:
       required:
+      - sent
+      type: object
+      properties:
+        sent:
+          $ref: '#/components/schemas/SchemaSent'
+        txn:
+          type: object
+          properties: {}
+          description: Schema transaction
+    SchemaSent:
+      type: object
+      required:
       - schema
       - schema_id
-      type: object
       properties:
         schema:
           type: object
           properties: {}
-          description: Schema result
+          description: schema
         schema_id:
           pattern: ^[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]{21,22}:2:.+:[0-9.]+$
           type: string

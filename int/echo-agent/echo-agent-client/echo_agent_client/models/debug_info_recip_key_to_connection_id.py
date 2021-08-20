@@ -2,14 +2,14 @@ from typing import Any, Dict, List, Type, TypeVar
 
 import attr
 
-T = TypeVar("T", bound="SchemaSendResultsSchema")
+T = TypeVar("T", bound="DebugInfoRecipKeyToConnectionId")
 
 
 @attr.s(auto_attribs=True)
-class SchemaSendResultsSchema:
-    """Schema result"""
+class DebugInfoRecipKeyToConnectionId:
+    """ """
 
-    additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
+    additional_properties: Dict[str, str] = attr.ib(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
 
@@ -22,19 +22,19 @@ class SchemaSendResultsSchema:
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        schema_send_results_schema = cls()
+        debug_info_recip_key_to_connection_id = cls()
 
-        schema_send_results_schema.additional_properties = d
-        return schema_send_results_schema
+        debug_info_recip_key_to_connection_id.additional_properties = d
+        return debug_info_recip_key_to_connection_id
 
     @property
     def additional_keys(self) -> List[str]:
         return list(self.additional_properties.keys())
 
-    def __getitem__(self, key: str) -> Any:
+    def __getitem__(self, key: str) -> str:
         return self.additional_properties[key]
 
-    def __setitem__(self, key: str, value: Any) -> None:
+    def __setitem__(self, key: str, value: str) -> None:
         self.additional_properties[key] = value
 
     def __delitem__(self, key: str) -> None:

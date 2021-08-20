@@ -43,8 +43,7 @@ def context(context, message):
 @pytest.fixture
 def record():
     yield PresExRecord(
-        presentation_exchange_id=TEST_PRES_EX_ID,
-        connection_id=TEST_CONN_ID,
+        presentation_exchange_id=TEST_PRES_EX_ID, connection_id=TEST_CONN_ID
     )
 
 

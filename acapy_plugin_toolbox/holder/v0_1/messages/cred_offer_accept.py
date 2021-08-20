@@ -70,6 +70,7 @@ class CredOfferAccept(AdminHolderMessage):
         )
 
         sent = CredRequestSent(record=cred_ex_record)
+        sent.assign_thread_from(self)
 
         await responder.send(credential_request_message, connection_id=connection_id)
         await responder.send_reply(sent)

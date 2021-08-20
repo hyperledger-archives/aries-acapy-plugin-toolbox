@@ -52,8 +52,7 @@ Taa, TaaSchema = generate_model_schema(
     msg_type=TAA,
     schema={
         "version": fields.Str(
-            required=True,
-            description="Version of Transaction Author Agreement",
+            required=True, description="Version of Transaction Author Agreement"
         ),
         "text": fields.Str(
             required=True, description="Transaction Author Agreement text"
@@ -185,8 +184,7 @@ Acceptance, AcceptanceSchema = generate_model_schema(
         "version": fields.Str(required=False, description="Version of accepted TAA."),
         "time": fields.Str(required=False, description="Time of acceptance."),
         "mechanism": fields.Str(
-            required=False,
-            description="The mechanism used to accept the TAA.",
+            required=False, description="The mechanism used to accept the TAA."
         ),
     },
 )

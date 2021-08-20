@@ -1,28 +1,33 @@
 version: "3"
 services:
-  ngrok-alice:
-    image: wernight/ngrok
-    command: ngrok http agent-alice:3000 --log stdout
+  tunnel-alice:
+    image: reflectivedevelopment/agent-tunnel
+    command: agent-alice:3000 -p 4040 --host ${AGENT_TUNNEL_HOST}
   agent-alice:
-    image: acapy-toolbox-ngrok
+    image: acapy-toolbox-tunnel
     build:
       context: ../
       dockerfile: ./demo/Dockerfile.demo
     environment:
-      NGROK_NAME: ngrok-alice
+      TUNNEL_HOST: tunnel-alice
+      TUNNEL_PORT: 4040
       # Modify for more log output
       ACAPY_TOOLBOX_LOG_LEVEL: WARNING
     ports:
       - "3001:3001"
     command: poetry run aca-py start --arg-file ./configs/alice.yml
 
-  ngrok-bob:
-    image: wernight/ngrok
-    command: ngrok http agent-bob:3002 --log stdout
+  tunnel-bob:
+    image: reflectivedevelopment/agent-tunnel
+    command: agent-bob:3002 -p 4040 --host ${AGENT_TUNNEL_HOST}
   agent-bob:
-    image: acapy-toolbox-ngrok
+    image: acapy-toolbox-tunnel
+    build:
+      context: ../
+      dockerfile: ./demo/Dockerfile.demo
     environment:
-      NGROK_NAME: ngrok-bob
+      TUNNEL_HOST: tunnel-bob
+      TUNNEL_PORT: 4040
       # Modify for more log output
       ACAPY_TOOLBOX_LOG_LEVEL: WARNING
     ports:

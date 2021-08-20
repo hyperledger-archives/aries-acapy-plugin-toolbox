@@ -58,9 +58,11 @@ class V20CredExRecordDIF:
 
         cred_ex_id = d.pop("cred_ex_id", UNSET)
 
-        item: Union[Unset, V20CredExRecordDIFItem] = UNSET
         _item = d.pop("item", UNSET)
-        if not isinstance(_item, Unset):
+        item: Union[Unset, V20CredExRecordDIFItem]
+        if isinstance(_item, Unset):
+            item = UNSET
+        else:
             item = V20CredExRecordDIFItem.from_dict(_item)
 
         state = d.pop("state", UNSET)

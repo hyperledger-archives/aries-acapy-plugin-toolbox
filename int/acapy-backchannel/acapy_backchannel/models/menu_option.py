@@ -56,9 +56,11 @@ class MenuOption:
 
         disabled = d.pop("disabled", UNSET)
 
-        form: Union[Unset, MenuForm] = UNSET
         _form = d.pop("form", UNSET)
-        if not isinstance(_form, Unset):
+        form: Union[Unset, MenuForm]
+        if isinstance(_form, Unset):
+            form = UNSET
+        else:
             form = MenuForm.from_dict(_form)
 
         menu_option = cls(

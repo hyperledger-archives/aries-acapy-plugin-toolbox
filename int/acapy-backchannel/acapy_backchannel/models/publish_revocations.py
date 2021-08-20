@@ -12,32 +12,34 @@ T = TypeVar("T", bound="PublishRevocations")
 class PublishRevocations:
     """ """
 
-    rrid_2_crid: Union[Unset, PublishRevocationsRrid2Crid] = UNSET
+    rrid2crid: Union[Unset, PublishRevocationsRrid2Crid] = UNSET
     additional_properties: Dict[str, Any] = attr.ib(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
-        rrid_2_crid: Union[Unset, Dict[str, Any]] = UNSET
-        if not isinstance(self.rrid_2_crid, Unset):
-            rrid_2_crid = self.rrid_2_crid.to_dict()
+        rrid2crid: Union[Unset, Dict[str, Any]] = UNSET
+        if not isinstance(self.rrid2crid, Unset):
+            rrid2crid = self.rrid2crid.to_dict()
 
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update({})
-        if rrid_2_crid is not UNSET:
-            field_dict["rrid2crid"] = rrid_2_crid
+        if rrid2crid is not UNSET:
+            field_dict["rrid2crid"] = rrid2crid
 
         return field_dict
 
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        rrid_2_crid: Union[Unset, PublishRevocationsRrid2Crid] = UNSET
-        _rrid_2_crid = d.pop("rrid2crid", UNSET)
-        if not isinstance(_rrid_2_crid, Unset):
-            rrid_2_crid = PublishRevocationsRrid2Crid.from_dict(_rrid_2_crid)
+        _rrid2crid = d.pop("rrid2crid", UNSET)
+        rrid2crid: Union[Unset, PublishRevocationsRrid2Crid]
+        if isinstance(_rrid2crid, Unset):
+            rrid2crid = UNSET
+        else:
+            rrid2crid = PublishRevocationsRrid2Crid.from_dict(_rrid2crid)
 
         publish_revocations = cls(
-            rrid_2_crid=rrid_2_crid,
+            rrid2crid=rrid2crid,
         )
 
         publish_revocations.additional_properties = d

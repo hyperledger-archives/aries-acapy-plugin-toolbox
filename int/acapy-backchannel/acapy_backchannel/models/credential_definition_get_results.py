@@ -31,9 +31,11 @@ class CredentialDefinitionGetResults:
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        credential_definition: Union[Unset, CredentialDefinition] = UNSET
         _credential_definition = d.pop("credential_definition", UNSET)
-        if not isinstance(_credential_definition, Unset):
+        credential_definition: Union[Unset, CredentialDefinition]
+        if isinstance(_credential_definition, Unset):
+            credential_definition = UNSET
+        else:
             credential_definition = CredentialDefinition.from_dict(_credential_definition)
 
         credential_definition_get_results = cls(

@@ -36,9 +36,11 @@ class IndyCredInfo:
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        attrs: Union[Unset, IndyCredInfoAttrs] = UNSET
         _attrs = d.pop("attrs", UNSET)
-        if not isinstance(_attrs, Unset):
+        attrs: Union[Unset, IndyCredInfoAttrs]
+        if isinstance(_attrs, Unset):
+            attrs = UNSET
+        else:
             attrs = IndyCredInfoAttrs.from_dict(_attrs)
 
         referent = d.pop("referent", UNSET)

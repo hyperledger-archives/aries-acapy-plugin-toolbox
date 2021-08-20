@@ -80,9 +80,11 @@ class InvitationCreateRequest:
 
         mediation_id = d.pop("mediation_id", UNSET)
 
-        metadata: Union[Unset, InvitationCreateRequestMetadata] = UNSET
         _metadata = d.pop("metadata", UNSET)
-        if not isinstance(_metadata, Unset):
+        metadata: Union[Unset, InvitationCreateRequestMetadata]
+        if isinstance(_metadata, Unset):
+            metadata = UNSET
+        else:
             metadata = InvitationCreateRequestMetadata.from_dict(_metadata)
 
         my_label = d.pop("my_label", UNSET)

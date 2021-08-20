@@ -44,7 +44,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
-          key: ${{ runner.os }}-testing-${{ matrix.python-version }} #-${{ hashFiles('poetry.lock') }}
+          key: ${{ runner.os }}-testing-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
       - name: Install poetry   # (use poetry?)
         if: steps.cache-env.outputs.cache-hit != 'true'
         run: |
@@ -59,7 +59,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ steps.setup-poetry-env.outputs.poetry-env }}
-          key: ${{ runner.os }}-poetry-${{ matrix.python-version }} #-${{ hashFiles('poetry.lock') }}
+          key: ${{ runner.os }}-poetry-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
       - name: Install dependencies
         if: steps.cache-poetry.outputs.cache-hit != 'true'
         run: |
@@ -81,7 +81,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: integration tests
         run: |
-          docker-compose -f int/docker-compose.yml up -d && docker attach juggernaut
+          docker-compose -f int/docker-compose.yml run tests
       - name: teardown
         run: |
           docker-compose -f int/docker-compose.yml down

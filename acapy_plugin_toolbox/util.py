@@ -338,16 +338,26 @@ class PassHandler(BaseHandler):
 async def admin_connections(session: ProfileSession):
     """Return admin connections."""
     storage = session.inject(BaseStorage)
-    admin_ids = map(
-        lambda record: record.tags["connection_id"],
-        filter(
-            lambda record: json.loads(record.value) == "admin",
-            await storage.find_all_records(
-                ConnRecord.RECORD_TYPE_METADATA, {"key": "group"}
-            ),
-        ),
-    )
-    admins = [await ConnRecord.retrieve_by_id(session, id) for id in admin_ids]
+    admin_metadata_records = [
+        record
+        for record in await storage.find_all_records(
+            ConnRecord.RECORD_TYPE_METADATA, {"key": "group"}
+        )
+        or []
+        if json.loads(record.value) == "admin"
+    ]
+    admins = []
+    for record in admin_metadata_records:
+        try:
+            admin = await ConnRecord.retrieve_by_id(
+                session, record.tags["connection_id"]
+            )
+            admins.append(admin)
+        except StorageNotFoundError:
+            # Clean up dangling metadata records of admins
+            LOGGER.debug("Deleteing dangling admin metadata record: %s", admins)
+            await storage.delete_record(record)
+
     LOGGER.info("Discovered admins: %s", admins)
     return admins
 
@@ -370,12 +380,20 @@ async def send_to_admins(
     ]
 
     for target in admin_targets:
-        await responder.send(
-            message,
-            reply_to_verkey=target.recipient_keys[0],
-            reply_from_verkey=target.sender_key,
-            to_session_only=to_session_only,
-        )
+        if not to_session_only:
+            await responder.send(
+                message,
+                reply_to_verkey=target.recipient_keys[0],
+                reply_from_verkey=target.sender_key,
+                target=target,
+            )
+        else:
+            await responder.send(
+                message,
+                reply_to_verkey=target.recipient_keys[0],
+                reply_from_verkey=target.sender_key,
+                to_session_only=to_session_only,
+            )
 
 
 class InvalidConnection(Exception):

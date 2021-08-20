@@ -94,8 +94,7 @@ class CreateStaticConnectionHandler(BaseHandler):
 
         # Make our info for the connection
         my_info = await wallet.create_local_did(
-            method=DIDMethod.SOV,
-            key_type=KeyType.ED25519,
+            method=DIDMethod.SOV, key_type=KeyType.ED25519
         )
 
         # Create connection record
@@ -150,8 +149,7 @@ StaticConnectionGetList, StaticConnectionGetListSchema = generate_model_schema(
     msg_type=STATIC_CONNECTION_GET_LIST,
     schema={
         "initiator": fields.Str(
-            validate=validate.OneOf(["self", "external"]),
-            required=False,
+            validate=validate.OneOf(["self", "external"]), required=False
         ),
         "invitation_key": fields.Str(required=False),
         "my_did": fields.Str(required=False),

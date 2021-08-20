@@ -31,9 +31,11 @@ class QueryResult:
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        results: Union[Unset, QueryResultResults] = UNSET
         _results = d.pop("results", UNSET)
-        if not isinstance(_results, Unset):
+        results: Union[Unset, QueryResultResults]
+        if isinstance(_results, Unset):
+            results = UNSET
+        else:
             results = QueryResultResults.from_dict(_results)
 
         query_result = cls(
