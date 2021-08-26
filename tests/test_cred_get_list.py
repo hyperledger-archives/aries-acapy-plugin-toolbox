@@ -20,7 +20,8 @@ def cred_record():
 @pytest.fixture
 def message():
     """Message fixture."""
-    yield CredGetList(paginate=Paginate)
+    paginate = Paginate()
+    yield CredGetList(paginate=paginate)
 
 
 @pytest.fixture
