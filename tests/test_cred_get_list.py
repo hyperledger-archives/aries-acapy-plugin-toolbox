@@ -32,7 +32,7 @@ def context(context, message):
 
 @pytest.fixture
 def mock_record_query():
-    """Mock PresExRecord.query on a module."""
+    """Mock CredExRecord.query on a module."""
 
     @contextmanager
     def _mock_record_query(obj, result=None, spec=None):
@@ -50,7 +50,7 @@ def mock_record_query():
 async def test_handler(
     context, mock_responder, message, mock_record_query, cred_record
 ):
-    """Test PresGetList handler."""
+    """Test CredGetList handler."""
     rec1 = cred_record()
     with mock_record_query(
         test_module.CredExRecord, [rec1], spec=test_module.CredExRecord
