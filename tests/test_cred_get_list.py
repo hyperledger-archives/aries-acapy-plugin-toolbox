@@ -2,6 +2,7 @@
 import pytest
 from acapy_plugin_toolbox.holder import v0_1 as test_module
 from acapy_plugin_toolbox.holder.v0_1 import CredGetList, CredList
+from acapy_plugin_toolbox.decorators.pagination import Paginate
 from contextlib import contextmanager
 from asynctest import mock
 
@@ -19,7 +20,7 @@ def cred_record():
 @pytest.fixture
 def message():
     """Message fixture."""
-    yield CredGetList(paginate="")
+    yield CredGetList(paginate=Paginate)
 
 
 @pytest.fixture
