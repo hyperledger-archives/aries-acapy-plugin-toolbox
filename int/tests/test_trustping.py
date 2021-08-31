@@ -55,7 +55,7 @@ async def test_trustping(connection, new_connection):
     conn = await new_connection()
     ping = await connection.send_and_await_reply_async(
         {
-            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-trustping/0.1/send",
+            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-trustping/0.1/send",
             "connection_id": conn[0],
             "comment": "Trust ping test",
         }
