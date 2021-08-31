@@ -33,6 +33,7 @@ RESPONSE_RECEIVED = f"{ADMIN_PROTOCOL_URI}/response-received"
 
 MESSAGE_TYPES = {
     SEND: "acapy_plugin_toolbox.trustping.Send",
+    SENT: "acapy_plugin_toolbox.trustping.Sent",
     RESPONSE_RECEIVED: "acapy_plugin_toolbox.trustping.ResponseReceived",
 }
 
@@ -50,16 +51,16 @@ async def setup(context: InjectionContext, protocol_registry: ProtocolRegistry =
 
 
 async def trust_ping_response_received(
-    profile: Profile, context: RequestContext, event: Event
+    profile: Profile, event: Event
 ):
-    message = ResponseReceived(connection_id=context.message.connection_id)
+    message = ResponseReceived(connection_id=event.payload["connection_id"])
     responder = profile.inject(BaseResponder)
     async with profile.session() as session:
-        await send_to_admins(session, message, responder, to_session_only=True)
+        await send_to_admins(session, message, responder)
 
 
 ResponseReceived, ResponseReceivedSchema = generate_model_schema(
-    name="New",
+    name="ResponseReceived",
     handler="acapy_plugin_toolbox.util.PassHandler",
     msg_type=RESPONSE_RECEIVED,
     schema={
