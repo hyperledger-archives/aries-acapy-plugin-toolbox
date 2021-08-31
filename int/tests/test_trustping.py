@@ -51,16 +51,20 @@ async def clear_connection_state(backchannel: Client, connection_id: str):
 
 
 @pytest.mark.asyncio
-async def test_trustping(connection, new_connection):
+async def test_send_trustping(connection, new_connection, wait_for_message):
+    """Create a connection and send a trust ping"""
     conn = await new_connection()
     ping = await connection.send_and_await_reply_async(
         {
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-trustping/0.1/send",
             "connection_id": conn[0],
             "comment": "Trust ping test",
-        }
+        },
     )
     assert (
         ping["@type"]
         == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-trustping/0.1/sent"
+    )
+    await wait_for_message(
+        msg_type="https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-trustping/0.1/response-received"
     )
