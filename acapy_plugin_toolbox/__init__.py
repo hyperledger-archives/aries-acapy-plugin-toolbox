@@ -18,6 +18,7 @@ from . import (
     schemas,
     static_connections,
     taa,
+    trustping,
 )
 from .holder import v0_1 as holder
 
@@ -33,6 +34,7 @@ MODULES = [
     schemas,
     static_connections,
     taa,
+    trustping,
     holder,
 ]
 
