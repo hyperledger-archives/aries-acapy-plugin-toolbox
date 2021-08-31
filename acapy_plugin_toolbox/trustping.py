@@ -50,9 +50,7 @@ async def setup(context: InjectionContext, protocol_registry: ProtocolRegistry =
     event_bus.subscribe(TRUSTPING_EVENT_PATTERN, trust_ping_response_received)
 
 
-async def trust_ping_response_received(
-    profile: Profile, event: Event
-):
+async def trust_ping_response_received(profile: Profile, event: Event):
     message = ResponseReceived(connection_id=event.payload["connection_id"])
     responder = profile.inject(BaseResponder)
     async with profile.session() as session:
