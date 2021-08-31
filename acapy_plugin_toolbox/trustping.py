@@ -40,7 +40,7 @@ TRUSTPING_EVENT_PATTERN = re.compile("^acapy::ping::response_received$")
 
 
 async def setup(context: InjectionContext, protocol_registry: ProtocolRegistry = None):
-    """Setup the basicmessage plugin."""
+    """Setup the trustping plugin."""
     if not protocol_registry:
         protocol_registry = context.inject(ProtocolRegistry)
     protocol_registry.register_message_types(MESSAGE_TYPES)
@@ -70,7 +70,7 @@ ResponseReceived, ResponseReceivedSchema = generate_model_schema(
 
 Send, SendSchema = generate_model_schema(
     name="Send",
-    handler="acapy_plugin_toolbox.basicmessage.SendHandler",
+    handler="acapy_plugin_toolbox.trustping.SendHandler",
     msg_type=SEND,
     schema={
         "connection_id": fields.Str(required=True),
