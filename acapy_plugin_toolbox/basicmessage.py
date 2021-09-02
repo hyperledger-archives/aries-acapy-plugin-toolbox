@@ -313,7 +313,6 @@ class SendHandler(BaseHandler):
             connection_id=context.message.connection_id,
             reply_to_verkey=targets[0].recipient_keys[0],
             reply_from_verkey=targets[0].sender_key,
-            target=targets[0],
         )
 
         record = BasicMessageRecord(
