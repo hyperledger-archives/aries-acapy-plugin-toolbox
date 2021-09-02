@@ -4,6 +4,7 @@
 import re
 
 from aries_cloudagent.connections.models.conn_record import ConnRecord
+from aries_cloudagent.connections.models.connection_target import ConnectionTarget
 from aries_cloudagent.core.profile import ProfileSession, Profile
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
@@ -21,6 +22,7 @@ from aries_cloudagent.messaging.valid import INDY_ISO8601_DATETIME
 from aries_cloudagent.protocols.basicmessage.v1_0.messages.basicmessage import (
     BasicMessage,
 )
+from aries_cloudagent.protocols.connections.v1_0.manager import ConnectionManager
 from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from aries_cloudagent.storage.error import StorageNotFoundError
 from marshmallow import fields
@@ -299,7 +301,20 @@ class SendHandler(BaseHandler):
             localization=LocalizationDecorator(locale="en"),
         )
 
-        await responder.send(msg, connection_id=context.message.connection_id)
+        # Need to use a connection target, reply_to_verkey, and reply_from_verkey
+        # if we want to send to a socket
+        conn_mgr = ConnectionManager(session)
+        targets = await conn_mgr.get_connection_targets(connection=connection)
+        assert isinstance(targets, list)
+        assert targets
+        assert isinstance(targets[0], ConnectionTarget)
+        await responder.send(
+            msg,
+            connection_id=context.message.connection_id,
+            reply_to_verkey=targets[0].recipient_keys[0],
+            reply_from_verkey=targets[0].sender_key,
+            target=targets[0],
+        )
 
         record = BasicMessageRecord(
             connection_id=context.message.connection_id,
