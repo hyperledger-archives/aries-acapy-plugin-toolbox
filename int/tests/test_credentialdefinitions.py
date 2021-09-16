@@ -30,7 +30,7 @@ async def test_send_cred_def(connection, endorser_did, create_schema):
     schema = await create_schema(version="1.0")
     send_cred_def = await connection.send_and_await_reply_async(
         {
-            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/send-credential-definition",
+            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-credential-definitions/0.1/send-credential-definition",
             "schema_id": schema.sent.schema_id,
             "~transport": {"return_route": "all"},
         },
@@ -38,7 +38,7 @@ async def test_send_cred_def(connection, endorser_did, create_schema):
     )
     assert (
         send_cred_def["@type"]
-        == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/credential-definition-id"
+        == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-credential-definitions/0.1/credential-definition-id"
     )
 
 
@@ -48,7 +48,7 @@ async def test_cred_def_get(connection, endorser_did, create_schema):
     schema = await create_schema(version="1.1")
     send_cred_def = await connection.send_and_await_reply_async(
         {
-            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/send-credential-definition",
+            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-credential-definitions/0.1/send-credential-definition",
             "schema_id": schema.sent.schema_id,
             "~transport": {"return_route": "all"},
         },
@@ -56,14 +56,14 @@ async def test_cred_def_get(connection, endorser_did, create_schema):
     )
     cred_def_get = await connection.send_and_await_reply_async(
         {
-            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/credential-definition-get",
+            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-credential-definitions/0.1/credential-definition-get",
             "cred_def_id": send_cred_def["cred_def_id"],
             "~transport": {"return_route": "all"},
         }
     )
     assert (
         cred_def_get["@type"]
-        == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/credential-definition"
+        == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-credential-definitions/0.1/credential-definition"
     )
     assert schema.sent.schema_id == cred_def_get["schema_id"]
     assert send_cred_def["cred_def_id"] == cred_def_get["cred_def_id"]
@@ -75,7 +75,7 @@ async def test_cred_def_get_list(connection, endorser_did, create_schema):
     schema1_2 = await create_schema(version="1.2")
     send_schema1_2 = await connection.send_and_await_reply_async(
         {
-            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/send-credential-definition",
+            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-credential-definitions/0.1/send-credential-definition",
             "schema_id": schema1_2.sent.schema_id,
             "~transport": {"return_route": "all"},
         },
@@ -84,7 +84,7 @@ async def test_cred_def_get_list(connection, endorser_did, create_schema):
     schema1_3 = await create_schema(version="1.3")
     send_schema1_3 = await connection.send_and_await_reply_async(
         {
-            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/send-credential-definition",
+            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-credential-definitions/0.1/send-credential-definition",
             "schema_id": schema1_3.sent.schema_id,
             "~transport": {"return_route": "all"},
         },
@@ -92,13 +92,13 @@ async def test_cred_def_get_list(connection, endorser_did, create_schema):
     )
     cred_def_get_list = await connection.send_and_await_reply_async(
         {
-            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/credential-definition-get-list",
+            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-credential-definitions/0.1/credential-definition-get-list",
             "~transport": {"return_route": "all"},
         }
     )
     assert (
         cred_def_get_list["@type"]
-        == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1/credential-definition-list"
+        == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-credential-definitions/0.1/credential-definition-list"
     )
     assert send_schema1_2["cred_def_id"] in [
         result["cred_def_id"] for result in cred_def_get_list["results"]

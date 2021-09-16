@@ -21,7 +21,7 @@ from aries_cloudagent.storage.error import StorageNotFoundError
 
 from .util import generate_model_schema, admin_only
 
-PROTOCOL = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1"
+PROTOCOL = "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-schemas/0.1"
 
 SEND_SCHEMA = "{}/send-schema".format(PROTOCOL)
 SCHEMA_ID = "{}/schema-id".format(PROTOCOL)

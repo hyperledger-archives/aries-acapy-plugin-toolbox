@@ -24,7 +24,7 @@ from marshmallow import fields
 from .schemas import SchemaRecord
 from .util import admin_only, generate_model_schema
 
-PROTOCOL = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-credential-definitions/0.1"
+PROTOCOL = "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-credential-definitions/0.1"
 
 SEND_CRED_DEF = "{}/send-credential-definition".format(PROTOCOL)
 CRED_DEF_ID = "{}/credential-definition-id".format(PROTOCOL)

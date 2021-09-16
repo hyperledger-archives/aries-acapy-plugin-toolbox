@@ -56,7 +56,7 @@ from .util import (
     with_generic_init,
 )
 
-PROTOCOL = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1"
+PROTOCOL = "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-issuer/0.1"
 
 SEND_CREDENTIAL = "{}/send-credential".format(PROTOCOL)
 REQUEST_PRESENTATION = "{}/request-presentation".format(PROTOCOL)
