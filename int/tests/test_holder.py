@@ -115,12 +115,12 @@ async def test_holder_credential_exchange(
         timeout=60,
     )
     credential_offer_received = await wait_for_message(
-        msg_type="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-received"
+        msg_type="https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/credential-offer-received"
     )
     issue_result = cast(V10CredentialExchange(auto_issue="true"), issue_result)
     credential_offer_accept = await connection.send_and_await_reply_async(
         {
-            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-accept",
+            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/credential-offer-accept",
             "credential_exchange_id": credential_offer_received[
                 "credential_exchange_id"
             ],
@@ -128,10 +128,10 @@ async def test_holder_credential_exchange(
     )
     assert (
         credential_offer_accept["@type"]
-        == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-request-sent"
+        == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/credential-request-sent"
     )
     credential_received = await wait_for_message(
-        msg_type="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-received"
+        msg_type="https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/credential-received"
     )
     records = await asyncio.wait_for(
         get_issue_credential_records.asyncio(client=backchannel), timeout=20
@@ -153,11 +153,11 @@ async def test_credentials_get_list(
 ):
     credentials_get_list = await connection.send_and_await_reply_async(
         {
-            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-get-list"
+            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/credentials-get-list"
         }
     )
     assert (
         credentials_get_list["@type"]
-        == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-list"
+        == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-holder/0.1/credentials-list"
     )
     # TODO create fixture for credential issuance to retrieve credentials from get-list protocol

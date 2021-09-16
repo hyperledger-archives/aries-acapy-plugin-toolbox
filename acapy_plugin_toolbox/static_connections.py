@@ -28,7 +28,7 @@ from aries_cloudagent.wallet.key_type import KeyType
 
 from .util import generate_model_schema, admin_only
 
-PROTOCOL = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-static-connections/0.1"
+PROTOCOL = "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-static-connections/0.1"
 
 # Message Types
 CREATE_STATIC_CONNECTION = "{}/create-static-connection".format(PROTOCOL)

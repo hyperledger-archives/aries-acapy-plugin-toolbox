@@ -4021,7 +4021,7 @@ components:
           items:
             type: string
             description: Handshake protocol to specify in invitation
-            example: did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0
+            example: https://github.com/hyperledger/aries-toolbox/tree/master/docs/didexchange/1.0
         mediation_id:
           pattern: '[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}'
           type: string
@@ -4057,7 +4057,7 @@ components:
           items:
             type: string
             description: Handshake protocol
-            example: did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0
+            example: https://github.com/hyperledger/aries-toolbox/tree/master/docs/didexchange/1.0
         label:
           type: string
           description: Optional label
@@ -4527,7 +4527,7 @@ components:
         '@type':
           type: string
           description: Message type identifier
-          example: did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/present-proof/1.0/presentation-preview
+          example: https://github.com/hyperledger/aries-toolbox/tree/master/docs/present-proof/1.0/presentation-preview
         attributes:
           type: array
           items:

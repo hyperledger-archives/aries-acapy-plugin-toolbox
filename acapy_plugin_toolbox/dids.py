@@ -21,7 +21,7 @@ from aries_cloudagent.wallet.key_type import KeyType
 
 from .util import generate_model_schema, admin_only
 
-PROTOCOL = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-dids/0.1"
+PROTOCOL = "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-dids/0.1"
 
 GET_LIST_DIDS = "{}/get-list-dids".format(PROTOCOL)
 LIST_DIDS = "{}/list-dids".format(PROTOCOL)

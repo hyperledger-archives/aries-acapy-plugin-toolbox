@@ -57,7 +57,7 @@ async def test_send(
     )
     assert (
         recip_message["@type"]
-        == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/basicmessage/1.0/message"
+        == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/basicmessage/1.0/message"
     )
     assert recip_message["content"] == "Your hovercraft is full of eels."
 
