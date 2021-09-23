@@ -21,7 +21,10 @@ from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from aries_cloudagent.storage.error import StorageNotFoundError
 from marshmallow import fields
 
-from aries_cloudagent.revocation.error import RevocationError, RevocationNotSupportedError
+from aries_cloudagent.revocation.error import (
+    RevocationError,
+    RevocationNotSupportedError,
+)
 from aries_cloudagent.revocation.indy import IndyRevocation
 from aries_cloudagent.storage.base import BaseStorage
 from aries_cloudagent.storage.error import StorageError
@@ -91,7 +94,7 @@ class CredDefRecord(BaseRecord):
         state: str = None,
         support_revocation: bool = False,
         revocation_registry_size: int = None,
-        **kwargs
+        **kwargs,
     ):
         """Initialize a new SchemaRecord."""
         super().__init__(record_id, state or self.STATE_UNWRITTEN, **kwargs)
@@ -113,7 +116,7 @@ class CredDefRecord(BaseRecord):
         return {
             "attributes": self.attributes,
             "support_revocation": self.support_revocation,
-            "revocation_registry_size": self.revocation_registry_size
+            "revocation_registry_size": self.revocation_registry_size,
         }
 
     @property
@@ -155,7 +158,9 @@ SendCredDef, SendCredDefSchema = generate_model_schema(
     schema={
         "schema_id": fields.Str(required=True),
         "support_revocation": fields.Bool(required=False),
-        "revocation_registry_size": fields.Int(required=False, strict=True, **INDY_REV_REG_SIZE),
+        "revocation_registry_size": fields.Int(
+            required=False, strict=True, **INDY_REV_REG_SIZE
+        ),
     },
 )
 
@@ -183,10 +188,14 @@ class SendCredDefHandler(BaseHandler):
             revocation_registry_size = context.message.revocation_registry_size
             if revocation_registry_size is None:
                 report = ProblemReport(
-                    description={"en": "Failed to create revokable credential definition; Error: revocation_registry_size not specified"},
-                    who_retries="none"
+                    description={
+                        "en": "Failed to create revokable credential definition; Error: revocation_registry_size not specified"
+                    },
+                    who_retries="none",
                 )
-                LOGGER.warning("revocation_registry_size not specified while creating revokable credential definition")
+                LOGGER.warning(
+                    "revocation_registry_size not specified while creating revokable credential definition"
+                )
                 await responder.send_reply(report)
                 return
         # If no schema record, make one
@@ -239,8 +248,10 @@ class SendCredDefHandler(BaseHandler):
             tails_base_url = profile.settings.get("tails_server_base_url")
             if not tails_base_url:
                 report = ProblemReport(
-                    description={"en": "Failed to contact Revocation Registry (Not Configured)"},
-                    who_retries="none"
+                    description={
+                        "en": "Failed to contact Revocation Registry (Not Configured)"
+                    },
+                    who_retries="none",
                 )
                 LOGGER.exception("tails_server_base_url not configured")
                 await responder.send_reply(report)
@@ -256,7 +267,7 @@ class SendCredDefHandler(BaseHandler):
             except RevocationNotSupportedError as e:
                 report = ProblemReport(
                     description={"en": "Failed to initialize Revocation Registry"},
-                    who_retries="none"
+                    who_retries="none",
                 )
                 LOGGER.exception("init_issuer_registry failed: %s", e)
                 await responder.send_reply(report)
@@ -275,7 +286,9 @@ class SendCredDefHandler(BaseHandler):
                     max_cred_num=registry_record.max_cred_num,
                 )
                 ensure_future(
-                    pending_registry_record.stage_pending_registry(profile, max_attempts=16)
+                    pending_registry_record.stage_pending_registry(
+                        profile, max_attempts=16
+                    )
                 )
 
                 tails_server = profile.inject(BaseTailsServer)
@@ -289,19 +302,27 @@ class SendCredDefHandler(BaseHandler):
                 )
                 if not upload_success:
                     report = ProblemReport(
-                        description={"en": f"Tails file for rev reg {registry_record.revoc_reg_id} failed to upload: {reason}"},
-                        who_retries="none"
+                        description={
+                            "en": f"Tails file for rev reg {registry_record.revoc_reg_id} failed to upload: {reason}"
+                        },
+                        who_retries="none",
                     )
-                    LOGGER.exception(f"Tails file for rev reg {registry_record.revoc_reg_id} failed to upload: {reason}")
+                    LOGGER.exception(
+                        f"Tails file for rev reg {registry_record.revoc_reg_id} failed to upload: {reason}"
+                    )
                     await responder.send_reply(report)
                     return
 
             except RevocationError as e:
                 report = ProblemReport(
-                    description={"en": "Error occurred while setting up revocation registry"},
-                    who_retries="none"
+                    description={
+                        "en": "Error occurred while setting up revocation registry"
+                    },
+                    who_retries="none",
                 )
-                LOGGER.exception("Error occurred while setting up revocation registry: %s", e)
+                LOGGER.exception(
+                    "Error occurred while setting up revocation registry: %s", e
+                )
                 await responder.send_reply(report)
                 return
 
