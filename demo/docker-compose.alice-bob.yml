@@ -35,12 +35,12 @@ services:
     command: poetry run aca-py start --arg-file ./configs/bob.yml 
 
   ngrok-tails-server:
-    image: wernight/ngrok
+    image: reflectivedevelopment/agent-tunnel
 #    networks:
 #      - tails-server
     ports:
       - 4044:4040
-    command: ngrok http tails-server:6543 --log stdout
+    command: tails-server:6543 -p 4040 --host ${AGENT_TUNNEL_HOST}
   tails-server:
     image: docker_tails-server
     ports:
