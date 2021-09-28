@@ -45,9 +45,14 @@ class PresRequestReceived(AdminHolderMessage):
 
     async def retrieve_matching_credentials(self, profile: Profile):
         holder = profile.inject(IndyHolder)
+        request = self.record.presentation_request
+
+        if not (type(request) is dict):
+            request = request.serialize()
+
         self.matching_credentials = (
             await holder.get_credentials_for_presentation_request_by_referent(
-                self.record.presentation_request.serialize(),
+                request,
                 (),
                 0,
                 self.DEFAULT_COUNT,
