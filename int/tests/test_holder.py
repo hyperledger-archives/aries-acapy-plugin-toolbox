@@ -117,7 +117,7 @@ async def issue_credential(
     credential_offer_received = await wait_for_message(
         msg_type="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-received"
     )
-    issue_result = cast(V10CredentialExchange(auto_issue="true"), issue_result)
+    issue_result = cast(V10CredentialExchange, issue_result)
     await connection.send_and_await_reply_async(
         {
             "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-accept",
@@ -169,7 +169,7 @@ async def test_holder_credential_exchange(
     credential_offer_received = await wait_for_message(
         msg_type="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-received"
     )
-    issue_result = cast(V10CredentialExchange(auto_issue="true"), issue_result)
+    issue_result = cast(V10CredentialExchange, issue_result)
     credential_offer_accept = await connection.send_and_await_reply_async(
         {
             "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-accept",
