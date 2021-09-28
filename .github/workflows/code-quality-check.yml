@@ -39,7 +39,7 @@ jobs:
             env/bin/python -m pip install flake8==${{ env.FLAKE8_VERSION }}
       - name: Black Format Check
         run: |
-            env/bin/python -m black --check .
+            env/bin/python -m black --check acapy_plugin_toolbox tests int/tests
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
