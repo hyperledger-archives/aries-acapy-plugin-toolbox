@@ -42,7 +42,7 @@ services:
       - 4044:4040
     command: tails-server:6543 -p 4040 --host ${AGENT_TUNNEL_HOST}
   tails-server:
-    image: docker_tails-server
+    image: dbluhm/indy-tails-server:latest
     ports:
       - 6543:6543
 #    networks:
