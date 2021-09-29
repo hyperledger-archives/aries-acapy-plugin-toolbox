@@ -35,10 +35,13 @@ services:
     command: poetry run aca-py start --arg-file ./configs/bob.yml
 
   tunnel-tails-server:
-    image: reflectivedevelopment/agent-tunnel
-    ports:
-      - 4044:4040
-    command: tails-server:6543 -p 4040 --host ${AGENT_TUNNEL_HOST}
+    image: efrecon/localtunnel
+    restart: on-failure
+    links:
+      - tails-server
+    depends_on:
+      - tails-server
+    command: --local-host tails-server --port 6543 --host ${TAILS_TUNNEL_HOST:-https://localtunnel.me}
   tails-server:
     image: dbluhm/indy-tails-server:latest
     ports:
