@@ -1,0 +1,48 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Code Quality Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+env:
+  FLAKE8_VERSION: 3.9.2
+  BLACK_VERSION: 21.8b0
+
+jobs:
+  format:
+    name: Format and Lint Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.6
+        uses: actions/setup-python@v2
+        with:
+            python-version: 3.6
+      - name: Cache python environment
+        id: cache-env
+        uses: actions/cache@v2
+        with:
+            path: env
+            key: ${{ runner.os }}-format-lint-${{ env.FLAKE8_VERSION }}-${{ env.BLACK_VERSION }}-${{ hashFiles('.github/workflows/code-quality-check.yml') }}
+      - name: create virtual environment
+        if: steps.cache-env.outputs.cache-hit != 'true'
+        run: |
+          python -m venv env
+      - name: Install dependencies
+        if: steps.cache-env.outputs.cache-hit != 'true'
+        run: |
+            env/bin/python -m pip install black==${{ env.BLACK_VERSION }}
+            env/bin/python -m pip install flake8==${{ env.FLAKE8_VERSION }}
+      - name: Black Format Check
+        run: |
+            env/bin/python -m black --check acapy_plugin_toolbox tests int/tests
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          env/bin/python -m flake8 . --exclude=env --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          env/bin/python -m flake8 . --exclude=env --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
