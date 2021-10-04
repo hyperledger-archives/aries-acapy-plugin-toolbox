@@ -36,9 +36,8 @@ async def test_getlisthandler(context, responder):
     """
     handler = con.GetListHandler()
     print(type(context))
-    with patch.object(ConnRecord, 'query', 
-    mock.CoroutineMock()) as mocked_query:
-        
+    with patch.object(ConnRecord, "query", mock.CoroutineMock()) as mocked_query:
+
         await handler.handle(context, responder)
         conn_list, _ = responder.messages[0]
         assert isinstance(conn_list, con.List)
