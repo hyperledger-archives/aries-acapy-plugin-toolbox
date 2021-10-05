@@ -35,7 +35,7 @@ async def test_getlisthandler(context, responder):
     A unit test for the GetListHandler class.
     """
     handler = con.GetListHandler()
-    print(type(context))
+
     with patch.object(ConnRecord, "query", mock.CoroutineMock()) as mocked_query:
 
         await handler.handle(context, responder)
