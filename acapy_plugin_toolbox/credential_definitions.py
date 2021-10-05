@@ -217,7 +217,6 @@ class SendCredDefHandler(BaseHandler):
                 attributes=schema["attrNames"],
                 state=SchemaRecord.STATE_WRITTEN,
                 author=SchemaRecord.AUTHOR_OTHER,
-                support_revocation=support_revocation,
             )
             await schema_record.save(session, reason="Retrieved from ledger")
 
