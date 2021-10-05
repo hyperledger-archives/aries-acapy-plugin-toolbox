@@ -13,7 +13,7 @@ async def create_schema(backchannel: Client, endorser_did):
 
     async def _create_schema(version):
         return await publish_schema.asyncio(
-            client=backchannel,
+            client=backchannel.with_timeout(50),
             json_body=SchemaSendRequest(
                 attributes=["attr_1_0", "attr_1_1", "attr_1_2"],
                 schema_name="Test Schema",
