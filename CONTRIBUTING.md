@@ -19,10 +19,7 @@ Where appropriate, PRs that impact the end-user and developer demos in the repo
 should include updates or extensions to those demos to cover the new
 capabilities.
 
-All contributors retain the original copyright to their stuff, but by
-contributing to this project, you grant a world-wide, royalty-free, perpetual,
-irrevocable, non-exclusive, transferable license to all users **under the terms
-of the [license](./LICENSE) under which this project is distributed.**
+Contributions are made pursuant to the Developer's Certificate of Origin, available at [https://developercertificate.org](https://developercertificate.org), and licensed under the Apache License, version 2.0 (Apache-2.0).
 
 [tutorial]: https://help.github.com/articles/set-up-git
 [prs]: https://help.github.com/articles/using-pull-requests/
