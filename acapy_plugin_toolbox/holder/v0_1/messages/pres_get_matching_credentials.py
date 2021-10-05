@@ -62,6 +62,7 @@ class PresGetMatchingCredentials(AdminHolderMessage):
                 self.paginate.limit,
                 extra_query={},
             ),
+            presentation_request=pres_ex_record.presentation_request,
             page=Page(count_=self.paginate.limit, offset=self.paginate.offset),
         )
         matches.assign_thread_from(self)
