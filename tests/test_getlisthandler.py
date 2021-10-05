@@ -1,7 +1,6 @@
 from unittest.mock import patch
 
 import pytest
-from _pytest.fixtures import yield_fixture
 from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.messaging.responder import MockResponder
 from asynctest import mock
@@ -31,12 +30,12 @@ def responder():
 @pytest.mark.asyncio
 async def test_getlisthandler(context, responder):
     """GetListHandler test.
-    
+
     A unit test for the GetListHandler class.
     """
     handler = con.GetListHandler()
 
-    with patch.object(ConnRecord, "query", mock.CoroutineMock()) as mocked_query:
+    with patch.object(ConnRecord, "query", mock.CoroutineMock()):
 
         await handler.handle(context, responder)
         conn_list, _ = responder.messages[0]

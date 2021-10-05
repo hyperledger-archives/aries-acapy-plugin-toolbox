@@ -217,9 +217,11 @@ class RequestPres(AdminIssuerMessage):
 
         presentation_manager = PresentationManager(context.profile)
 
-        presentation_exchange_record = await presentation_manager.create_exchange_for_request(
-            connection_id=connection_id,
-            presentation_request_message=presentation_request_message,
+        presentation_exchange_record = (
+            await presentation_manager.create_exchange_for_request(
+                connection_id=connection_id,
+                presentation_request_message=presentation_request_message,
+            )
         )
 
         await responder.send(presentation_request_message, connection_id=connection_id)
