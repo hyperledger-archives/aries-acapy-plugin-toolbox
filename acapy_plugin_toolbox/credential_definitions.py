@@ -157,7 +157,7 @@ SendCredDef, SendCredDefSchema = generate_model_schema(
     msg_type=SEND_CRED_DEF,
     schema={
         "schema_id": fields.Str(required=True),
-        "support_revocation": fields.Bool(required=False),
+        "support_revocation": fields.Bool(required=False, missing=False),
         "revocation_registry_size": fields.Int(
             required=False, strict=True, **INDY_REV_REG_SIZE
         ),
