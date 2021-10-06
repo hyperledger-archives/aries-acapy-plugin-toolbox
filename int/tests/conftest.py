@@ -12,7 +12,9 @@ from acapy_backchannel.api.connection import (
     delete_connection,
     set_metadata,
 )
+from acapy_backchannel.api.credential_definition import publish_cred_def
 from acapy_backchannel.api.ledger import accept_taa, fetch_taa
+from acapy_backchannel.api.schema import publish_schema
 from acapy_backchannel.api.wallet import create_did, set_public_did
 from acapy_backchannel.models import (
     ConnectionMetadataSetRequest,
@@ -21,7 +23,11 @@ from acapy_backchannel.models import (
     TAAAccept,
 )
 from acapy_backchannel.models.conn_record import ConnRecord
+from acapy_backchannel.models.credential_definition_send_request import (
+    CredentialDefinitionSendRequest,
+)
 from acapy_backchannel.models.did import DID
+from acapy_backchannel.models.schema_send_request import SchemaSendRequest
 from aries_staticagent import StaticConnection, Target
 from aries_staticagent.message import Message
 from aries_staticagent.utils import http_send
@@ -305,3 +311,34 @@ async def endorser_did(make_did, backchannel, accepted_taa):
     )
     assert result.status_code == 200
     yield did
+
+
+@pytest.fixture(scope="module")
+async def create_schema(backchannel: Client, endorser_did):
+    """Schema factory fixture."""
+
+    async def _create_schema(version):
+        return await publish_schema.asyncio(
+            client=backchannel.with_timeout(60),
+            json_body=SchemaSendRequest(
+                attributes=["attr_1_0", "attr_1_1", "attr_1_2"],
+                schema_name="Test Schema",
+                schema_version=version,
+            ),
+        )
+
+    yield _create_schema
+
+
+@pytest.fixture(scope="module")
+async def create_cred_def(backchannel: Client, endorser_did, create_schema):
+    """Credential definition fixture."""
+
+    async def _create_cred_def(version):
+        schema = await create_schema(version)
+        return await publish_cred_def.asyncio(
+            client=backchannel.with_timeout(60),
+            json_body=CredentialDefinitionSendRequest(schema_id=schema.sent.schema_id),
+        )
+
+    yield _create_cred_def
