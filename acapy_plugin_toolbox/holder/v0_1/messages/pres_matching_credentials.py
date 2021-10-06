@@ -26,7 +26,8 @@ class PresMatchingCredentials(AdminHolderMessage):
         )
         # TODO Use a toolbox PresentationExchangeRepresentation
         presentation_request = fields.Mapping(
-            required=True, description="Presentation Request associated with the Presentation Exchange ID."
+            required=True,
+            description="Presentation Request associated with the Presentation Exchange ID.",
         )
         matching_credentials = fields.Nested(
             IndyCredPrecisSchema, many=True, description="Matched credentials."
