@@ -51,38 +51,6 @@ async def issuer_holder_connection(backchannel: Client, connection):
     return invitation_created, connection_created
 
 
-@pytest.fixture(scope="module")
-async def create_schema(backchannel: Client, endorser_did):
-    """Schema factory fixture"""
-
-    async def _create_schema(version):
-        return await publish_schema.asyncio(
-            client=backchannel,
-            json_body=SchemaSendRequest(
-                attributes=["attr_1_0", "attr_1_1", "attr_1_2"],
-                schema_name="Test Schema",
-                schema_version=version,
-            ),
-        )
-
-    yield _create_schema
-
-
-@pytest.fixture(scope="module")
-async def create_cred_def(backchannel: Client, endorser_did, create_schema):
-    """Credential definition fixture"""
-
-    async def _create_cred_def(version):
-        schema = await create_schema(version)
-        backchannel.timeout = 30
-        return await publish_cred_def.asyncio(
-            client=backchannel,
-            json_body=CredentialDefinitionSendRequest(schema_id=schema.sent.schema_id),
-        )
-
-    yield _create_cred_def
-
-
 @pytest.fixture
 async def issue_credential(
     backchannel: Client,

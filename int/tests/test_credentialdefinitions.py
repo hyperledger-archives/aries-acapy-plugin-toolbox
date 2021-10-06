@@ -7,23 +7,6 @@ from acapy_backchannel.models.schema_send_request import SchemaSendRequest
 from acapy_backchannel.api.schema import publish_schema
 
 
-@pytest.fixture(scope="module")
-async def create_schema(backchannel: Client, endorser_did):
-    """Schema factory fixture"""
-
-    async def _create_schema(version):
-        return await publish_schema.asyncio(
-            client=backchannel.with_timeout(50),
-            json_body=SchemaSendRequest(
-                attributes=["attr_1_0", "attr_1_1", "attr_1_2"],
-                schema_name="Test Schema",
-                schema_version=version,
-            ),
-        )
-
-    yield _create_schema
-
-
 @pytest.mark.asyncio
 async def test_send_cred_def(connection, endorser_did, create_schema):
     """Create a credential definition"""
