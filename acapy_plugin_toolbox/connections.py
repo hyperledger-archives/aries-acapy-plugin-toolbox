@@ -212,6 +212,7 @@ class UpdateHandler(BaseHandler):
             )
             report.assign_thread_from(context.message)
             await responder.send_reply(report)
+            return
 
         new_label = context.message.label or connection.their_label
         connection.their_label = new_label
