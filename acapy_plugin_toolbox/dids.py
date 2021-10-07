@@ -28,6 +28,7 @@ LIST_DIDS = "{}/list-dids".format(PROTOCOL)
 CREATE_DID = "{}/create-did".format(PROTOCOL)
 SET_DID_METADATA = "{}/set-did-metadata".format(PROTOCOL)
 DID = "{}/did".format(PROTOCOL)
+PUBLIC_DID = "{}/public-did".format(PROTOCOL)
 GET_PUBLIC_DID = "{}/get-public-did".format(PROTOCOL)
 SET_PUBLIC_DID = "{}/set-public-did".format(PROTOCOL)
 REGISTER_DID = "{}/register-did".format(PROTOCOL)
@@ -40,6 +41,7 @@ MESSAGE_TYPES = {
     CREATE_DID: "acapy_plugin_toolbox.dids" ".CreateDid",
     SET_DID_METADATA: "acapy_plugin_toolbox.dids" ".SetDidMetadata",
     DID: "acapy_plugin_toolbox.did" ".Did",
+    PUBLIC_DID: "acapy_plugin_toolbox.did.PublicDid",
     GET_PUBLIC_DID: "acapy_plugin_toolbox.dids" ".GetPublicDid",
     SET_PUBLIC_DID: "acapy_plugin_toolbox.dids" ".SetPublicDid",
     REGISTER_DID: "acapy_plugin_toolbox.dids" ".RegisterDid",
@@ -134,6 +136,13 @@ Did, DidSchema = generate_model_schema(
     name="Did",
     handler="acapy_plugin_toolbox.util.PassHandler",
     msg_type=DID,
+    schema={"result": fields.Nested(DidRecordSchema, required=False)},
+)
+
+PublicDid, PublicDidSchema = generate_model_schema(
+    name="PublicDid",
+    handler="acapy_plugin_toolbox.util.PassHandler",
+    msg_type=PUBLIC_DID,
     schema={"result": fields.Nested(DidRecordSchema, required=False)},
 )
 
@@ -259,8 +268,14 @@ class GetPublicDidHandler(BaseHandler):
         session = await context.session()
         wallet: BaseWallet = session.inject(BaseWallet)
 
-        did_info = await wallet.get_public_did()
-        result = get_reply_did(did_info)
+        info = await wallet.get_public_did()
+        result = PublicDid(
+            result=DidRecord(
+                did=info.did if info.did else None,
+                verkey=info.verkey if info.verkey else None,
+                metadata=info.metadata if info.metadata else None,
+            )
+        )
         result.assign_thread_from(context.message)
         await responder.send_reply(result)
 
