@@ -34,14 +34,6 @@ services:
       - "3003:3003"
     command: poetry run aca-py start --arg-file ./configs/bob.yml
 
-  tunnel-tails-server:
-    image: efrecon/localtunnel
-    restart: on-failure
-    links:
-      - tails-server
-    depends_on:
-      - tails-server
-    command: --local-host tails-server --port 6543 --host ${TAILS_TUNNEL_HOST:-https://localtunnel.me}
   tails-server:
     image: dbluhm/indy-tails-server:latest
     ports:
