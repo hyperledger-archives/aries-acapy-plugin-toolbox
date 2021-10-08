@@ -2,9 +2,9 @@
 import asyncio
 import pytest
 
-from acapy_backchannel import Client
-from acapy_backchannel.models.schema_send_request import SchemaSendRequest
-from acapy_backchannel.api.schema import publish_schema
+from acapy_client import Client
+from acapy_client.models.schema_send_request import SchemaSendRequest
+from acapy_client.api.schema import publish_schema
 
 
 @pytest.mark.asyncio

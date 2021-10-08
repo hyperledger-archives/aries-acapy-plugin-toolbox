@@ -6,28 +6,28 @@ import logging
 import os
 from typing import Iterator, Optional, Union
 
-from acapy_backchannel import Client
-from acapy_backchannel.api.connection import (
+from acapy_client import Client
+from acapy_client.api.connection import (
     create_static,
     delete_connection,
     set_metadata,
 )
-from acapy_backchannel.api.credential_definition import publish_cred_def
-from acapy_backchannel.api.ledger import accept_taa, fetch_taa
-from acapy_backchannel.api.schema import publish_schema
-from acapy_backchannel.api.wallet import create_did, set_public_did
-from acapy_backchannel.models import (
+from acapy_client.api.credential_definition import publish_cred_def
+from acapy_client.api.ledger import accept_taa, fetch_taa
+from acapy_client.api.schema import publish_schema
+from acapy_client.api.wallet import create_did, set_public_did
+from acapy_client.models import (
     ConnectionMetadataSetRequest,
     ConnectionStaticRequest,
     ConnectionStaticResult,
     TAAAccept,
 )
-from acapy_backchannel.models.conn_record import ConnRecord
-from acapy_backchannel.models.credential_definition_send_request import (
+from acapy_client.models.conn_record import ConnRecord
+from acapy_client.models.credential_definition_send_request import (
     CredentialDefinitionSendRequest,
 )
-from acapy_backchannel.models.did import DID
-from acapy_backchannel.models.schema_send_request import SchemaSendRequest
+from acapy_client.models.did import DID
+from acapy_client.models.schema_send_request import SchemaSendRequest
 from aries_staticagent import StaticConnection, Target
 from aries_staticagent.message import Message
 from aries_staticagent.utils import http_send

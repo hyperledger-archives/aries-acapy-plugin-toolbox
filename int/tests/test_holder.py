@@ -3,29 +3,29 @@ import asyncio
 import pytest
 from typing import cast
 
-from acapy_backchannel import Client
-from acapy_backchannel.models.create_invitation_request import CreateInvitationRequest
-from acapy_backchannel.models.conn_record import ConnRecord
-from acapy_backchannel.models.receive_invitation_request import ReceiveInvitationRequest
-from acapy_backchannel.models.schema_send_request import SchemaSendRequest
-from acapy_backchannel.models.v10_credential_proposal_request_mand import (
+from acapy_client import Client
+from acapy_client.models.create_invitation_request import CreateInvitationRequest
+from acapy_client.models.conn_record import ConnRecord
+from acapy_client.models.receive_invitation_request import ReceiveInvitationRequest
+from acapy_client.models.schema_send_request import SchemaSendRequest
+from acapy_client.models.v10_credential_proposal_request_mand import (
     V10CredentialProposalRequestMand,
 )
-from acapy_backchannel.models.credential_preview import CredentialPreview
-from acapy_backchannel.models.credential_definition_send_request import (
+from acapy_client.models.credential_preview import CredentialPreview
+from acapy_client.models.credential_definition_send_request import (
     CredentialDefinitionSendRequest,
 )
-from acapy_backchannel.models.cred_attr_spec import CredAttrSpec
-from acapy_backchannel.models.v10_credential_exchange import V10CredentialExchange
-from acapy_backchannel.api.connection import (
+from acapy_client.models.cred_attr_spec import CredAttrSpec
+from acapy_client.models.v10_credential_exchange import V10CredentialExchange
+from acapy_client.api.connection import (
     create_invitation,
     receive_invitation,
     get_connection,
 )
-from acapy_backchannel.api.schema import publish_schema
-from acapy_backchannel.api.credential_definition import publish_cred_def
-from acapy_backchannel.api.issue_credential_v10 import issue_credential_automated
-from acapy_backchannel.api.issue_credential_v10 import get_issue_credential_records
+from acapy_client.api.schema import publish_schema
+from acapy_client.api.credential_definition import publish_cred_def
+from acapy_client.api.issue_credential_v10 import issue_credential_automated
+from acapy_client.api.issue_credential_v10 import get_issue_credential_records
 
 
 @pytest.fixture(scope="module")
