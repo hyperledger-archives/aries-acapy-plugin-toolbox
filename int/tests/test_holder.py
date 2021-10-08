@@ -1,5 +1,8 @@
 """Holder Tests"""
 import asyncio
+from acapy_client.models.credential_definition_send_result import (
+    CredentialDefinitionSendResult,
+)
 import pytest
 from typing import cast
 
@@ -63,6 +66,7 @@ async def issue_credential(
 ):
     connected = issuer_holder_connection
     cred_def = await create_cred_def(version="1.0")
+    assert isinstance(cred_def, CredentialDefinitionSendResult)
     issue_result = await asyncio.wait_for(
         issue_credential_automated.asyncio(
             client=backchannel,
@@ -75,9 +79,7 @@ async def issue_credential(
                         CredAttrSpec(name="attr_1_2", value="Test 3"),
                     ]
                 ),
-                cred_def_id=cred_def.additional_properties["sent"][
-                    "credential_definition_id"
-                ],
+                cred_def_id=cred_def.credential_definition_id,
             ),
         ),
         timeout=60,
@@ -115,6 +117,7 @@ async def test_holder_credential_exchange(
 ):
     connected = issuer_holder_connection
     cred_def = await create_cred_def(version="1.0")
+    assert isinstance(cred_def, CredentialDefinitionSendResult)
     issue_result = await asyncio.wait_for(
         issue_credential_automated.asyncio(
             client=backchannel,
@@ -127,9 +130,7 @@ async def test_holder_credential_exchange(
                         CredAttrSpec(name="attr_1_2", value="Test 3"),
                     ]
                 ),
-                cred_def_id=cred_def.additional_properties["sent"][
-                    "credential_definition_id"
-                ],
+                cred_def_id=cred_def.credential_definition_id,
             ),
         ),
         timeout=60,
