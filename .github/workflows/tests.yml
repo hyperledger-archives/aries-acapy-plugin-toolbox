@@ -58,6 +58,10 @@ jobs:
     - name: Run integration tests
       run: |
         docker-compose -f int/docker-compose.yml run tests
+    - name: Print logs on failure
+      if: failure()
+      run: |
+        docker-compose -f int/docker-compose.yml logs acapy_plugin_agent
     - name: Clean up integration tests
       if: always()
       run: |
