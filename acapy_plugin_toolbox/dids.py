@@ -293,7 +293,7 @@ class GetPublicDidHandler(BaseHandler):
         result = public_did(did_info)
         result.assign_thread_from(context.message)
         await responder.send_reply(result)
-        
+
 
 class SetPublicDidHandler(BaseHandler):
     """Handler that sets the current Public DID to the input"""
