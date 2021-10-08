@@ -34,6 +34,7 @@ SET_PUBLIC_DID = "{}/set-public-did".format(PROTOCOL)
 REGISTER_DID = "{}/register-did".format(PROTOCOL)
 GET_DID_VERKEY = "{}/get-did-verky".format(PROTOCOL)
 GET_DID_ENDPOINT = "{}/get-did-endpoint".format(PROTOCOL)
+PUBLIC_DID = "{}/public-did".format(PROTOCOL)
 
 MESSAGE_TYPES = {
     GET_LIST_DIDS: "acapy_plugin_toolbox.dids" ".GetListDids",
@@ -160,6 +161,13 @@ SetPublicDid, SetPublicDidSchema = generate_model_schema(
     schema={"did": fields.Str(required=True)},
 )
 
+PublicDid, PublicDidSchema = generate_model_schema(
+    name="PublicDid",
+    handler="acapy_plugin_toolbox.util.PassHandler",
+    msg_type=PUBLIC_DID,
+    schema={"result": fields.Nested(DidRecordSchema, required=False)},
+)
+
 RegisterDid, RegisterDidSchema = generate_model_schema(
     name="RegisterDid",
     handler="acapy_plugin_toolbox.dids.RegisterDidHandler",
@@ -198,6 +206,19 @@ def get_reply_did(info: DIDInfo) -> Did:
         )
     else:
         return Did(result=None)
+
+
+def public_did(info: DIDInfo) -> Did:
+    if info:
+        return PublicDid(
+            result=DidRecord(
+                did=info.did if info.did else None,
+                verkey=info.verkey if info.verkey else None,
+                metadata=info.metadata if info.metadata else None,
+            )
+        )
+    else:
+        return PublicDid(result=None)
 
 
 class CreateDidHandler(BaseHandler):
@@ -268,14 +289,8 @@ class GetPublicDidHandler(BaseHandler):
         session = await context.session()
         wallet: BaseWallet = session.inject(BaseWallet)
 
-        info = await wallet.get_public_did()
-        result = PublicDid(
-            result=DidRecord(
-                did=info.did if info.did else None,
-                verkey=info.verkey if info.verkey else None,
-                metadata=info.metadata if info.metadata else None,
-            )
-        )
+        did_info = await wallet.get_public_did()
+        result = public_did(did_info)
         result.assign_thread_from(context.message)
         await responder.send_reply(result)
 
@@ -291,7 +306,7 @@ class SetPublicDidHandler(BaseHandler):
 
         await wallet.set_public_did(context.message.did)
         did_info = await wallet.get_public_did()
-        result = get_reply_did(did_info)
+        result = public_did(did_info)
         result.assign_thread_from(context.message)
         await responder.send_reply(result)
 
