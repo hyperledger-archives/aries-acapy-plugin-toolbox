@@ -45,7 +45,6 @@ MESSAGE_TYPES = {
     PUBLIC_DID: "acapy_plugin_toolbox.did.PublicDid",
     GET_PUBLIC_DID: "acapy_plugin_toolbox.dids" ".GetPublicDid",
     SET_PUBLIC_DID: "acapy_plugin_toolbox.dids" ".SetPublicDid",
-    PUBLIC_DID: "acapy_plugin_toolbox.dids" ".PublicDid",
     REGISTER_DID: "acapy_plugin_toolbox.dids" ".RegisterDid",
     GET_DID_VERKEY: "acapy_plugin_toolbox.dids" ".GetDidVerkey",
     GET_DID_ENDPOINT: "acapy_plugin_toolbox.dids" ".GetDidEndpoint",
@@ -208,6 +207,7 @@ def get_reply_did(info: DIDInfo) -> Did:
     else:
         return Did(result=None)
 
+
 def public_did(info: DIDInfo) -> Did:
     if info:
         return PublicDid(
@@ -218,7 +218,7 @@ def public_did(info: DIDInfo) -> Did:
             )
         )
     else:
-         return PublicDid(result=None)
+        return PublicDid(result=None)
 
 
 class CreateDidHandler(BaseHandler):
