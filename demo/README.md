@@ -8,7 +8,7 @@ This folder contains setups for multiple scenarios:
 - And a mediator networked with ngrok that can be mixed in with the single agent
   or Alice and Bob scenarios for demonstrating mediation.
 
-Where applicable, agents are connected to the Sovrin StagingNet to enable
+Where applicable, agents are connected to the Sovrin BuilderNet to enable
 credentials exchange. You can anchor your DID and become an endorser (able to
 write schemas and credential definitions) at https://selfserve.sovrin.org.
 
