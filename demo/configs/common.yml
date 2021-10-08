@@ -6,8 +6,8 @@ plugin:
 outbound-transport: http
 
 # Ledger
-# Use Sovrin Staging Net. Become an endorser at https://selfserve.sovrin.org.
-genesis-url: https://raw.githubusercontent.com/sovrin-foundation/sovrin/master/sovrin/pool_transactions_sandbox_genesis
+# Use Sovrin Builder Net. Become an endorser at https://selfserve.sovrin.org.
+genesis-url: https://raw.githubusercontent.com/sovrin-foundation/sovrin/master/sovrin/pool_transactions_builder_genesis
 
 # Admin
 admin-insecure-mode: true
