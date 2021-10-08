@@ -112,7 +112,7 @@ To use all the features of the toolbox, you'll need the `indy` feature installed
 (as described in [Setup Aries Cloud Agent -
 Python](#setup-aries-cloud-agent-python)). [Check out the demo configurations
 for Alice or Bob](demo/configs/alice.yml) for a configuration using the Sovrin
-StagingNet and some reasonable defaults.
+BuilderNet and some reasonable defaults.
 
 ### Combined HTTP+WS Transport
 This plugin includes a side-loadable combined HTTP and WebSocket transport
