@@ -159,7 +159,6 @@ class GetListHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle get connection list request."""
-
         session = await context.session()
         tag_filter = dict(
             filter(

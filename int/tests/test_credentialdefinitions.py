@@ -7,23 +7,6 @@ from acapy_backchannel.models.schema_send_request import SchemaSendRequest
 from acapy_backchannel.api.schema import publish_schema
 
 
-@pytest.fixture(scope="module")
-async def create_schema(backchannel: Client, endorser_did):
-    """Schema factory fixture"""
-
-    async def _create_schema(version):
-        return await publish_schema.asyncio(
-            client=backchannel,
-            json_body=SchemaSendRequest(
-                attributes=["attr_1_0", "attr_1_1", "attr_1_2"],
-                schema_name="Test Schema",
-                schema_version=version,
-            ),
-        )
-
-    yield _create_schema
-
-
 @pytest.mark.asyncio
 async def test_send_cred_def(connection, endorser_did, create_schema):
     """Create a credential definition"""
@@ -34,7 +17,7 @@ async def test_send_cred_def(connection, endorser_did, create_schema):
             "schema_id": schema.sent.schema_id,
             "~transport": {"return_route": "all"},
         },
-        timeout=30,
+        timeout=50,
     )
     assert (
         send_cred_def["@type"]
@@ -52,7 +35,7 @@ async def test_cred_def_get(connection, endorser_did, create_schema):
             "schema_id": schema.sent.schema_id,
             "~transport": {"return_route": "all"},
         },
-        timeout=30,
+        timeout=50,
     )
     cred_def_get = await connection.send_and_await_reply_async(
         {
@@ -79,7 +62,7 @@ async def test_cred_def_get_list(connection, endorser_did, create_schema):
             "schema_id": schema1_2.sent.schema_id,
             "~transport": {"return_route": "all"},
         },
-        timeout=30,
+        timeout=50,
     )
     schema1_3 = await create_schema(version="1.3")
     send_schema1_3 = await connection.send_and_await_reply_async(
@@ -88,7 +71,7 @@ async def test_cred_def_get_list(connection, endorser_did, create_schema):
             "schema_id": schema1_3.sent.schema_id,
             "~transport": {"return_route": "all"},
         },
-        timeout=30,
+        timeout=50,
     )
     cred_def_get_list = await connection.send_and_await_reply_async(
         {

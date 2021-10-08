@@ -33,7 +33,7 @@ async def test_schema_get(connection, endorser_did):
             "attributes": ["attr_2_0", "attr_2_1", "attr_2_2"],
             "return_route": "all",
         },
-        timeout=30,
+        timeout=50,
     )
     schema_get = await connection.send_and_await_reply_async(
         {
@@ -63,7 +63,7 @@ async def test_schema_get_list(connection, endorser_did):
             "attributes": ["attr_3_0", "attr_3_1", "attr_3_2"],
             "return_route": "all",
         },
-        timeout=30,
+        timeout=50,
     )
     schema_get_list = await connection.send_and_await_reply_async(
         {
