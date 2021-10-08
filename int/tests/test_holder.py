@@ -51,36 +51,56 @@ async def issuer_holder_connection(backchannel: Client, connection):
     return invitation_created, connection_created
 
 
-@pytest.fixture(scope="module")
-async def create_schema(backchannel: Client, endorser_did):
-    """Schema factory fixture"""
-
-    async def _create_schema(version):
-        return await publish_schema.asyncio(
+@pytest.fixture
+async def issue_credential(
+    backchannel: Client,
+    connection,
+    issuer_holder_connection,
+    endorser_did,
+    create_schema,
+    create_cred_def,
+    wait_for_message,
+):
+    connected = issuer_holder_connection
+    cred_def = await create_cred_def(version="1.0")
+    issue_result = await asyncio.wait_for(
+        issue_credential_automated.asyncio(
             client=backchannel,
-            json_body=SchemaSendRequest(
-                attributes=["attr_1_0", "attr_1_1", "attr_1_2"],
-                schema_name="Test Schema",
-                schema_version=version,
+            json_body=V10CredentialProposalRequestMand(
+                connection_id=connected[1].connection_id,
+                credential_proposal=CredentialPreview(
+                    [
+                        CredAttrSpec(name="attr_1_0", value="Test 1"),
+                        CredAttrSpec(name="attr_1_1", value="Test 2"),
+                        CredAttrSpec(name="attr_1_2", value="Test 3"),
+                    ]
+                ),
+                cred_def_id=cred_def.additional_properties["sent"][
+                    "credential_definition_id"
+                ],
             ),
-        )
-
-    yield _create_schema
-
-
-@pytest.fixture(scope="module")
-async def create_cred_def(backchannel: Client, endorser_did, create_schema):
-    """Credential definition fixture"""
-
-    async def _create_cred_def(version):
-        schema = await create_schema(version)
-        backchannel.timeout = 30
-        return await publish_cred_def.asyncio(
-            client=backchannel,
-            json_body=CredentialDefinitionSendRequest(schema_id=schema.sent.schema_id),
-        )
-
-    yield _create_cred_def
+        ),
+        timeout=60,
+    )
+    credential_offer_received = await wait_for_message(
+        msg_type="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-received"
+    )
+    issue_result = cast(V10CredentialExchange, issue_result)
+    await connection.send_and_await_reply_async(
+        {
+            "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-accept",
+            "credential_exchange_id": credential_offer_received[
+                "credential_exchange_id"
+            ],
+        }
+    )
+    await wait_for_message(
+        msg_type="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-received"
+    )
+    credentials_list = await asyncio.wait_for(
+        get_issue_credential_records.asyncio(client=backchannel), timeout=40
+    )
+    return credentials_list
 
 
 @pytest.mark.asyncio
@@ -117,7 +137,7 @@ async def test_holder_credential_exchange(
     credential_offer_received = await wait_for_message(
         msg_type="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-received"
     )
-    issue_result = cast(V10CredentialExchange(auto_issue="true"), issue_result)
+    issue_result = cast(V10CredentialExchange, issue_result)
     credential_offer_accept = await connection.send_and_await_reply_async(
         {
             "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-offer-accept",
@@ -149,15 +169,24 @@ async def test_credentials_get_list(
     endorser_did,
     create_schema,
     create_cred_def,
-    wait_for_message,
+    issue_credential,
 ):
+    cred1 = issue_credential
+    cred2 = issue_credential
     credentials_get_list = await connection.send_and_await_reply_async(
         {
             "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-get-list"
         }
     )
+    cred1_set = set([result.credential_exchange_id for result in cred1.results])
+    cred2_set = set([result.credential_exchange_id for result in cred2.results])
+    cred_get_list_set = set(
+        [cred["credential_exchange_id"] for cred in credentials_get_list["results"]]
+    )
+
     assert (
         credentials_get_list["@type"]
         == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-list"
     )
-    # TODO create fixture for credential issuance to retrieve credentials from get-list protocol
+    assert cred1_set.issubset(cred_get_list_set)
+    assert cred2_set.issubset(cred_get_list_set)

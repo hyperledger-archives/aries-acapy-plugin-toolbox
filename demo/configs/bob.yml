@@ -43,6 +43,8 @@ auto-respond-presentation-proposal: true
 auto-respond-presentation-request: true
 auto-verify-presentation: true
 
+tails-server-base-url: http://tails-server:6543
+
 # Wallet
 wallet-type: indy
 wallet-key: "insecure, for use in demo only"
