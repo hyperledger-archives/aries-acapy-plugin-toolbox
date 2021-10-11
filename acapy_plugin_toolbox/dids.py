@@ -34,7 +34,6 @@ SET_PUBLIC_DID = "{}/set-public-did".format(PROTOCOL)
 REGISTER_DID = "{}/register-did".format(PROTOCOL)
 GET_DID_VERKEY = "{}/get-did-verky".format(PROTOCOL)
 GET_DID_ENDPOINT = "{}/get-did-endpoint".format(PROTOCOL)
-PUBLIC_DID = "{}/public-did".format(PROTOCOL)
 
 MESSAGE_TYPES = {
     GET_LIST_DIDS: "acapy_plugin_toolbox.dids" ".GetListDids",
