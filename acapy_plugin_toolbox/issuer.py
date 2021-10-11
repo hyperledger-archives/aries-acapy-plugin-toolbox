@@ -7,7 +7,7 @@ from typing import Optional, Mapping
 from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
-from aries_cloudagent.indy.sdk.models.proof_request import IndyProofRequest
+from aries_cloudagent.indy.models.proof_request import IndyProofRequest
 from aries_cloudagent.indy.util import generate_pr_nonce
 from aries_cloudagent.messaging.agent_message import AgentMessage
 from aries_cloudagent.messaging.base_handler import (

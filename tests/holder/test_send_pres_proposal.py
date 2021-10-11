@@ -5,7 +5,7 @@ from acapy_plugin_toolbox.holder.v0_1.messages import send_pres_proposal as test
 from acapy_plugin_toolbox.holder.v0_1.messages.send_pres_proposal import (
     SendPresProposal,
 )
-from aries_cloudagent.indy.sdk.models.pres_preview import (
+from aries_cloudagent.indy.models.pres_preview import (
     IndyPresAttrSpec,
     IndyPresPreview,
 )

@@ -1,7 +1,7 @@
 """Invitations tests"""
 import pytest
-from acapy_backchannel import Client
-from acapy_backchannel.api.connection import delete_connection, get_connections
+from acapy_client import Client
+from acapy_client.api.connection import delete_connection, get_connections
 
 
 @pytest.fixture(autouse=True)

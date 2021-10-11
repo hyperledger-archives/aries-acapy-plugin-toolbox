@@ -6,28 +6,30 @@ import logging
 import os
 from typing import Iterator, Optional, Union
 
-from acapy_backchannel import Client
-from acapy_backchannel.api.connection import (
+from acapy_client import Client
+from acapy_client.api.connection import (
     create_static,
     delete_connection,
     set_metadata,
 )
-from acapy_backchannel.api.credential_definition import publish_cred_def
-from acapy_backchannel.api.ledger import accept_taa, fetch_taa
-from acapy_backchannel.api.schema import publish_schema
-from acapy_backchannel.api.wallet import create_did, set_public_did
-from acapy_backchannel.models import (
+from acapy_client.api.credential_definition import publish_cred_def
+from acapy_client.api.ledger import accept_taa, fetch_taa
+from acapy_client.api.schema import publish_schema
+from acapy_client.api.wallet import create_did, set_public_did
+from acapy_client.models import (
     ConnectionMetadataSetRequest,
     ConnectionStaticRequest,
     ConnectionStaticResult,
     TAAAccept,
 )
-from acapy_backchannel.models.conn_record import ConnRecord
-from acapy_backchannel.models.credential_definition_send_request import (
+from acapy_client.models.conn_record import ConnRecord
+from acapy_client.models.credential_definition_send_request import (
     CredentialDefinitionSendRequest,
 )
-from acapy_backchannel.models.did import DID
-from acapy_backchannel.models.schema_send_request import SchemaSendRequest
+from acapy_client.models.did import DID
+from acapy_client.models.did_create import DIDCreate
+from acapy_client.models.schema_send_request import SchemaSendRequest
+from acapy_client.models.schema_send_result import SchemaSendResult
 from aries_staticagent import StaticConnection, Target
 from aries_staticagent.message import Message
 from aries_staticagent.utils import http_send
@@ -273,7 +275,11 @@ async def make_did(backchannel):
     """DID factory fixture"""
 
     async def _make_did():
-        return (await create_did.asyncio(client=backchannel.with_timeout(15))).result
+        return (
+            await create_did.asyncio(
+                client=backchannel.with_timeout(15), json_body=DIDCreate()
+            )
+        ).result
 
     yield _make_did
     # TODO create DID deletion method
@@ -336,9 +342,10 @@ async def create_cred_def(backchannel: Client, endorser_did, create_schema):
 
     async def _create_cred_def(version):
         schema = await create_schema(version)
+        assert isinstance(schema, SchemaSendResult)
         return await publish_cred_def.asyncio(
             client=backchannel.with_timeout(60),
-            json_body=CredentialDefinitionSendRequest(schema_id=schema.sent.schema_id),
+            json_body=CredentialDefinitionSendRequest(schema_id=schema.schema_id),
         )
 
     yield _create_cred_def
