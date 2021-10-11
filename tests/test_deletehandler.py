@@ -44,36 +44,37 @@ async def test_deletehandler(context, responder):
     ) as mocked_retrieve:
 
         await handler.handle(context, responder)
-        assert responder.messages 
+        assert responder.messages
 
 
 @pytest.mark.asyncio
-async def test_delhandler_badconnid(context,responder):
+async def test_delhandler_badconnid(context, responder):
     """DeleteHandler bad connection test.
-    
+
     A unit test for the message.connection_id
     == connection_record.connection_id error
     of the DeleteHandler class."""
     handler = con.DeleteHandler()
-    
+
     context.message.connection_id = "test_id"
     context.connection_record.connection_id = "test_id"
 
-    await handler.handle(context,responder)
-    (message,_),*_ = responder.messages
+    await handler.handle(context, responder)
+    (message, _), *_ = responder.messages
     assert isinstance(message, ProblemReport)
     assert message.description == {"en": "Current connection cannot be deleted."}
 
+
 @pytest.mark.asyncio
-async def test_storageerror(context,responder):
+async def test_storageerror(context, responder):
     """DeleteHandler StorageError test.
-    
+
     A unit test for the StorageNotFound exception
     of the DeleteHandler class."""
     handler = con.DeleteHandler()
     responder.side_effect = StorageNotFoundError
-    await handler.handle(context,responder)
-    
-    (message,_),*_ = responder.messages
+    await handler.handle(context, responder)
+
+    (message, _), *_ = responder.messages
     assert isinstance(message, ProblemReport)
     assert message.description["en"] == "Connection not found."
