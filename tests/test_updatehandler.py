@@ -52,16 +52,17 @@ async def test_updatehandler(context, responder):
         await handler.handle(context, responder)
         mocked_reply.assert_called_once()
 
+
 @pytest.mark.asyncio
-async def test_storageerror(context,responder):
+async def test_storageerror(context, responder):
     """DeleteHandler StorageError test.
-    
+
     A unit test for the StorageNotFound exception
     of the DeleteHandler class."""
     handler = con.DeleteHandler()
     responder.side_effect = StorageNotFoundError
-    await handler.handle(context,responder)
-    
-    (message,_),*_ = responder.messages
+    await handler.handle(context, responder)
+
+    (message, _), *_ = responder.messages
     assert isinstance(message, ProblemReport)
     assert message.description["en"] == "Connection not found."
