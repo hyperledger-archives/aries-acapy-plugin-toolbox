@@ -160,13 +160,6 @@ SetPublicDid, SetPublicDidSchema = generate_model_schema(
     schema={"did": fields.Str(required=True)},
 )
 
-PublicDid, PublicDidSchema = generate_model_schema(
-    name="PublicDid",
-    handler="acapy_plugin_toolbox.util.PassHandler",
-    msg_type=PUBLIC_DID,
-    schema={"result": fields.Nested(DidRecordSchema, required=False)},
-)
-
 RegisterDid, RegisterDidSchema = generate_model_schema(
     name="RegisterDid",
     handler="acapy_plugin_toolbox.dids.RegisterDidHandler",
