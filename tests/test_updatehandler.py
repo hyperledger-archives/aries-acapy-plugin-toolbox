@@ -2,6 +2,8 @@ from unittest.mock import patch
 
 import pytest
 from _pytest.fixtures import yield_fixture
+from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
+from aries_cloudagent.storage.error import StorageNotFoundError
 from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.messaging.responder import MockResponder
 from asynctest import mock
@@ -49,3 +51,17 @@ async def test_updatehandler(context, responder):
 
         await handler.handle(context, responder)
         mocked_reply.assert_called_once()
+
+@pytest.mark.asyncio
+async def test_storageerror(context,responder):
+    """DeleteHandler StorageError test.
+    
+    A unit test for the StorageNotFound exception
+    of the DeleteHandler class."""
+    handler = con.DeleteHandler()
+    responder.side_effect = StorageNotFoundError
+    await handler.handle(context,responder)
+    
+    (message,_),*_ = responder.messages
+    assert isinstance(message, ProblemReport)
+    assert message.description["en"] == "Connection not found."
