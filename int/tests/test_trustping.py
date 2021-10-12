@@ -1,14 +1,14 @@
 """Trust Ping Tests"""
 import pytest
-from acapy_backchannel import Client
-from acapy_backchannel.api.connection import (
+from acapy_client import Client
+from acapy_client.api.connection import (
     create_invitation,
     delete_connection,
     get_connections,
     receive_invitation,
 )
-from acapy_backchannel.models.create_invitation_request import CreateInvitationRequest
-from acapy_backchannel.models.receive_invitation_request import ReceiveInvitationRequest
+from acapy_client.models.create_invitation_request import CreateInvitationRequest
+from acapy_client.models.receive_invitation_request import ReceiveInvitationRequest
 
 
 @pytest.fixture

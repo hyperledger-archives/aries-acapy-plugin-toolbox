@@ -1,9 +1,9 @@
 """Basic Message Tests"""
 import asyncio
-from acapy_backchannel.models.send_message import SendMessage
+from acapy_client.models.send_message import SendMessage
 import pytest
 from aries_staticagent import StaticConnection, utils
-from acapy_backchannel.api.basicmessage import send_basicmessage
+from acapy_client.api.basicmessage import send_basicmessage
 
 
 @pytest.fixture
