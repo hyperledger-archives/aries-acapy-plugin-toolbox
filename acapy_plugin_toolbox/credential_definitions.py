@@ -4,7 +4,7 @@
 # pylint: disable=too-few-public-methods
 
 import logging
-from asyncio import shield
+from asyncio import ensure_future, shield
 
 from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
@@ -20,6 +20,17 @@ from aries_cloudagent.messaging.util import canon
 from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from aries_cloudagent.storage.error import StorageNotFoundError
 from marshmallow import fields
+
+from aries_cloudagent.revocation.error import (
+    RevocationError,
+    RevocationNotSupportedError,
+)
+from aries_cloudagent.revocation.indy import IndyRevocation
+from aries_cloudagent.storage.base import BaseStorage
+from aries_cloudagent.storage.error import StorageError
+from aries_cloudagent.tails.base import BaseTailsServer
+
+from aries_cloudagent.messaging.valid import INDY_REV_REG_SIZE
 
 from .schemas import SchemaRecord
 from .util import admin_only, generate_model_schema
@@ -64,6 +75,9 @@ class CredDefRecord(BaseRecord):
     STATE_UNWRITTEN = "unwritten"
     STATE_WRITTEN = "written"
 
+    REVOCATION_SUPPORTED = True
+    REVOCATION_UNSUPPORTED = False
+
     class Meta:
         """CredDefRecord metadata."""
 
@@ -78,7 +92,9 @@ class CredDefRecord(BaseRecord):
         attributes: [str] = None,
         author: str = None,
         state: str = None,
-        **kwargs
+        support_revocation: bool = False,
+        revocation_registry_size: int = None,
+        **kwargs,
     ):
         """Initialize a new SchemaRecord."""
         super().__init__(record_id, state or self.STATE_UNWRITTEN, **kwargs)
@@ -86,6 +102,8 @@ class CredDefRecord(BaseRecord):
         self.schema_id = schema_id
         self.attributes = attributes
         self.author = author
+        self.support_revocation = support_revocation
+        self.revocation_registry_size = revocation_registry_size
 
     @property
     def record_id(self) -> str:
@@ -95,7 +113,11 @@ class CredDefRecord(BaseRecord):
     @property
     def record_value(self) -> dict:
         """Get record value."""
-        return {"attributes": self.attributes}
+        return {
+            "attributes": self.attributes,
+            "support_revocation": self.support_revocation,
+            "revocation_registry_size": self.revocation_registry_size,
+        }
 
     @property
     def record_tags(self) -> dict:
@@ -125,13 +147,21 @@ class CredDefRecordSchema(BaseRecordSchema):
     schema_id = fields.Str(required=False)
     attributes = fields.List(fields.Str(), required=False)
     author = fields.Str(required=False)
+    support_revocation = fields.Bool(required=False, missing=False)
+    revocation_registry_size = fields.Int(required=False)
 
 
 SendCredDef, SendCredDefSchema = generate_model_schema(
     name="SendCredDef",
     handler="acapy_plugin_toolbox.credential_definitions" ".SendCredDefHandler",
     msg_type=SEND_CRED_DEF,
-    schema={"schema_id": fields.Str(required=True)},
+    schema={
+        "schema_id": fields.Str(required=True),
+        "support_revocation": fields.Bool(required=False, missing=False),
+        "revocation_registry_size": fields.Int(
+            required=False, strict=True, **INDY_REV_REG_SIZE
+        ),
+    },
 )
 
 CredDefID, CredDefIDSchema = generate_model_schema(
@@ -151,6 +181,23 @@ class SendCredDefHandler(BaseHandler):
         session = await context.session()
         ledger: BaseLedger = session.inject(BaseLedger)
         issuer: IndyIssuer = session.inject(IndyIssuer)
+        support_revocation: bool = context.message.support_revocation
+        revocation_registry_size: int = None
+
+        if support_revocation:
+            revocation_registry_size = context.message.revocation_registry_size
+            if revocation_registry_size is None:
+                report = ProblemReport(
+                    description={
+                        "en": "Failed to create revokable credential definition; Error: revocation_registry_size not specified"
+                    },
+                    who_retries="none",
+                )
+                LOGGER.warning(
+                    "revocation_registry_size not specified while creating revokable credential definition"
+                )
+                await responder.send_reply(report)
+                return
         # If no schema record, make one
         try:
             schema_record = await SchemaRecord.retrieve_by_schema_id(
@@ -175,13 +222,14 @@ class SendCredDefHandler(BaseHandler):
 
         try:
             async with ledger:
-                credential_definition_id, *_ = await shield(
+                credential_definition_id, _, novel = await shield(
                     ledger.create_and_send_credential_definition(
                         issuer,
                         context.message.schema_id,
                         tag="{}_{}".format(
                             schema_record.schema_name, schema_record.schema_version
                         ),
+                        support_revocation=support_revocation,
                     )
                 )
         except Exception as err:
@@ -193,6 +241,90 @@ class SendCredDefHandler(BaseHandler):
             await responder.send_reply(report)
             return
 
+        # If revocation is requested and cred def is novel, create revocation registry
+        if support_revocation and novel:
+            profile = context.profile
+            tails_base_url = profile.settings.get("tails_server_base_url")
+            if not tails_base_url:
+                report = ProblemReport(
+                    description={
+                        "en": "Failed to contact Revocation Registry (Not Configured)"
+                    },
+                    who_retries="none",
+                )
+                LOGGER.exception("tails_server_base_url not configured")
+                await responder.send_reply(report)
+                return
+            try:
+                # Create registry
+                revoc = IndyRevocation(profile)
+                registry_record = await revoc.init_issuer_registry(
+                    credential_definition_id,
+                    max_cred_num=revocation_registry_size,
+                )
+
+            except RevocationNotSupportedError as e:
+                report = ProblemReport(
+                    description={"en": "Failed to initialize Revocation Registry"},
+                    who_retries="none",
+                )
+                LOGGER.exception("init_issuer_registry failed: %s", e)
+                await responder.send_reply(report)
+                return
+            await shield(registry_record.generate_registry(profile))
+            try:
+                await registry_record.set_tails_file_public_uri(
+                    profile, f"{tails_base_url}/{registry_record.revoc_reg_id}"
+                )
+                await registry_record.send_def(profile)
+                await registry_record.send_entry(profile)
+
+                # stage pending registry independent of whether tails server is OK
+                pending_registry_record = await revoc.init_issuer_registry(
+                    registry_record.cred_def_id,
+                    max_cred_num=registry_record.max_cred_num,
+                )
+                ensure_future(
+                    pending_registry_record.stage_pending_registry(
+                        profile, max_attempts=16
+                    )
+                )
+
+                tails_server = profile.inject(BaseTailsServer)
+                (upload_success, reason) = await tails_server.upload_tails_file(
+                    profile,
+                    registry_record.revoc_reg_id,
+                    registry_record.tails_local_path,
+                    interval=0.8,
+                    backoff=-0.5,
+                    max_attempts=5,  # heuristic: respect HTTP timeout
+                )
+                if not upload_success:
+                    report = ProblemReport(
+                        description={
+                            "en": f"Tails file for rev reg {registry_record.revoc_reg_id} failed to upload: {reason}"
+                        },
+                        who_retries="none",
+                    )
+                    LOGGER.exception(
+                        f"Tails file for rev reg {registry_record.revoc_reg_id} failed to upload: {reason}"
+                    )
+                    await responder.send_reply(report)
+                    return
+
+            except RevocationError as e:
+                report = ProblemReport(
+                    description={
+                        "en": "Error occurred while setting up revocation registry"
+                    },
+                    who_retries="none",
+                )
+                LOGGER.exception(
+                    "Error occurred while setting up revocation registry: %s", e
+                )
+                await responder.send_reply(report)
+                return
+
         # we may not need to save the record as below
         cred_def_record = CredDefRecord(
             cred_def_id=credential_definition_id,
@@ -200,6 +332,8 @@ class SendCredDefHandler(BaseHandler):
             attributes=list(map(canon, schema_record.attributes)),
             state=CredDefRecord.STATE_WRITTEN,
             author=CredDefRecord.AUTHOR_SELF,
+            support_revocation=support_revocation,
+            revocation_registry_size=revocation_registry_size,
         )
         await cred_def_record.save(
             session, reason="Committed credential definition to ledger"

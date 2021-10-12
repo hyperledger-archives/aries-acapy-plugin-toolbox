@@ -16,8 +16,8 @@ plugin:
 outbound-transport: http
 
 # Ledger
-# Use Sovrin Staging Net. Become an endorser at https://selfserve.sovrin.org.
-genesis-url: https://raw.githubusercontent.com/sovrin-foundation/sovrin/master/sovrin/pool_transactions_sandbox_genesis
+# Use Sovrin Builder Net. Become an endorser at https://selfserve.sovrin.org.
+genesis-url: https://raw.githubusercontent.com/sovrin-foundation/sovrin/master/sovrin/pool_transactions_builder_genesis
 
 # Admin
 admin-insecure-mode: true
@@ -42,6 +42,8 @@ auto-respond-credential-request: true
 auto-respond-presentation-proposal: true
 auto-respond-presentation-request: true
 auto-verify-presentation: true
+
+tails-server-base-url: http://tails-server:6543
 
 # Wallet
 wallet-type: indy

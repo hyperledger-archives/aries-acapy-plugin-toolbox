@@ -1,0 +1,68 @@
+name: Tests
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+env:
+  POETRY_VERSION: 1.1.7
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8, 3.9]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Cache poetry installation
+      id: cache-poetry
+      uses: actions/cache@v2
+      with:
+          path: ~/.local
+          key: poetry-${{ runner.os }}-${{ matrix.python-version }}-${{ env.POETRY_VERSION }}-${{ hashFiles('.github/workflows/code-quality-check.yml') }}
+    - name: Install poetry
+      if: steps.cache-poetry.outputs.cache-hit != 'true'
+      run: |
+          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python - --version=${{ env.POETRY_VERSION }}
+    - name: Setup poetry environment
+      id: setup-poetry-env
+      run: |
+          poetry env use $(which python)
+          echo "::set-output name=poetry-env::$(poetry env info --path)"
+    - name: Cache poetry virtual environment
+      id: cache-poetry-venv
+      uses: actions/cache@v2
+      with:
+          path: ${{ steps.setup-poetry-env.outputs.poetry-env }}
+          key: poetry-env-${{ runner.os }}-${{ matrix.python-version }}-${{ env.POETRY_VERSION }}-${{ hashFiles('poetry.lock') }}-${{ hashFiles('.github/workflows/code-quality-check.yml') }}
+    - name: Install dependencies
+      if: steps.cache-poetry-venv.outputs.cache-hit != 'true'
+      run: |
+          poetry install
+    - name: Run unit tests with pytest
+      run: |
+        poetry run pytest tests
+
+  int:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run integration tests
+      run: |
+        docker-compose -f int/docker-compose.yml run tests
+    - name: Print logs on failure
+      if: failure()
+      run: |
+        docker-compose -f int/docker-compose.yml logs acapy_plugin_agent
+    - name: Clean up integration tests
+      if: always()
+      run: |
+        docker-compose -f int/docker-compose.yml down

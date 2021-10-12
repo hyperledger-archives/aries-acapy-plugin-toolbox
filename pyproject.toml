@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aries-acapy-plugin-toolbox"
-version = "0.1.0"
+version = "0.2.0"
 description = "Aries Cloud Agent - Python Plugin for Aries Toolbox"
 authors = [
     "Daniel Bluhm <dbluhm@pm.me>",
@@ -32,11 +32,7 @@ packages = [
 python = "^3.6.9"
 marshmallow = "3.5.1"
 python-dateutil = "^2.8.1"
-
-[tool.poetry.dependencies.aries-cloudagent]
-    git = "https://github.com/hyperledger/aries-cloudagent-python"
-    rev = "9d65039638dae9276603c740648043f397a2d064"
-    extras = ["indy"]
+aries-cloudagent = { version = "^0.7.1", extras = ["indy"] }
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
@@ -47,7 +43,7 @@ black = "^21.6b0"
 flake8 = "^3.9.2"
 
 [tool.pytest.ini_options]
-addopts = "-p no:warnings tests"
+addopts = "-p no:warnings"
 
 [build-system]
 requires = ["setuptools", "poetry-core>=1.0.0"]

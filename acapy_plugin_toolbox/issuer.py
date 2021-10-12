@@ -7,7 +7,7 @@ from typing import Optional, Mapping
 from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
-from aries_cloudagent.indy.sdk.models.proof_request import IndyProofRequest
+from aries_cloudagent.indy.models.proof_request import IndyProofRequest
 from aries_cloudagent.indy.util import generate_pr_nonce
 from aries_cloudagent.messaging.agent_message import AgentMessage
 from aries_cloudagent.messaging.base_handler import (
@@ -42,7 +42,18 @@ from aries_cloudagent.protocols.present_proof.v1_0.routes import (
     V10PresentationSendRequestRequestSchema,
 )
 from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
-from aries_cloudagent.storage.error import StorageNotFoundError
+from aries_cloudagent.storage.error import StorageError, StorageNotFoundError
+from aries_cloudagent.revocation.error import (
+    RevocationError,
+    RevocationNotSupportedError,
+)
+from aries_cloudagent.revocation.indy import IndyRevocation
+from aries_cloudagent.revocation.manager import (
+    RevocationManager,
+    RevocationManagerError,
+)
+from aries_cloudagent.indy.issuer import IndyIssuerError
+from aries_cloudagent.ledger.error import LedgerError
 from marshmallow import fields
 from uuid import UUID
 
@@ -56,9 +67,14 @@ from .util import (
     with_generic_init,
 )
 
+import logging
+
+LOGGER = logging.getLogger(__name__)
+
 PROTOCOL = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1"
 
 SEND_CREDENTIAL = "{}/send-credential".format(PROTOCOL)
+REVOKE_CREDENTIAL = "{}/revoke-credential".format(PROTOCOL)
 REQUEST_PRESENTATION = "{}/request-presentation".format(PROTOCOL)
 ISSUER_CRED_EXCHANGE = "{}/credential-exchange".format(PROTOCOL)
 ISSUER_PRES_EXCHANGE = "{}/presentation-exchange".format(PROTOCOL)
@@ -69,6 +85,7 @@ PRESENTATIONS_LIST = "{}/presentations-list".format(PROTOCOL)
 
 MESSAGE_TYPES = {
     SEND_CREDENTIAL: "acapy_plugin_toolbox.issuer.SendCred",
+    REVOKE_CREDENTIAL: "acapy_plugin_toolbox.issuer.RevokeCred",
     REQUEST_PRESENTATION: "acapy_plugin_toolbox.issuer.RequestPres",
     CREDENTIALS_GET_LIST: "acapy_plugin_toolbox.issuer.CredGetList",
     CREDENTIALS_LIST: "acapy_plugin_toolbox.issuer.CredList",
@@ -171,6 +188,53 @@ class SendCredHandler(BaseHandler):
         cred_exchange = IssuerCredExchange(record=cred_exchange_record)
         cred_exchange.assign_thread_from(context.message)
         await responder.send_reply(cred_exchange)
+
+
+RevokeCred, RevokeCredSchema = generate_model_schema(
+    name="RevokeCred",
+    handler="acapy_plugin_toolbox.issuer.RevokeCredHandler",
+    msg_type=REVOKE_CREDENTIAL,
+    schema={
+        "credential_exchange_id": fields.Str(required=False),
+    },
+)
+
+
+class RevokeCredHandler(BaseHandler):
+    """Handler for received send request."""
+
+    @admin_only
+    async def handle(self, context: RequestContext, responder: BaseResponder):
+        """Handle received send request."""
+        rev_reg_id = None  # body.get("rev_reg_id")
+        cred_rev_id = None  # body.get("cred_rev_id")  # numeric str, which indy wants
+        cred_ex_id = context.message.credential_exchange_id
+        publish = True  # body.get("publish")
+
+        rev_manager = RevocationManager(context.profile)
+        try:
+            if cred_ex_id:
+                await rev_manager.revoke_credential_by_cred_ex_id(cred_ex_id, publish)
+            else:
+                await rev_manager.revoke_credential(rev_reg_id, cred_rev_id, publish)
+        except (
+            RevocationManagerError,
+            RevocationError,
+            StorageError,
+            IndyIssuerError,
+            LedgerError,
+        ) as err:
+            # raise web.HTTPBadRequest(reason=err.roll_up) from err
+            report = ProblemReport(
+                description={
+                    "en": "Failed to revoke credential; Error: {}".format(err)
+                },
+                who_retries="none",
+            )
+            LOGGER.exception("Failed to revoke credential: %s", err)
+            await responder.send_reply(report)
+            return
+        await responder.send_reply({})
 
 
 @expand_message_class

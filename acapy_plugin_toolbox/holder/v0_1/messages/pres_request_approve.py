@@ -2,7 +2,7 @@ from typing import cast
 
 from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.indy.holder import IndyHolderError
-from aries_cloudagent.indy.sdk.models.requested_creds import (
+from aries_cloudagent.indy.models.requested_creds import (
     IndyRequestedCredsRequestedAttrSchema,
     IndyRequestedCredsRequestedPredSchema,
 )

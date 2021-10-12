@@ -27,7 +27,15 @@ class PresRequestReceived(AdminHolderMessage):
     class Fields:
         """Fields of Presentation request received message."""
 
-        record = PresExRecordField(required=True, description="Presentation details.")
+        raw_repr = PresExRecordField(required=True, description="Presentation details.")
+        presentation_exchange_id = fields.Str(
+            required=True, description="Exchange ID for matched credentials."
+        )
+        # TODO Use a toolbox PresentationExchangeRepresentation
+        presentation_request = fields.Mapping(
+            required=True,
+            description="Presentation Request associated with the Presentation Exchange ID.",
+        )
         matching_credentials = fields.Nested(
             IndyCredPrecisSchema,
             many=True,
@@ -39,15 +47,22 @@ class PresRequestReceived(AdminHolderMessage):
 
     def __init__(self, record: PresExRecord, **kwargs):
         super().__init__(**kwargs)
-        self.record = record
+        self.raw_repr = record
+        self.presentation_request = record.presentation_request
+        self.presentation_exchange_id = record.presentation_exchange_id
         self.matching_credentials = []
         self.page = None
 
     async def retrieve_matching_credentials(self, profile: Profile):
         holder = profile.inject(IndyHolder)
+        request = self.presentation_request
+
+        if not (type(request) is dict):
+            request = request.serialize()
+
         self.matching_credentials = (
             await holder.get_credentials_for_presentation_request_by_referent(
-                self.record.presentation_request.serialize(),
+                request,
                 (),
                 0,
                 self.DEFAULT_COUNT,
