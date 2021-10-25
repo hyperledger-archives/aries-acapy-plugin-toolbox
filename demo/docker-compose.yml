@@ -1,8 +1,8 @@
 version: "3"
 services:
   tunnel:
-    image: reflectivedevelopment/agent-tunnel
-    command: agent:3000 -p 4040 --host ${AGENT_TUNNEL_HOST}
+    image: dbluhm/agent-tunnel
+    command: -s agent:3000 -p 4040 -h ${AGENT_TUNNEL_HOST}
     ports:
       - 4040:4040
   agent:
@@ -11,7 +11,4 @@ services:
       context: ../
       dockerfile: ./demo/Dockerfile.demo
     environment:
-      TUNNEL_HOST: tunnel
-      TUNNEL_PORT: 4040
-    ports:
-      - "3001:3001"
+      TUNNEL_ENDPOINT: http://tunnel:4040
