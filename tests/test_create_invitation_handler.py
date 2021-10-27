@@ -58,16 +58,15 @@ async def test_createinvitationhandler(context, mock_responder):
     )
 
     with patch.object(
-        MockResponder, "send_reply", mock.CoroutineMock()
-    ) as mock_reply, patch.object(
         inv, "ConnectionManager", mock.MagicMock(return_value=mock_conn_mgr)
     ), patch.object(
-        connection, "metadata_set", mock.CoroutineMock()
-    ) as mock_set, patch.object(
         AgentMessage, "assign_thread_from", mock.CoroutineMock()
     ) as mock_assign:
 
         await createinvhandler.handle(context, mock_responder)
-        mock_set.assert_called_once()
+        connection.metadata_set.assert_called_once()
         mock_assign.assert_called_once()
-        mock_reply.assert_called_once()
+        assert isinstance(mock_responder.messages[0][0], inv.Invitation)
+        assert (
+            mock_responder.messages[0][0].mediation_id == context.message.mediation_id
+        )
