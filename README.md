@@ -80,6 +80,15 @@ $ aca-py start \
     --plugin acapy_plugin_toolbox
 ```
 
+Alternatively, you may use the demo configs in `demo/configs` to startup ACA-Py
+similarly to the demos. These demos automatically set many options, such as
+ports, config options, plugins to load, etc. To do so, copy one of the config
+files to the current directory and run the following command, substituting
+`./{config}.yml` with the config file you have chosen:
+```
+aca-py start --arg-file ./{config}.yml
+```
+
 ### Generating an invitation for use with the Toolbox
 By default, ACA-Py has no preexisting connections. To have our agent interact
 with other agents, we use the Aries Toolbox which is itself a simplified kind of
