@@ -48,7 +48,7 @@ class PresRequestReceived(AdminHolderMessage):
     def __init__(self, record: PresExRecord, **kwargs):
         super().__init__(**kwargs)
         self.raw_repr = record
-        self.presentation_request = record.presentation_request
+        self.presentation_request = record.presentation_request.serialize()
         self.presentation_exchange_id = record.presentation_exchange_id
         self.matching_credentials = []
         self.page = None
