@@ -55,6 +55,9 @@ $ pip install -e .
 ```sh
 $ pip install -e .[indy]
 ```
+Note: If you are using the `indy` feature, you will need to have the indy-sdk
+library installed. If it's not installed, please see
+[Installing the SDK](https://github.com/hyperledger/indy-sdk/blob/master/README.md#installing-the-sdk)
 
 ### Plugin Installation
 
