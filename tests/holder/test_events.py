@@ -2,8 +2,6 @@
 
 # pylint: disable=redefined-outer-name
 
-import typing
-
 import pytest
 from acapy_plugin_toolbox.holder import v0_1 as test_module
 from aries_cloudagent.core.event_bus import Event, EventBus
