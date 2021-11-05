@@ -166,28 +166,20 @@ async def test_holder_credential_exchange(
 async def test_credentials_get_list(
     backchannel: Client,
     connection,
-    issuer_holder_connection,
-    endorser_did,
-    create_schema,
-    create_cred_def,
     issue_credential,
 ):
-    cred1 = issue_credential
-    cred2 = issue_credential
+    cred = issue_credential
     credentials_get_list = await connection.send_and_await_reply_async(
         {
             "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-get-list"
         }
     )
-    cred1_set = set([result.credential_exchange_id for result in cred1.results])
-    cred2_set = set([result.credential_exchange_id for result in cred2.results])
+    cred_set = set([result.credential_exchange_id for result in cred.results])
     cred_get_list_set = set(
         [cred["credential_exchange_id"] for cred in credentials_get_list["results"]]
     )
-
     assert (
         credentials_get_list["@type"]
         == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-list"
     )
-    assert cred1_set.issubset(cred_get_list_set)
-    assert cred2_set.issubset(cred_get_list_set)
+    assert cred_set.issubset(cred_get_list_set)
