@@ -1,4 +1,4 @@
-from aries_cloudagent.indy.sdk.models.pres_preview import (
+from aries_cloudagent.indy.models.pres_preview import (
     IndyPresPreview as PresentationPreview,
 )
 from aries_cloudagent.messaging.base_handler import BaseResponder, RequestContext

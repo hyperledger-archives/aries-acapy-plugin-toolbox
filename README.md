@@ -55,6 +55,9 @@ $ pip install -e .
 ```sh
 $ pip install -e .[indy]
 ```
+Note: If you are using the `indy` feature, you will need to have the indy-sdk
+library installed. If it's not installed, please see
+[Installing the SDK](https://github.com/hyperledger/indy-sdk/blob/master/README.md#installing-the-sdk)
 
 ### Plugin Installation
 
@@ -75,6 +78,15 @@ $ aca-py start \
     -ot http \
     -e http://localhost:3000 ws://localhost:3001 \
     --plugin acapy_plugin_toolbox
+```
+
+Alternatively, you may use the demo configs in `demo/configs` to startup ACA-Py
+similarly to the demos. These demos automatically set many options, such as
+ports, config options, plugins to load, etc. To do so, copy one of the config
+files to the current directory and run the following command, substituting
+`./{config}.yml` with the config file you have chosen:
+```
+aca-py start --arg-file ./{config}.yml
 ```
 
 ### Generating an invitation for use with the Toolbox
@@ -112,7 +124,7 @@ To use all the features of the toolbox, you'll need the `indy` feature installed
 (as described in [Setup Aries Cloud Agent -
 Python](#setup-aries-cloud-agent-python)). [Check out the demo configurations
 for Alice or Bob](demo/configs/alice.yml) for a configuration using the Sovrin
-StagingNet and some reasonable defaults.
+BuilderNet and some reasonable defaults.
 
 ### Combined HTTP+WS Transport
 This plugin includes a side-loadable combined HTTP and WebSocket transport
