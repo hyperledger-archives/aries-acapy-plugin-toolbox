@@ -6,9 +6,16 @@ services:
     ports:
       - 4040:4040
   agent:
-    image: acapy-toolbox-tunnel
+    image: acapy-toolbox
     build:
-      context: ../
-      dockerfile: ./demo/Dockerfile.demo
+      context: ..
+      dockerfile: ./docker/Dockerfile
+    volumes:
+      - ./acapy-endpoint.sh:/acapy-endpoint.sh:ro,z
+      - ./configs:/home/indy/configs:ro,z
     environment:
       TUNNEL_ENDPOINT: http://tunnel:4040
+    entrypoint: >
+      /bin/sh -c '/acapy-endpoint.sh aca-py "$$@"' --
+    command: >
+      start --arg-file configs/default.yml

@@ -4,32 +4,42 @@ services:
     image: dbluhm/agent-tunnel
     command: -s agent-alice:3000 -p 4040 -h ${AGENT_TUNNEL_HOST}
   agent-alice:
-    image: acapy-toolbox-tunnel
+    image: acapy-toolbox
     build:
-      context: ../
-      dockerfile: ./demo/Dockerfile.demo
+      context: ..
+      dockerfile: ./docker/Dockerfile
+    volumes:
+      - ./acapy-endpoint.sh:/acapy-endpoint.sh:ro,z
+      - ./configs:/home/indy/configs:ro,z
     environment:
       TUNNEL_ENDPOINT: http://tunnel-alice:4040
       # Modify for more log output
       ACAPY_TOOLBOX_LOG_LEVEL: WARNING
     ports:
       - "3001:3001"
+    entrypoint: >
+      /bin/sh -c '/acapy-endpoint.sh aca-py "$$@"' --
     command: start --arg-file ./configs/alice.yml
 
   tunnel-bob:
     image: dbluhm/agent-tunnel
     command: -s agent-bob:3002 -p 4040 -h ${AGENT_TUNNEL_HOST}
   agent-bob:
-    image: acapy-toolbox-tunnel
+    image: acapy-toolbox
     build:
-      context: ../
-      dockerfile: ./demo/Dockerfile.demo
+      context: ..
+      dockerfile: ./docker/Dockerfile
+    volumes:
+      - ./acapy-endpoint.sh:/acapy-endpoint.sh:ro,z
+      - ./configs:/home/indy/configs:ro,z
     environment:
       TUNNEL_ENDPOINT: http://tunnel-bob:4040
       # Modify for more log output
       ACAPY_TOOLBOX_LOG_LEVEL: WARNING
     ports:
       - "3003:3003"
+    entrypoint: >
+      /bin/sh -c '/acapy-endpoint.sh aca-py "$$@"' --
     command: start --arg-file ./configs/bob.yml
 
   tails-server:
