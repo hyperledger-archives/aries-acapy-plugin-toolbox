@@ -30,20 +30,10 @@ from acapy_client.models.did import DID
 from acapy_client.models.did_create import DIDCreate
 from acapy_client.models.schema_send_request import SchemaSendRequest
 from acapy_client.models.schema_send_result import SchemaSendResult
-from aries_staticagent import StaticConnection, Target
+from aries_staticagent import Connection as StaticConnection, Target
 from aries_staticagent.message import Message
-from aries_staticagent.utils import http_send
-from echo_agent_client import Client as EchoClient
-from echo_agent_client.api.default import (
-    new_connection,
-    retrieve_messages,
-    send_message,
-    wait_for_message as echo_wait_for_message,
-)
-from echo_agent_client.models import Connection as EchoConnection
-from echo_agent_client.models.new_connection import NewConnection
-from echo_agent_client.models.send_message_message import SendMessageMessage
-from echo_agent_client.types import UNSET
+from echo_agent import EchoClient
+from echo_agent.models import ConnectionInfo
 import httpx
 import pytest
 
@@ -197,39 +187,38 @@ def connection(agent_connection: ConnectionStaticResult, suite_seed: str):
 
 
 @pytest.fixture(scope="session")
-def echo_client(suite_host, suite_port):
+def echo_agent(suite_host, suite_port):
     yield EchoClient(base_url=f"http://{suite_host}:{suite_port}")
 
 
+@pytest.fixture
+async def echo(echo_agent: EchoClient):
+    async with echo_agent:
+        yield echo_agent
+
+
 @pytest.fixture(scope="session")
-async def echo_connection(echo_client, suite_seed, agent_connection):
-    yield await new_connection.asyncio(
-        client=echo_client,
-        json_body=NewConnection(
+async def echo_connection(echo_agent: EchoClient, suite_seed, agent_connection):
+    async with echo_agent:
+        conn = await echo_agent.new_connection(
             seed=suite_seed,
             endpoint=agent_connection.my_endpoint,
             their_vk=agent_connection.my_verkey,
-        ),
-    )
+        )
+    yield conn
+    async with echo_agent:
+        await echo_agent.delete_connection(conn)
 
 
 @pytest.fixture(scope="session")
 def asynchronously_received_messages(
-    echo_client: EchoClient, echo_connection: EchoConnection
+    echo_agent: EchoClient, echo_connection: ConnectionInfo
 ):
     """Get asynchronously recevied messages from the echo agent."""
     # Could wipe left over messages here
-    async def _asynchronously_received_messages(timeout: int = 5):
-        timed_client = echo_client.with_timeout(timeout)
-        try:
-            messages = await retrieve_messages.asyncio(
-                client=timed_client, connection_id=echo_connection.connection_id
-            )
-        except httpx.ReadTimeout:
-            raise Exception(
-                "Retrieving asynchronously recevied messages timed out"
-            ) from None
-
+    async def _asynchronously_received_messages():
+        async with echo_agent as echo:
+            messages = await echo.get_messages(echo_connection)
         return messages
 
     yield _asynchronously_received_messages
@@ -237,35 +226,28 @@ def asynchronously_received_messages(
 
 
 @pytest.fixture(scope="session")
-def wait_for_message(echo_client: EchoClient, echo_connection: EchoConnection):
+def wait_for_message(echo_agent: EchoClient, echo_connection: ConnectionInfo):
     """Get asynchronously recevied messages from the echo agent."""
     # Could wipe left over messages here
-    async def _asynchronously_received_messages(
+    async def _wait_for_message(
         *, thid: Optional[str] = None, msg_type: Optional[str] = None, timeout: int = 5
     ):
-        timed_client = echo_client.with_timeout(timeout)
-        try:
-            return await echo_wait_for_message.asyncio(
-                client=timed_client,
-                connection_id=echo_connection.connection_id,
-                thid=thid or UNSET,
-                msg_type=msg_type or UNSET,
+        async with echo_agent as echo:
+            assert echo.client
+            echo.client.timeout = timeout + 1
+            return await echo.get_message(
+                echo_connection, thid=thid, msg_type=msg_type, timeout=timeout
             )
-        except httpx.ReadTimeout:
-            raise Exception("Waiting for message timed out") from None
 
-    yield _asynchronously_received_messages
+    yield _wait_for_message
     # Could wipe remaining messages here
 
 
 @pytest.fixture(scope="session")
-def send_via_echo(echo_client, echo_connection: EchoConnection):
+def send_via_echo(echo_agent, echo_connection: ConnectionInfo):
     async def _send_via_echo(message: dict):
-        await send_message.asyncio(
-            client=echo_client,
-            connection_id=echo_connection.connection_id,
-            json_body=SendMessageMessage.from_dict(message),
-        )
+        async with echo_agent as echo:
+            await echo.send_message(echo_connection, message)
 
     yield _send_via_echo
 

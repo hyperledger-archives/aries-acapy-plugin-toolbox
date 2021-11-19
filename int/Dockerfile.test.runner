@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM python:3.7
 WORKDIR /usr/src/app/
 RUN pip3 install --no-cache-dir poetry
 
@@ -7,7 +7,6 @@ ENV WAIT_VERSION 2.7.2
 ADD https://github.com/ufoscout/docker-compose-wait/releases/download/$WAIT_VERSION/wait /wait
 RUN chmod +x /wait
 
-COPY echo-agent echo-agent
 COPY pyproject.toml .
 COPY poetry.lock .
 RUN poetry install --no-dev

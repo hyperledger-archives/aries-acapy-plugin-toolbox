@@ -5,11 +5,11 @@ version: '3'
 
 services:
   #*************************************************************
-  # acapy_plugin_agent: acapy agent loaded with plugin         *
+  # agent: acapy agent loaded with plugin                      *
   # for testing                                                *
   #*************************************************************
 
-  acapy_plugin_agent:
+  agent:
     image: acapy-plugin-toolbox
     build:
       context: ../
@@ -18,15 +18,26 @@ services:
       ACAPY_TOOLBOX_LOG_LEVEL: DEBUG
     ports:
       - "3001:3001"
-    command: start -it http 0.0.0.0 3000 -ot http -e http://acapy_plugin_agent:3000 --admin 0.0.0.0 3001 --admin-insecure-mode --plugin acapy_plugin_toolbox --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis --wallet-type indy --wallet-name default --wallet-key "insecure, for use in testing only" --auto-provision --auto-ping-connection --monitor-ping --auto-store-credential --preserve-exchange-records
+    command: >
+      start -it acapy_plugin_toolbox.http_ws 0.0.0.0 3000 -ot http
+      -e http://agent:3000
+      --admin 0.0.0.0 3001 --admin-insecure-mode
+      --plugin acapy_plugin_toolbox
+      --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
+      --wallet-type indy
+      --wallet-name default
+      --wallet-key "insecure, for use in testing only"
+      --auto-provision
+      --auto-ping-connection
+      --monitor-ping
+      --auto-store-credential
+      --preserve-exchange-records
 
   echo:
-    image: echo-agent
-    build:
-      context: ./echo-agent/
+    image: dbluhm/echo-agent
     ports:
       - "3002:3002"
-    command: python -m uvicorn echo:app --host 0.0.0.0 --port 3002 --log-level debug
+    command: --host 0.0.0.0 --port 3002 --log-level debug
 
   #*************************************************************
   # tester: drives tests for acapy_plugin_toolbox in a         *
@@ -40,16 +51,16 @@ services:
       dockerfile: ./Dockerfile.test.runner
     environment:
       - WAIT_BEFORE_HOSTS=3
-      - WAIT_HOSTS=acapy_plugin_agent:3000,echo:3002
+      - WAIT_HOSTS=agent:3000,echo:3002
       - WAIT_HOSTS_TIMEOUT=60
       - WAIT_SLEEP_INTERVAL=1
       - WAIT_HOST_CONNECT_TIMEOUT=30
-      - AGENT_HOST=acapy_plugin_agent
+      - AGENT_HOST=agent
       - AGENT_PORT=3000
       - AGENT_BACKCHANNEL_PORT=3001
-      - SUITE_ENDPOINT=http://echo:3002/receive
+      - SUITE_ENDPOINT=http://echo:3002
       - SUITE_HOST=echo
       - SUITE_PORT=3002
     depends_on:
-      - acapy_plugin_agent
+      - agent
       - echo
