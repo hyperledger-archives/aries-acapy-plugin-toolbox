@@ -34,7 +34,7 @@ services:
       --preserve-exchange-records
 
   echo:
-    image: dbluhm/echo-agent
+    image: dbluhm/echo-agent:6c22a88
     ports:
       - "3002:3002"
     command: --host 0.0.0.0 --port 3002 --log-level debug
