@@ -26,7 +26,7 @@ jobs:
       uses: actions/cache@v2
       with:
           path: ~/.local
-          key: poetry-${{ runner.os }}-${{ matrix.python-version }}-${{ env.POETRY_VERSION }}-${{ hashFiles('.github/workflows/code-quality-check.yml') }}
+          key: poetry-${{ runner.os }}-${{ matrix.python-version }}-${{ env.POETRY_VERSION }}-${{ hashFiles('.github/workflows/tests.yml') }}
     - name: Install poetry
       if: steps.cache-poetry.outputs.cache-hit != 'true'
       run: |
@@ -41,7 +41,7 @@ jobs:
       uses: actions/cache@v2
       with:
           path: ${{ steps.setup-poetry-env.outputs.poetry-env }}
-          key: poetry-env-${{ runner.os }}-${{ matrix.python-version }}-${{ env.POETRY_VERSION }}-${{ hashFiles('poetry.lock') }}-${{ hashFiles('.github/workflows/code-quality-check.yml') }}
+          key: poetry-env-${{ runner.os }}-${{ matrix.python-version }}-${{ env.POETRY_VERSION }}-${{ hashFiles('poetry.lock') }}-${{ hashFiles('.github/workflows/tests.yml') }}
     - name: Install dependencies
       if: steps.cache-poetry-venv.outputs.cache-hit != 'true'
       run: |
