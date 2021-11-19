@@ -48,7 +48,6 @@ services:
     container_name: juggernaut
     build:
       context: .
-      dockerfile: ./Dockerfile.test.runner
     environment:
       - WAIT_BEFORE_HOSTS=3
       - WAIT_HOSTS=agent:3000,echo:3002
