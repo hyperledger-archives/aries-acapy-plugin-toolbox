@@ -8,7 +8,8 @@ from acapy_client.api.connection import (
 )
 from acapy_client.models.create_invitation_request import CreateInvitationRequest
 from acapy_client.models.receive_invitation_request import ReceiveInvitationRequest
-from aries_staticagent import Message
+from echo_agent import EchoClient
+from echo_agent.models import ConnectionInfo
 import pytest
 
 
@@ -54,24 +55,20 @@ async def clear_connection_state(backchannel: Client, connection_id: str):
 @pytest.mark.asyncio
 async def test_create_connection(connection, wait_for_message):
     """Send an invitation and receive it to create a new connection"""
-    msg_invitation = Message(
-        {
-            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create",
-            "alias": "Invitation I sent to Alice",
-            "label": "Bob",
-            "group": "default",
-            "auto_accept": True,
-            "multi_use": True,
-        }
-    )
+    msg_invitation = {
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/create",
+        "alias": "Invitation I sent to Alice",
+        "label": "Bob",
+        "group": "default",
+        "auto_accept": True,
+        "multi_use": True,
+    }
     invitation = await connection.send_and_await_reply_async(msg_invitation)
-    msg_received = Message(
-        {
-            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/receive-invitation",
-            "invitation": invitation["invitation_url"],
-            "auto_accept": True,
-        }
-    )
+    msg_received = {
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/receive-invitation",
+        "invitation": invitation["invitation_url"],
+        "auto_accept": True,
+    }
     received = await connection.send_and_await_reply_async(msg_received)
     message = await wait_for_message(
         msg_type="https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connected"
@@ -109,14 +106,12 @@ async def test_get_list(connection, new_connection):
 async def test_update(connection, new_connection):
     """Test update of connection attribute"""
     conn = await new_connection()
-    msg_update = Message(
-        {
-            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/update",
-            "connection_id": conn[0],
-            "label": "Updated label",
-            "role": "Updated role",
-        }
-    )
+    msg_update = {
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/update",
+        "connection_id": conn[0],
+        "label": "Updated label",
+        "role": "Updated role",
+    }
     update = await connection.send_and_await_reply_async(msg_update)
     assert update["label"] == "Updated label"
 

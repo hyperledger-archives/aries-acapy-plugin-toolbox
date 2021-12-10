@@ -374,18 +374,18 @@ async def send_to_admins(
     admins = list(filter(lambda admin: admin.state == "active", admins))
     connection_mgr = ConnectionManager(session)
     admin_targets = [
-        target
+        (admin, target)
         for admin in admins
         for target in await connection_mgr.get_connection_targets(connection=admin)
     ]
 
-    for target in admin_targets:
+    for connection, target in admin_targets:
         if not to_session_only:
             await responder.send(
                 message,
+                connection_id=connection.connection_id,
                 reply_to_verkey=target.recipient_keys[0],
                 reply_from_verkey=target.sender_key,
-                target=target,
             )
         else:
             await responder.send(

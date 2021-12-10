@@ -5,7 +5,7 @@ on:
   pull_request:
 
 env:
-  POETRY_VERSION: 1.1.7
+  POETRY_VERSION: 1.1.11
 
 jobs:
   test:
@@ -26,11 +26,11 @@ jobs:
       uses: actions/cache@v2
       with:
           path: ~/.local
-          key: poetry-${{ runner.os }}-${{ matrix.python-version }}-${{ env.POETRY_VERSION }}-${{ hashFiles('.github/workflows/code-quality-check.yml') }}
+          key: poetry-${{ runner.os }}-${{ matrix.python-version }}-${{ env.POETRY_VERSION }}-${{ hashFiles('.github/workflows/tests.yml') }}
     - name: Install poetry
       if: steps.cache-poetry.outputs.cache-hit != 'true'
       run: |
-          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py | python - --version=${{ env.POETRY_VERSION }}
+          curl -sSL https://install.python-poetry.org | python - --version=${{ env.POETRY_VERSION }}
     - name: Setup poetry environment
       id: setup-poetry-env
       run: |
@@ -41,7 +41,7 @@ jobs:
       uses: actions/cache@v2
       with:
           path: ${{ steps.setup-poetry-env.outputs.poetry-env }}
-          key: poetry-env-${{ runner.os }}-${{ matrix.python-version }}-${{ env.POETRY_VERSION }}-${{ hashFiles('poetry.lock') }}-${{ hashFiles('.github/workflows/code-quality-check.yml') }}
+          key: poetry-env-${{ runner.os }}-${{ matrix.python-version }}-${{ env.POETRY_VERSION }}-${{ hashFiles('poetry.lock') }}-${{ hashFiles('.github/workflows/tests.yml') }}
     - name: Install dependencies
       if: steps.cache-poetry-venv.outputs.cache-hit != 'true'
       run: |
@@ -61,7 +61,7 @@ jobs:
     - name: Print logs on failure
       if: failure()
       run: |
-        docker-compose -f int/docker-compose.yml logs acapy_plugin_agent
+        docker-compose -f int/docker-compose.yml logs
     - name: Clean up integration tests
       if: always()
       run: |
