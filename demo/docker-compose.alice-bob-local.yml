@@ -8,13 +8,15 @@ services:
     volumes:
       - ./configs:/home/indy/configs:ro,z
     environment:
-      ACAPY_ENDPOINT: "[http://${HOST_IP:-host.docker.internal}:3000,ws://${HOST_IP:-host.docker.internal}:3000]"
+      ACAPY_ENDPOINT: "[http://${HOST_IP:-localhost}:3000,ws://${HOST_IP:-localhost}:3000]"
       # Modify for more log output
       ACAPY_TOOLBOX_LOG_LEVEL: WARNING
     ports:
       - "3001:3001"
       - "3000:3000"
     command: start --arg-file ./configs/alice.yml
+    extra_hosts:
+      - "localhost:host-gateway"
 
   agent-bob:
     image: acapy-toolbox
@@ -24,13 +26,15 @@ services:
     volumes:
       - ./configs:/home/indy/configs:ro,z
     environment:
-      ACAPY_ENDPOINT: "[http://${HOST_IP:-host.docker.internal}:3002,ws://${HOST_IP:-host.docker.internal}:3002]"
+      ACAPY_ENDPOINT: "[http://${HOST_IP:-localhost}:3002,ws://${HOST_IP:-localhost}:3002]"
       # Modify for more log output
       ACAPY_TOOLBOX_LOG_LEVEL: WARNING
     ports:
       - "3003:3003"
       - "3002:3002"
     command: start --arg-file ./configs/bob.yml
+    extra_hosts:
+      - "localhost:host-gateway"
 
   tails-server:
     image: dbluhm/indy-tails-server:latest
