@@ -73,10 +73,9 @@ async def connections_event_handler(profile: Profile, event: Event):
     record: ConnRecord = ConnRecord.deserialize(event.payload)
     if record.state == ConnRecord.State.RESPONSE:
         responder = profile.inject(BaseResponder)
-        async with profile.session() as session:
-            await send_to_admins(
-                session, Connected(**conn_record_to_message_repr(record)), responder
-            )
+        await send_to_admins(
+            profile, Connected(**conn_record_to_message_repr(record)), responder
+        )
 
 
 BaseConnectionSchema = Schema.from_dict(

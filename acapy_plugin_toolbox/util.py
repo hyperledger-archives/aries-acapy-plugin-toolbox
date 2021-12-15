@@ -14,7 +14,7 @@ from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.protocols.connections.v1_0.manager import ConnectionManager
 from aries_cloudagent.storage.base import BaseStorage
 from aries_cloudagent.storage.error import StorageNotFoundError
-from aries_cloudagent.core.profile import ProfileSession
+from aries_cloudagent.core.profile import ProfileSession, Profile
 from aries_cloudagent.messaging.agent_message import AgentMessage, AgentMessageSchema
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler,
@@ -363,16 +363,16 @@ async def admin_connections(session: ProfileSession):
 
 
 async def send_to_admins(
-    session: ProfileSession,
+    profile: Profile,
     message: AgentMessage,
     responder: BaseResponder,
     to_session_only: bool = False,
 ):
     """Send a message to all admin connections."""
     LOGGER.info("Sending message to admins: %s", message.serialize())
-    admins = await admin_connections(session)
+    async with profile.session() as session:
+        admins = await admin_connections(session)
     admins = list(filter(lambda admin: admin.state == "active", admins))
-    profile = session.profile
     connection_mgr = ConnectionManager(profile)
     admin_targets = [
         (admin, target)

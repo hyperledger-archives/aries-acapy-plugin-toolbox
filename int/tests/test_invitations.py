@@ -30,7 +30,6 @@ async def test_create_invitation(connection):
         },
         return_route="all",
     )
-    print(reply)
     assert (
         reply["@type"]
         == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/invitation"
