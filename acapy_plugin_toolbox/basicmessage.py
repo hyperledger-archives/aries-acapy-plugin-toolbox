@@ -72,7 +72,7 @@ async def basic_message_event_handler(profile: Profile, event: Event):
     responder = profile.inject(BaseResponder)
     async with profile.session() as session:
         await msg.save(session, reason="New message")
-        await send_to_admins(session, notification, responder, to_session_only=True)
+    await send_to_admins(profile, notification, responder, to_session_only=True)
 
 
 class BasicMessageRecord(BaseRecord):

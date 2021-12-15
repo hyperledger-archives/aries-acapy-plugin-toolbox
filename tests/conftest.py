@@ -74,7 +74,7 @@ class MockSendToAdmins:
         self.message = None
 
     async def __call__(
-        self, session, message, responder, to_session_only: bool = False
+        self, profile, message, responder, to_session_only: bool = False
     ):
         self.message = message
 

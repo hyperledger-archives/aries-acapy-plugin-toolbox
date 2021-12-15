@@ -130,8 +130,7 @@ async def issue_credential_event_handler(profile: Profile, event: Event):
         message = CredReceived(record=record)
         LOGGER.debug("Prepared Message: %s", message.serialize())
 
-    async with profile.session() as session:
-        await send_to_admins(session, message, responder)
+    await send_to_admins(profile, message, responder)
 
 
 async def present_proof_event_handler(profile: Profile, event: Event):
@@ -144,5 +143,4 @@ async def present_proof_event_handler(profile: Profile, event: Event):
         message: PresRequestReceived = PresRequestReceived(record)
         LOGGER.debug("Prepared Message: %s", message.serialize())
         await message.retrieve_matching_credentials(profile)
-        async with profile.session() as session:
-            await send_to_admins(session, message, responder)
+        await send_to_admins(profile, message, responder)
