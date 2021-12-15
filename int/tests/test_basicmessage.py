@@ -100,7 +100,9 @@ async def test_new(connection: StaticConnection):
 
 
 @pytest.mark.asyncio
-async def test_get(connection: StaticConnection, connection_id: str, echo, echo_connection):
+async def test_get(
+    connection: StaticConnection, connection_id: str, echo, echo_connection
+):
     """Send multiple messages and verify that the proper count and content appears in messages list"""
     test_content = ("Are you suggesting coconuts migrate?", "'Tis but a flesh wound.")
     for content in test_content:
