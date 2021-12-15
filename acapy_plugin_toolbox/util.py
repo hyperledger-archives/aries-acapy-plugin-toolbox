@@ -372,7 +372,8 @@ async def send_to_admins(
     LOGGER.info("Sending message to admins: %s", message.serialize())
     admins = await admin_connections(session)
     admins = list(filter(lambda admin: admin.state == "active", admins))
-    connection_mgr = ConnectionManager(session)
+    profile = session.profile
+    connection_mgr = ConnectionManager(profile)
     admin_targets = [
         (admin, target)
         for admin in admins
