@@ -121,7 +121,14 @@ async def test_pres_req_received_sent_on_state(profile, mock_send_to_admins):
     state = V10PresentationExchange.STATE_REQUEST_RECEIVED
     message = test_module.PresRequestReceived
     event = Event(
-        "anything", {"state": state, "presentation_request": {"pres_request": "test"}}
+        "anything",
+        {
+            "state": state,
+            "presentation_request": {
+                "requested_attributes": {},
+                "requested_predicates": {},
+            },
+        },
     )
     with mock.patch.object(
         message, "retrieve_matching_credentials", mock.CoroutineMock()
