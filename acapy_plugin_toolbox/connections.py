@@ -73,10 +73,9 @@ async def connections_event_handler(profile: Profile, event: Event):
     record: ConnRecord = ConnRecord.deserialize(event.payload)
     if record.state == ConnRecord.State.RESPONSE:
         responder = profile.inject(BaseResponder)
-        async with profile.session() as session:
-            await send_to_admins(
-                session, Connected(**conn_record_to_message_repr(record)), responder
-            )
+        await send_to_admins(
+            profile, Connected(**conn_record_to_message_repr(record)), responder
+        )
 
 
 BaseConnectionSchema = Schema.from_dict(
@@ -289,8 +288,8 @@ class ReceiveInvitationHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle recieve invitation request."""
-        session = await context.session()
-        connection_mgr = ConnectionManager(session)
+        profile = context.profile
+        connection_mgr = ConnectionManager(profile)
         invitation = ConnectionInvitation.from_url(context.message.invitation)
         connection = await connection_mgr.receive_invitation(
             invitation,

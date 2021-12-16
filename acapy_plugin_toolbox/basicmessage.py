@@ -72,7 +72,7 @@ async def basic_message_event_handler(profile: Profile, event: Event):
     responder = profile.inject(BaseResponder)
     async with profile.session() as session:
         await msg.save(session, reason="New message")
-        await send_to_admins(session, notification, responder, to_session_only=True)
+    await send_to_admins(profile, notification, responder, to_session_only=True)
 
 
 class BasicMessageRecord(BaseRecord):
@@ -284,6 +284,7 @@ class SendHandler(BaseHandler):
         """Handle received send requests."""
         # pylint: disable=protected-access
         session = await context.session()
+        profile = context.profile
         try:
             connection = await ConnRecord.retrieve_by_id(
                 session, context.message.connection_id
@@ -303,7 +304,7 @@ class SendHandler(BaseHandler):
 
         # Need to use a connection target, reply_to_verkey, and reply_from_verkey
         # if we want to send to a socket
-        conn_mgr = ConnectionManager(session)
+        conn_mgr = ConnectionManager(profile)
         targets = await conn_mgr.get_connection_targets(connection=connection)
         assert isinstance(targets, list)
         assert targets
