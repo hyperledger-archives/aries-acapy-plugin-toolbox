@@ -4,11 +4,14 @@
 # pylint: disable=too-few-public-methods
 import re
 from typing import Optional, Mapping
+import logging
 
 from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.indy.models.proof_request import IndyProofRequest
 from aries_cloudagent.indy.util import generate_pr_nonce
+
+from aries_cloudagent.indy.holder import IndyHolder
 from aries_cloudagent.messaging.agent_message import AgentMessage
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler,
@@ -40,6 +43,7 @@ from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange 
 )
 from aries_cloudagent.protocols.present_proof.v1_0.routes import (
     V10PresentationSendRequestRequestSchema,
+    IndyCredPrecisSchema,
 )
 from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from aries_cloudagent.storage.error import StorageError, StorageNotFoundError
@@ -50,19 +54,6 @@ from aries_cloudagent.revocation.manager import (
 )
 from aries_cloudagent.indy.issuer import IndyIssuerError
 from aries_cloudagent.ledger.error import LedgerError
-from marshmallow import fields
-from uuid import UUID
-
-from .util import (
-    ExceptionReporter,
-    admin_only,
-    expand_message_class,
-    generate_model_schema,
-    get_connection,
-    log_handling,
-    with_generic_init,
-)
-
 from aries_cloudagent.config.injection_context import InjectionContext
 from aries_cloudagent.core.event_bus import Event, EventBus
 from aries_cloudagent.core.profile import Profile
@@ -72,10 +63,21 @@ from aries_cloudagent.protocols.issue_credential.v1_0.models.credential_exchange
 from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import (
     V10PresentationExchange as PresExRecord,
 )
+from marshmallow import fields
+from uuid import UUID
 
-from .util import send_to_admins
+from .decorators.pagination import Page
+from .util import (
+    ExceptionReporter,
+    admin_only,
+    expand_message_class,
+    generate_model_schema,
+    get_connection,
+    log_handling,
+    with_generic_init,
+    send_to_admins,
+)
 
-import logging
 
 LOGGER = logging.getLogger(__name__)
 
@@ -420,20 +422,6 @@ class PresGetListHandler(BaseHandler):
 
 
 @expand_message_class
-class PresentationReceived(AdminIssuerMessage):
-    """Presentation received notification message."""
-
-    message_type = "presentation-received"
-
-    class Fields:
-        raw_repr = fields.Mapping(required=True)
-
-    def __init__(self, record: PresExRecord, **kwargs):
-        super().__init__(**kwargs)
-        self.raw_repr = record
-
-
-@expand_message_class
 class CredentialIssued(AdminIssuerMessage):
     """Credential issued notification message."""
 
@@ -446,11 +434,71 @@ class CredentialIssued(AdminIssuerMessage):
         super().__init__(**kwargs)
         self.raw_repr = record.serialize()
 
+    def serialize(self, **kwargs) -> Mapping:
+        base_msg = super().serialize(**kwargs)
+        return {**self.raw_repr, **base_msg}
+
+
+@expand_message_class
+class PresentationReceived(AdminIssuerMessage):
+    """Presentation received notification message."""
+
+    message_type = "presentation-received"
+
+    DEFAULT_COUNT = 10
+
+    class Fields:
+        raw_repr = fields.Mapping(required=True)
+        presentation_exchange_id = fields.Str(
+            required=True, description="Exchange ID for matched credentials."
+        )
+        presentation_request = fields.Mapping(
+            required=True,
+            description="Presentation Request associated with Presentation Exchange ID.",
+        )
+        matching_credentials = fields.Nested(
+            IndyCredPrecisSchema,
+            many=True,
+            description="Credentials matching the requested attributes.",
+        )
+        page = fields.Nested(
+            Page.Schema, required=False, description="Pagination decorator."
+        )
+
+    def __init__(self, record: PresExRecord, **kwargs):
+        super().__init__(**kwargs)
+        self.raw_repr = record.serialize()
+        self.presentation_request = record.presentation_request.serialize()
+        self.presentation_exchange_id = record.presentation_exchange_id
+        self.matching_credentials = []
+        self.page = None
+
+    def serialize(self, **kwargs) -> Mapping:
+        base_msg = super().serialize(**kwargs)
+        return {**self.raw_repr, **base_msg}
+
+    async def retrieve_matching_credentials(self, profile: Profile):
+        holder = profile.inject(IndyHolder)
+        request = self.presentation_request
+
+        if not (type(request) is dict):
+            request = request.serialize()
+        self.matching_credentials = (
+            await holder.get_credentials_for_presentation_request_by_referent(
+                request,
+                (),
+                0,
+                self.DEFAULT_COUNT,
+                extra_query={},
+            )
+        )
+        self.page = Page(count_=self.DEFAULT_COUNT, offset=self.DEFAULT_COUNT)
+
 
 async def setup(
     context: InjectionContext, protocol_registry: Optional[ProtocolRegistry] = None
 ):
-    """Setup the isuser plugin."""
+    """Setup the issuer plugin."""
     if not protocol_registry:
         protocol_registry = context.inject(ProtocolRegistry)
     protocol_registry.register_message_types(MESSAGE_TYPES)
@@ -470,20 +518,12 @@ async def issue_credential_event_handler(profile: Profile, event: Event):
     record: CredExRecord = CredExRecord.deserialize(event.payload)
     LOGGER.debug("CredentialIssued Event; %s: %s", event.topic, event.payload)
 
-    if record.state not in (
-        CredExRecord.STATE_ACKED,
-        # CredExRecord.STATE_ISSUED,
-    ):
-        return
-
-    responder = profile.inject(BaseResponder)
-    message = None
-    if record.state == CredExRecord.STATE_OFFER_RECEIVED:
+    if record.state == CredExRecord.STATE_ACKED:
+        responder = profile.inject(BaseResponder)
         message = CredentialIssued(record=record)
         LOGGER.debug("Prepared Message: %s", message.serialize())
-
-    async with profile.session() as session:
-        await send_to_admins(session, message, responder)
+        async with profile.session() as session:
+            await send_to_admins(session, message, responder)
 
 
 async def receive_presentation_event_handler(profile: Profile, event: Event):
@@ -491,10 +531,10 @@ async def receive_presentation_event_handler(profile: Profile, event: Event):
     record: PresExRecord = PresExRecord.deserialize(event.payload)
     LOGGER.debug("PresentationReceived Event; %s: %s", event.topic, event.payload)
 
-    if record.state == PresExRecord.STATE_VERIFIED:
+    if record.state == PresExRecord.STATE_PRESENTATION_RECEIVED:  # STATE_VERIFIED:
         responder = profile.inject(BaseResponder)
         message = PresentationReceived(record=record)
         LOGGER.debug("Prepared Message: %s", message.serialize())
-        # await message.retrieve_matching_credentials(profile)
+        await message.retrieve_matching_credentials(profile)
         async with profile.session() as session:
             await send_to_admins(session, message, responder)
