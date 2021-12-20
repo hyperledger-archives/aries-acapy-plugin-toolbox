@@ -285,11 +285,14 @@ async def endorser_did(make_did, backchannel, accepted_taa):
     """Endorser DID factory fixture"""
     did: DID = await make_did()
     LOGGER.info("Publishing DID through https://selfserve.indiciotech.io")
-    response = httpx.post(
-        url="https://selfserve.indiciotech.io/nym",
-        json={"network": "testnet", "did": did.did, "verkey": did.verkey},
-        timeout=15,
-    )
+    try:
+        response = httpx.post(
+            url="https://selfserve.indiciotech.io/nym",
+            json={"network": "testnet", "did": did.did, "verkey": did.verkey},
+            timeout=15,
+        )
+    except httpx.ReadTimeout as err:
+        raise Exception("Failed to publish DID: {0}".format(err))
     if response.is_error:
         raise Exception("Failed to publish DID:", response.text)
 

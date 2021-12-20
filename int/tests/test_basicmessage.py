@@ -100,7 +100,9 @@ async def test_new(connection: StaticConnection):
 
 
 @pytest.mark.asyncio
-async def test_get(connection: StaticConnection, connection_id: str):
+async def test_get(
+    connection: StaticConnection, connection_id: str, echo, echo_connection
+):
     """Send multiple messages and verify that the proper count and content appears in messages list"""
     test_content = ("Are you suggesting coconuts migrate?", "'Tis but a flesh wound.")
     for content in test_content:
@@ -116,6 +118,7 @@ async def test_get(connection: StaticConnection, connection_id: str):
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/get"
         }
     )
+    await echo.get_messages(echo_connection)
     assert (
         get_messages["@type"]
         == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-basicmessage/0.1/messages"

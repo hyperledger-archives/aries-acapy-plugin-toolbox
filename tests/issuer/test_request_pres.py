@@ -21,7 +21,11 @@ TEST_CONN_ID = uuid.uuid4()
 def message():
     """Message fixture."""
     yield RequestPres(
-        connection_id=TEST_CONN_ID, proof_request=IndyProofRequest(), comment="comment"
+        connection_id=TEST_CONN_ID,
+        proof_request=IndyProofRequest(
+            requested_attributes={}, requested_predicates={}
+        ),
+        comment="comment",
     )
 
 

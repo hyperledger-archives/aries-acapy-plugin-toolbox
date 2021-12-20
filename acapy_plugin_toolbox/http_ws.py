@@ -27,6 +27,8 @@ class HttpWsTransport(BaseInboundTransport):
     inbound_http_message_handler = http.HttpTransport.inbound_message_handler
     start = http.HttpTransport.start
     stop = http.HttpTransport.stop
+    heartbeat_interval = None
+    timout_interval = None
 
     async def make_application(self) -> web.Application:
         """Construct the aiohttp application."""

@@ -53,8 +53,7 @@ async def setup(context: InjectionContext, protocol_registry: ProtocolRegistry =
 async def trust_ping_response_received(profile: Profile, event: Event):
     message = ResponseReceived(connection_id=event.payload["connection_id"])
     responder = profile.inject(BaseResponder)
-    async with profile.session() as session:
-        await send_to_admins(session, message, responder)
+    await send_to_admins(profile, message, responder)
 
 
 ResponseReceived, ResponseReceivedSchema = generate_model_schema(
