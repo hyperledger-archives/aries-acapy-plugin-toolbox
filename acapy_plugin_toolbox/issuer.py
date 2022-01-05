@@ -531,7 +531,10 @@ async def receive_presentation_event_handler(profile: Profile, event: Event):
     record: PresExRecord = PresExRecord.deserialize(event.payload)
     LOGGER.debug("PresentationReceived Event; %s: %s", event.topic, event.payload)
 
-    if record.state == PresExRecord.STATE_PRESENTATION_RECEIVED:  # STATE_VERIFIED:
+    if record.state in [
+        PresExRecord.STATE_VERIFIED,
+        PresExRecord.STATE_PRESENTATION_RECEIVED,
+    ]:
         responder = profile.inject(BaseResponder)
         message = PresentationReceived(record=record)
         LOGGER.debug("Prepared Message: %s", message.serialize())
