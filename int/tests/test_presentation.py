@@ -75,3 +75,6 @@ async def test_presentation(
         msg_type="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/presentation-sent"
     )
     assert pres_sent["presentation_exchange_id"]
+    await wait_for_message(
+        msg_type="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/presentation-received"
+    )

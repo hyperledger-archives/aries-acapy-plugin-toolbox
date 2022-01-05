@@ -151,6 +151,9 @@ async def test_holder_credential_exchange(
         credential_offer_accept["@type"]
         == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-request-sent"
     )
+    await wait_for_message(
+        msg_type="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/credential-issued"
+    )
     credential_received = await wait_for_message(
         msg_type="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-received"
     )
@@ -167,6 +170,7 @@ async def test_credentials_get_list(
     backchannel: Client,
     connection,
     issue_credential,
+    wait_for_message,
 ):
     cred = issue_credential
     credentials_get_list = await connection.send_and_await_reply_async(
@@ -183,3 +187,6 @@ async def test_credentials_get_list(
         == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-list"
     )
     assert cred_set.issubset(cred_get_list_set)
+    await wait_for_message(
+        msg_type="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/credential-issued"
+    )
