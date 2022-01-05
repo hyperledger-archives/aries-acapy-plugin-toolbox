@@ -522,8 +522,7 @@ async def issue_credential_event_handler(profile: Profile, event: Event):
         responder = profile.inject(BaseResponder)
         message = CredentialIssued(record=record)
         LOGGER.debug("Prepared Message: %s", message.serialize())
-        async with profile.session() as session:
-            await send_to_admins(session, message, responder)
+        await send_to_admins(profile, message, responder)
 
 
 async def receive_presentation_event_handler(profile: Profile, event: Event):
@@ -539,5 +538,4 @@ async def receive_presentation_event_handler(profile: Profile, event: Event):
         message = PresentationReceived(record=record)
         LOGGER.debug("Prepared Message: %s", message.serialize())
         await message.retrieve_matching_credentials(profile)
-        async with profile.session() as session:
-            await send_to_admins(session, message, responder)
+        await send_to_admins(profile, message, responder)
