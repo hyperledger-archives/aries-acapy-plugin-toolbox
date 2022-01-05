@@ -15,7 +15,9 @@ from aries_cloudagent.messaging.base_handler import (
     BaseResponder,
     RequestContext,
 )
-from aries_cloudagent.messaging.credential_definitions.routes import add_cred_def_non_secrets_record
+from aries_cloudagent.messaging.credential_definitions.routes import (
+    add_cred_def_non_secrets_record,
+)
 from aries_cloudagent.messaging.models.base_record import BaseRecord, BaseRecordSchema
 from aries_cloudagent.messaging.util import canon
 from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
@@ -27,8 +29,6 @@ from aries_cloudagent.revocation.error import (
     RevocationNotSupportedError,
 )
 from aries_cloudagent.revocation.indy import IndyRevocation
-from aries_cloudagent.storage.base import BaseStorage
-from aries_cloudagent.storage.error import StorageError
 from aries_cloudagent.tails.base import BaseTailsServer
 
 from aries_cloudagent.messaging.valid import INDY_REV_REG_SIZE
@@ -234,8 +234,12 @@ class SendCredDefHandler(BaseHandler):
                     )
                 )
                 issuer_did = credential_definition_id.split(":")[0]
-                await add_cred_def_non_secrets_record(context.profile, context.message.schema_id, issuer_did, credential_definition_id)
-
+                await add_cred_def_non_secrets_record(
+                    context.profile,
+                    context.message.schema_id,
+                    issuer_did,
+                    credential_definition_id,
+                )
 
         except Exception as err:
             report = ProblemReport(
