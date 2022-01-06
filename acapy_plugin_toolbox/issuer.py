@@ -2,13 +2,16 @@
 
 # pylint: disable=invalid-name
 # pylint: disable=too-few-public-methods
+import re
 from typing import Optional, Mapping
+import logging
 
 from aries_cloudagent.connections.models.conn_record import ConnRecord
-from aries_cloudagent.core.profile import ProfileSession
 from aries_cloudagent.core.protocol_registry import ProtocolRegistry
 from aries_cloudagent.indy.models.proof_request import IndyProofRequest
 from aries_cloudagent.indy.util import generate_pr_nonce
+
+from aries_cloudagent.indy.holder import IndyHolder
 from aries_cloudagent.messaging.agent_message import AgentMessage
 from aries_cloudagent.messaging.base_handler import (
     BaseHandler,
@@ -40,23 +43,30 @@ from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange 
 )
 from aries_cloudagent.protocols.present_proof.v1_0.routes import (
     V10PresentationSendRequestRequestSchema,
+    IndyCredPrecisSchema,
 )
 from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from aries_cloudagent.storage.error import StorageError, StorageNotFoundError
-from aries_cloudagent.revocation.error import (
-    RevocationError,
-    RevocationNotSupportedError,
-)
-from aries_cloudagent.revocation.indy import IndyRevocation
+from aries_cloudagent.revocation.error import RevocationError
 from aries_cloudagent.revocation.manager import (
     RevocationManager,
     RevocationManagerError,
 )
 from aries_cloudagent.indy.issuer import IndyIssuerError
 from aries_cloudagent.ledger.error import LedgerError
+from aries_cloudagent.config.injection_context import InjectionContext
+from aries_cloudagent.core.event_bus import Event, EventBus
+from aries_cloudagent.core.profile import Profile
+from aries_cloudagent.protocols.issue_credential.v1_0.models.credential_exchange import (
+    V10CredentialExchange as CredExRecord,
+)
+from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import (
+    V10PresentationExchange as PresExRecord,
+)
 from marshmallow import fields
 from uuid import UUID
 
+from .decorators.pagination import Page
 from .util import (
     ExceptionReporter,
     admin_only,
@@ -65,9 +75,9 @@ from .util import (
     get_connection,
     log_handling,
     with_generic_init,
+    send_to_admins,
 )
 
-import logging
 
 LOGGER = logging.getLogger(__name__)
 
@@ -78,6 +88,8 @@ REVOKE_CREDENTIAL = "{}/revoke-credential".format(PROTOCOL)
 REQUEST_PRESENTATION = "{}/request-presentation".format(PROTOCOL)
 ISSUER_CRED_EXCHANGE = "{}/credential-exchange".format(PROTOCOL)
 ISSUER_PRES_EXCHANGE = "{}/presentation-exchange".format(PROTOCOL)
+PRESENTATION_RECEIVED = "{}/presentation-received".format(PROTOCOL)
+CREDENTIAL_ISSUED = "{}/credential-issued".format(PROTOCOL)
 CREDENTIALS_GET_LIST = "{}/credentials-get-list".format(PROTOCOL)
 CREDENTIALS_LIST = "{}/credentials-list".format(PROTOCOL)
 PRESENTATIONS_GET_LIST = "{}/presentations-get-list".format(PROTOCOL)
@@ -87,20 +99,13 @@ MESSAGE_TYPES = {
     SEND_CREDENTIAL: "acapy_plugin_toolbox.issuer.SendCred",
     REVOKE_CREDENTIAL: "acapy_plugin_toolbox.issuer.RevokeCred",
     REQUEST_PRESENTATION: "acapy_plugin_toolbox.issuer.RequestPres",
+    PRESENTATION_RECEIVED: "acapy_plugin_toolbox.issuer.PresentationReceived",
+    CREDENTIAL_ISSUED: "acapy_plugin_toolbox.issuer.CredentialIssued",
     CREDENTIALS_GET_LIST: "acapy_plugin_toolbox.issuer.CredGetList",
     CREDENTIALS_LIST: "acapy_plugin_toolbox.issuer.CredList",
     PRESENTATIONS_GET_LIST: "acapy_plugin_toolbox.issuer.PresGetList",
     PRESENTATIONS_LIST: "acapy_plugin_toolbox.issuer.PresList",
 }
-
-
-async def setup(
-    session: ProfileSession, protocol_registry: Optional[ProtocolRegistry] = None
-):
-    """Set up the issuer plugin."""
-    if not protocol_registry:
-        protocol_registry = session.inject(ProtocolRegistry)
-    protocol_registry.register_message_types(MESSAGE_TYPES)
 
 
 class AdminIssuerMessage(AgentMessage):
@@ -414,3 +419,123 @@ class PresGetListHandler(BaseHandler):
         )
         cred_list = PresList(results=[record.serialize() for record in records])
         await responder.send_reply(cred_list)
+
+
+@expand_message_class
+class CredentialIssued(AdminIssuerMessage):
+    """Credential issued notification message."""
+
+    message_type = "credential-issued"
+
+    class Fields:
+        raw_repr = fields.Mapping(required=True)
+
+    def __init__(self, record: CredExRecord, **kwargs):
+        super().__init__(**kwargs)
+        self.raw_repr = record.serialize()
+
+    def serialize(self, **kwargs) -> Mapping:
+        base_msg = super().serialize(**kwargs)
+        return {**self.raw_repr, **base_msg}
+
+
+@expand_message_class
+class PresentationReceived(AdminIssuerMessage):
+    """Presentation received notification message."""
+
+    message_type = "presentation-received"
+
+    DEFAULT_COUNT = 10
+
+    class Fields:
+        raw_repr = fields.Mapping(required=True)
+        presentation_exchange_id = fields.Str(
+            required=True, description="Exchange ID for matched credentials."
+        )
+        presentation_request = fields.Mapping(
+            required=True,
+            description="Presentation Request associated with Presentation Exchange ID.",
+        )
+        matching_credentials = fields.Nested(
+            IndyCredPrecisSchema,
+            many=True,
+            description="Credentials matching the requested attributes.",
+        )
+        page = fields.Nested(
+            Page.Schema, required=False, description="Pagination decorator."
+        )
+
+    def __init__(self, record: PresExRecord, **kwargs):
+        super().__init__(**kwargs)
+        self.raw_repr = record.serialize()
+        self.presentation_request = record.presentation_request.serialize()
+        self.presentation_exchange_id = record.presentation_exchange_id
+        self.matching_credentials = []
+        self.page = None
+
+    def serialize(self, **kwargs) -> Mapping:
+        base_msg = super().serialize(**kwargs)
+        return {**self.raw_repr, **base_msg}
+
+    async def retrieve_matching_credentials(self, profile: Profile):
+        holder = profile.inject(IndyHolder)
+        request = self.presentation_request
+
+        if not (type(request) is dict):
+            request = request.serialize()
+        self.matching_credentials = (
+            await holder.get_credentials_for_presentation_request_by_referent(
+                request,
+                (),
+                0,
+                self.DEFAULT_COUNT,
+                extra_query={},
+            )
+        )
+        self.page = Page(count_=self.DEFAULT_COUNT, offset=self.DEFAULT_COUNT)
+
+
+async def setup(
+    context: InjectionContext, protocol_registry: Optional[ProtocolRegistry] = None
+):
+    """Setup the issuer plugin."""
+    if not protocol_registry:
+        protocol_registry = context.inject(ProtocolRegistry)
+    protocol_registry.register_message_types(MESSAGE_TYPES)
+    bus: EventBus = context.inject(EventBus)
+    bus.subscribe(
+        re.compile(f"acapy::record::{CredExRecord.RECORD_TOPIC}::.*"),
+        issue_credential_event_handler,
+    )
+    bus.subscribe(
+        re.compile(f"acapy::record::{PresExRecord.RECORD_TOPIC}::.*"),
+        receive_presentation_event_handler,
+    )
+
+
+async def issue_credential_event_handler(profile: Profile, event: Event):
+    """Handle issue credential events."""
+    record: CredExRecord = CredExRecord.deserialize(event.payload)
+    LOGGER.debug("CredentialIssued Event; %s: %s", event.topic, event.payload)
+
+    if record.state == CredExRecord.STATE_ACKED:
+        responder = profile.inject(BaseResponder)
+        message = CredentialIssued(record=record)
+        LOGGER.debug("Prepared Message: %s", message.serialize())
+        await send_to_admins(profile, message, responder)
+
+
+async def receive_presentation_event_handler(profile: Profile, event: Event):
+    """Handle receive presentation events."""
+    record: PresExRecord = PresExRecord.deserialize(event.payload)
+    LOGGER.debug("PresentationReceived Event; %s: %s", event.topic, event.payload)
+
+    if record.state in [
+        PresExRecord.STATE_VERIFIED,
+        PresExRecord.STATE_PRESENTATION_RECEIVED,
+    ]:
+        responder = profile.inject(BaseResponder)
+        message = PresentationReceived(record=record)
+        LOGGER.debug("Prepared Message: %s", message.serialize())
+        await message.retrieve_matching_credentials(profile)
+        await send_to_admins(profile, message, responder)
