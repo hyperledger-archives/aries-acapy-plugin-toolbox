@@ -99,6 +99,9 @@ async def issue_credential(
     await wait_for_message(
         msg_type="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-received"
     )
+    await wait_for_message(
+        msg_type="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/credential-issued"
+    )
     credentials_list = await asyncio.wait_for(
         get_issue_credential_records.asyncio(client=backchannel), timeout=40
     )
@@ -154,6 +157,9 @@ async def test_holder_credential_exchange(
     credential_received = await wait_for_message(
         msg_type="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credential-received"
     )
+    await wait_for_message(
+        msg_type="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/credential-issued"
+    )
     records = await asyncio.wait_for(
         get_issue_credential_records.asyncio(client=backchannel), timeout=20
     )
@@ -167,8 +173,15 @@ async def test_credentials_get_list(
     backchannel: Client,
     connection,
     issue_credential,
+    wait_for_message,
 ):
     cred = issue_credential
+    await wait_for_message(
+        msg_type="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/credential-issued"
+    )
+    await wait_for_message(
+        msg_type="did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-issuer/0.1/credential-issued"
+    )
     credentials_get_list = await connection.send_and_await_reply_async(
         {
             "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-get-list"
