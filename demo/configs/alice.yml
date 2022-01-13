@@ -16,8 +16,8 @@ plugin:
 outbound-transport: http
 
 # Ledger
-# Use Sovrin Builder Net. Become an endorser at https://selfserve.sovrin.org.
-genesis-url: https://raw.githubusercontent.com/sovrin-foundation/sovrin/master/sovrin/pool_transactions_builder_genesis
+# Use Indicio TestNet. Become an endorser at https://selfserve.indiciotech.io/.
+genesis-url: https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
 
 # Admin
 admin-insecure-mode: true
