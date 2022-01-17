@@ -62,7 +62,7 @@ class CredGetList(AdminHolderMessage):
         session = await context.session()
 
         credentials = await CredExRecord.query(
-            session, tag_filter={"role": CredExRecord.ROLE_HOLDER}
+            session, post_filter_positive={"role": CredExRecord.ROLE_HOLDER}
         )
 
         if self.states:
