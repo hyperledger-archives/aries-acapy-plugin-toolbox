@@ -61,7 +61,9 @@ class CredGetList(AdminHolderMessage):
         """Handle received get cred list request."""
         session = await context.session()
 
-        credentials = await CredExRecord.query(session)
+        credentials = await CredExRecord.query(
+            session, post_filter_positive={"role": CredExRecord.ROLE_HOLDER}
+        )
 
         if self.states:
             credentials = [c for c in credentials if c.state in self.states]

@@ -187,12 +187,12 @@ async def test_credentials_get_list(
             "@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-get-list"
         }
     )
-    cred_set = set([result.credential_exchange_id for result in cred.results])
-    cred_get_list_set = set(
-        [cred["credential_exchange_id"] for cred in credentials_get_list["results"]]
-    )
+    cred_set = {result.credential_exchange_id for result in cred.results}
+    cred_get_list_set = {
+        cred["credential_exchange_id"] for cred in credentials_get_list["results"]
+    }
     assert (
         credentials_get_list["@type"]
         == "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-holder/0.1/credentials-list"
     )
-    assert cred_set.issubset(cred_get_list_set)
+    assert cred_get_list_set <= cred_set
