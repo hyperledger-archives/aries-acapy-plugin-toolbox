@@ -32,7 +32,7 @@ packages = [
 python = "^3.6.9"
 marshmallow = "3.5.1"
 python-dateutil = "^2.8.1"
-aries-cloudagent = {version = "^0.7.3rc0", extras = ["indy"], allow-prereleases = true}
+aries-cloudagent = {version = "^0.7.3", extras = ["indy"]}
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
