@@ -55,6 +55,13 @@ console for each started agent. Paste these invitations into an instance of the
 Aries Toolbox to form an "admin" connection and use the Toolbox to trigger
 interactions with other agents.
 
+> Note: in addition to invitation URLs, QR codes are printed to the console as well. In scenarios of multiple agents, occasionally, these QR codes are interlaced with one another, causing them to be unusable. If this happens and the QR codes are necessary for the demonstration, do the following:
+> 
+> 1. Open a separate window and navigate to the `demo` directory
+> 2. Run `docker logs <container name>` 
+>
+> This will re-print the logs for an individual agent. The QR code will be displayed uninterrupted. 
+
 #### Single Agent
 
 Run the following from the `demo` directory:
