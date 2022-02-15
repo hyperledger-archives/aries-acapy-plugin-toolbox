@@ -16,8 +16,12 @@ from aries_cloudagent.messaging.base_handler import (
     RequestContext,
 )
 from aries_cloudagent.protocols.connections.v1_0.manager import ConnectionManager
+from aries_cloudagent.protocols.out_of_band.v1_0.manager import OutOfBandManager
 from aries_cloudagent.protocols.connections.v1_0.messages.connection_invitation import (
     ConnectionInvitation,
+)
+from aries_cloudagent.protocols.out_of_band.v1_0.messages.invitation import (
+    InvitationMessage,
 )
 from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from aries_cloudagent.storage.error import StorageNotFoundError
@@ -38,6 +42,7 @@ CONNECTION = "{}/connection".format(PROTOCOL)
 DELETE = "{}/delete".format(PROTOCOL)
 DELETED = "{}/deleted".format(PROTOCOL)
 RECEIVE_INVITATION = "{}/receive-invitation".format(PROTOCOL)
+RECEIVE_OOB_INVITATION = "{}/receive-oob-invitation".format(PROTOCOL)
 CONNECTED = "{}/connected".format(PROTOCOL)
 
 # Message Type string to Message Class map
@@ -45,10 +50,11 @@ MESSAGE_TYPES = {
     GET_LIST: "acapy_plugin_toolbox.connections.GetList",
     LIST: "acapy_plugin_toolbox.connections.List",
     UPDATE: "acapy_plugin_toolbox.connections.Update",
-    CONNECTION: "acapy_plugin_toolbox.connections.Connnection",
+    CONNECTION: "acapy_plugin_toolbox.connections.Connection",
     DELETE: "acapy_plugin_toolbox.connections.Delete",
     DELETED: "acapy_plugin_toolbox.connections.Deleted",
     RECEIVE_INVITATION: "acapy_plugin_toolbox.connections." "ReceiveInvitation",
+    RECEIVE_OOB_INVITATION: "acapy_plugin_toolbox.connections." "ReceiveOOBInvitation",
     CONNECTED: "acapy_plugin_toolbox.connections.Connected",
 }
 
@@ -281,6 +287,17 @@ ReceiveInvitation, ReceiveInvitationSchema = generate_model_schema(
     },
 )
 
+ReceiveOOBInvitation, ReceiveOOBInvitationSchema = generate_model_schema(
+    name="ReceiveOOBInvitation",
+    handler="acapy_plugin_toolbox.connections.ReceiveOOBInvitationHandler",
+    msg_type=RECEIVE_OOB_INVITATION,
+    schema={
+        "invitation": fields.Str(required=True),
+        "auto_accept": fields.Bool(missing=False),
+        "mediation_id": fields.Str(required=False),
+    },
+)
+
 
 class ReceiveInvitationHandler(BaseHandler):
     """Handler for receive invitation request."""
@@ -292,6 +309,25 @@ class ReceiveInvitationHandler(BaseHandler):
         connection_mgr = ConnectionManager(profile)
         invitation = ConnectionInvitation.from_url(context.message.invitation)
         connection = await connection_mgr.receive_invitation(
+            invitation,
+            auto_accept=context.message.auto_accept,
+            mediation_id=context.message.mediation_id,
+        )
+        connection_resp = Connection(**conn_record_to_message_repr(connection))
+        connection_resp.assign_thread_from(context.message)
+        await responder.send_reply(connection_resp)
+
+
+class ReceiveOOBInvitationHandler(BaseHandler):
+    """Handler for receive oob invitation request."""
+
+    @admin_only
+    async def handle(self, context: RequestContext, responder: BaseResponder):
+        """Handle recieve oob invitation request."""
+        profile = context.profile
+        oob_mgr = OutOfBandManager(profile)
+        invitation = InvitationMessage.from_url(context.message.invitation)
+        connection = await oob_mgr.receive_invitation(
             invitation,
             auto_accept=context.message.auto_accept,
             mediation_id=context.message.mediation_id,
