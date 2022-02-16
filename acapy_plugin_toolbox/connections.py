@@ -77,7 +77,12 @@ async def connections_event_handler(profile: Profile, event: Event):
     Send connected message to admins when connections reach active state.
     """
     record: ConnRecord = ConnRecord.deserialize(event.payload)
-    if record.state == ConnRecord.State.RESPONSE:
+    if record.connection_protocol == ConnRecord.Protocol.RFC_0160 and record.state == ConnRecord.State.RESPONSE:
+        responder = profile.inject(BaseResponder)
+        await send_to_admins(
+            profile, Connected(**conn_record_to_message_repr(record)), responder
+        )
+    if record.connection_protocol == ConnRecord.Protocol.RFC_0023 and record.state == ConnRecord.State.COMPLETED:
         responder = profile.inject(BaseResponder)
         await send_to_admins(
             profile, Connected(**conn_record_to_message_repr(record)), responder
