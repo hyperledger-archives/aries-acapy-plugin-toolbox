@@ -17,6 +17,13 @@ from aries_cloudagent.connections.models.conn_record import ConnRecord
 from aries_cloudagent.protocols.out_of_band.v1_0.manager import OutOfBandManager
 from aries_cloudagent.protocols.out_of_band.v1_0.messages.invitation import HSProto
 
+from aries_cloudagent.protocols.out_of_band.v1_0.messages.invitation import (
+    InvitationMessage,
+)
+from aries_cloudagent.protocols.connections.v1_0.messages.connection_invitation import (
+    ConnectionInvitation,
+)
+
 # ProblemReport will probably be needed when a delete message is implemented
 # from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from aries_cloudagent.storage.error import StorageNotFoundError
@@ -237,11 +244,20 @@ class InvitationGetListHandler(BaseHandler):
                 continue
             group = await connection.metadata_get(session, "group")
 
+            invitation_type = (
+                CONN_INVITE_TYPE
+                if isinstance(invitation, ConnectionInvitation)
+                else OOB_INVITE_TYPE
+                if isinstance(invitation, InvitationMessage)
+                else None
+            )
+
             invite = {
                 "id": connection.connection_id,
                 "label": invitation.label,
                 "alias": connection.alias,
                 "group": group,
+                "invitation_type": invitation_type,
                 "auto_accept": (connection.accept == ConnRecord.ACCEPT_AUTO),
                 "multi_use": (
                     connection.invitation_mode == ConnRecord.INVITATION_MODE_MULTI
