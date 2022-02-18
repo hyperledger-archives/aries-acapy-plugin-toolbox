@@ -37,6 +37,26 @@ async def test_create_invitation(connection):
 
 
 @pytest.mark.asyncio
+async def test_oob_create_invitation(connection):
+    """Test create invitation protocol"""
+    reply = await connection.send_and_await_reply_async(
+        {
+            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/oob-create",
+            "alias": "Invitation I sent to Alice",
+            "label": "Bob",
+            "group": "admin",
+            "auto_accept": True,
+            "multi_use": True,
+        },
+        return_route="all",
+    )
+    assert (
+        reply["@type"]
+        == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/invitation"
+    )
+
+
+@pytest.mark.asyncio
 async def test_get_list(connection):
     """Test get list protocol"""
     reply = await connection.send_and_await_reply_async(
@@ -75,6 +95,42 @@ async def test_num_results(connection):
         return_route="all",
     )
     assert len(reply["results"]) == added_num
+    print(reply["results"][0])
+    assert (
+        reply["results"][0]["invitation_type"]
+        == "https://didcomm.org/connections/1.0/invitation"
+    )
+
+
+@pytest.mark.asyncio
+async def test_oob_num_results(connection):
+    """Test that the create message protocol causes new item in results list"""
+    # Input number of messages to add to the list
+    added_num = 2
+    for i in range(added_num):
+        await connection.send_and_await_reply_async(
+            {
+                "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/oob-create",
+                "alias": "Message I sent to Alice",
+                "label": "Bob",
+                "group": "admin",
+                "auto_accept": True,
+                "multi_use": True,
+            },
+            return_route="all",
+        )
+    reply = await connection.send_and_await_reply_async(
+        {
+            "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/get-list"
+        },
+        return_route="all",
+    )
+    assert len(reply["results"]) == added_num
+    print(reply["results"][0])
+    assert (
+        reply["results"][0]["invitation_type"]
+        == "https://didcomm.org/out-of-band/1.0/invitation"
+    )
 
 
 @pytest.mark.asyncio
