@@ -5,7 +5,6 @@ from aries_cloudagent.protocols.connections.v1_0.messages.connection_invitation 
     ConnectionInvitation,
 )
 from aries_cloudagent.connections.models.conn_record import ConnRecord as con
-from aries_cloudagent.messaging.responder import MockResponder
 from aries_cloudagent.messaging.agent_message import AgentMessage
 from asynctest import mock
 
