@@ -222,19 +222,11 @@ class InvitationGetListHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle get invitation list request."""
 
-        tag_filter = dict(filter(lambda item: item[1] is not None, {}.items()))
-        post_filter_positive = dict(
-            filter(
-                lambda item: item[1] is not None,
-                {
-                    "state": "invitation",
-                    # 'initiator': context.message.initiator,
-                }.items(),
-            )
-        )
+        post_filter_positive = {"state": "invitation"}
+
         session = await context.session()
         records = await ConnRecord.query(
-            session, tag_filter, post_filter_positive=post_filter_positive
+            session, post_filter_positive=post_filter_positive
         )
         results = []
         for connection in records:
