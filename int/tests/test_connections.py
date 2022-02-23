@@ -81,6 +81,34 @@ async def test_create_connection(connection, wait_for_message):
 
 
 @pytest.mark.asyncio
+async def test_oob_create_connection(connection, wait_for_message):
+    """Send an invitation and receive it to create a new connection"""
+    msg_invitation = {
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/oob-create",
+        "alias": "Invitation I sent to Alice",
+        "label": "Bob",
+        "group": "default",
+        "auto_accept": True,
+        "multi_use": True,
+    }
+    invitation = await connection.send_and_await_reply_async(msg_invitation)
+    msg_received = {
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/receive-oob-invitation",
+        "invitation": invitation["invitation_url"],
+        "auto_accept": True,
+    }
+    received = await connection.send_and_await_reply_async(msg_received)
+    message = await wait_for_message(
+        msg_type="https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connected"
+    )
+    assert (
+        received["@type"]
+        == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connection"
+    )
+    assert received["label"] == msg_invitation["label"]
+
+
+@pytest.mark.asyncio
 async def test_get_list(connection, new_connection):
     """Create two connections and verify that their connection_ids are in connections list"""
     conn1 = await new_connection()
