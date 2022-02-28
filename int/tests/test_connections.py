@@ -1,4 +1,5 @@
 """Connections Tests"""
+from re import M
 from acapy_client import Client
 from acapy_client.api.connection import (
     create_invitation,
@@ -80,6 +81,9 @@ async def test_create_connection(connection, wait_for_message):
     assert received["label"] == msg_invitation["label"]
 
 
+# Current agent structure in the test suite does not support this testing flow.
+# We'll adjust the agent structure to support this test, but due to competing priorities that will have to wait
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_oob_create_connection(connection, wait_for_message):
     """Send an invitation and receive it to create a new connection"""
@@ -105,6 +109,7 @@ async def test_oob_create_connection(connection, wait_for_message):
         received["@type"]
         == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connection"
     )
+    assert received["connection_id"] == message["connection_id"]
     assert received["label"] == msg_invitation["label"]
 
 
