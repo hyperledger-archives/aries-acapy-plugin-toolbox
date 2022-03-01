@@ -83,7 +83,7 @@ async def test_create_connection(connection, wait_for_message):
 
 # Current agent structure in the test suite does not support this testing flow.
 # We'll adjust the agent structure to support this test, but due to competing priorities that will have to wait
-@pytest.mark.skip
+@pytest.mark.skip(reason="Current agent structure does not support this test")
 @pytest.mark.asyncio
 async def test_oob_create_connection(connection, wait_for_message):
     """Send an invitation and receive it to create a new connection"""
