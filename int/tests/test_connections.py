@@ -1,5 +1,4 @@
 """Connections Tests"""
-from re import M
 from acapy_client import Client
 from acapy_client.api.connection import (
     create_invitation,
