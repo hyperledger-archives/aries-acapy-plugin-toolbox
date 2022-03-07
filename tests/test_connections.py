@@ -17,13 +17,24 @@ async def test_chandler(profile):
     with patch.object(
         con, "send_to_admins", mock.CoroutineMock()
     ) as mocked_send_to_admins:
-        event = Event(
-            f"acapy::record::{ConnRecord.RECORD_TOPIC}::{ConnRecord.State.RESPONSE}",
-            ConnRecord(state=ConnRecord.State.RESPONSE).serialize(),
+        event_conn = Event(
+            f"acapy::record::{ConnRecord.RECORD_TOPIC}::{ConnRecord.State.RESPONSE}::{ConnRecord.Protocol.RFC_0160}",
+            ConnRecord(
+                state=ConnRecord.State.RESPONSE,
+                connection_protocol=ConnRecord.Protocol.RFC_0160,
+            ).serialize(),
+        )
+        event_did = Event(
+            f"acapy::record::{ConnRecord.RECORD_TOPIC}::{ConnRecord.State.COMPLETED}::{ConnRecord.Protocol.RFC_0023}",
+            ConnRecord(
+                state=ConnRecord.State.COMPLETED,
+                connection_protocol=ConnRecord.Protocol.RFC_0023,
+            ).serialize(),
         )
 
-        await con.connections_event_handler(profile, event)
-        mocked_send_to_admins.assert_called_once()
+        await con.connections_event_handler(profile, event_conn)
+        await con.connections_event_handler(profile, event_did)
+        assert mocked_send_to_admins.call_count == 2
 
 
 if __name__ == "__main__":
