@@ -36,10 +36,18 @@ class PresRequestReject(AdminHolderMessage):
             description="Presentation request to reject.",
             example=UUIDFour.EXAMPLE,
         )
+        message_description = fields.Str(
+            required=True,
+            description="Custom description of problem report",
+            default="Rejected presentation request.",
+        )
 
-    def __init__(self, presentation_exchange_id: str, **kwargs):
+    def __init__(
+        self, presentation_exchange_id: str, message_description: str, **kwargs
+    ):
         super().__init__(**kwargs)
         self.presentation_exchange_id = presentation_exchange_id
+        self.message_description = message_description
 
     @log_handling
     @admin_only
@@ -73,7 +81,7 @@ class PresRequestReject(AdminHolderMessage):
 
         problem_report = PresentationProblemReport(
             description={
-                "en": "Rejected presentation request.",
+                "en": self.message_description,
                 "code": "rejected",  # TODO add ProblemReportReason.REJECTED to ACA-Py
             }
         )
