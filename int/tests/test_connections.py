@@ -80,6 +80,38 @@ async def test_create_connection(connection, wait_for_message):
     assert received["label"] == msg_invitation["label"]
 
 
+# Current agent structure in the test suite does not support this testing flow.
+# We'll adjust the agent structure to support this test, but due to competing priorities that will have to wait
+@pytest.mark.skip(reason="Current agent structure does not support this test")
+@pytest.mark.asyncio
+async def test_oob_create_connection(connection, wait_for_message):
+    """Send an invitation and receive it to create a new connection"""
+    msg_invitation = {
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-invitations/0.1/oob-create",
+        "alias": "Invitation I sent to Alice",
+        "label": "Bob",
+        "group": "default",
+        "auto_accept": True,
+        "multi_use": True,
+    }
+    invitation = await connection.send_and_await_reply_async(msg_invitation)
+    msg_received = {
+        "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/receive-oob-invitation",
+        "invitation": invitation["invitation_url"],
+        "auto_accept": True,
+    }
+    received = await connection.send_and_await_reply_async(msg_received)
+    message = await wait_for_message(
+        msg_type="https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connected"
+    )
+    assert (
+        received["@type"]
+        == "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/connection"
+    )
+    assert received["connection_id"] == message["connection_id"]
+    assert received["label"] == msg_invitation["label"]
+
+
 @pytest.mark.asyncio
 async def test_get_list(connection, new_connection):
     """Create two connections and verify that their connection_ids are in connections list"""
