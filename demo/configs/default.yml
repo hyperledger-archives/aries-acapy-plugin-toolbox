@@ -29,7 +29,7 @@ auto-accept-requests: true
 auto-ping-connection: true
 
 # Generate Admin Invitation
-connections-invite: true
+invite: true
 invite-label: ACA-Py (Admin)
 invite-metadata-json: '{"group": "admin"}'
 
