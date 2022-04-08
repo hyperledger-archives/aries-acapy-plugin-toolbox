@@ -21,7 +21,7 @@ admin-insecure-mode: true
 
 # Connections
 debug-connections: true
-connections-invite: true
+invite: true
 invite-multi-use: true
 auto-accept-invites: true
 auto-accept-requests: true
@@ -30,6 +30,3 @@ auto-ping-connection: true
 # Mediation
 open-mediation: true
 enable-undelivered-queue: true
-wallet-type: indy
-wallet-key: "insecure, for use in demo only"
-auto-provision: true
