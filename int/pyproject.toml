@@ -11,7 +11,7 @@ pytest = "^6.2.4"
 pytest-asyncio = "^0.15.1"
 pytest-cov = "^2.12.1"
 asynctest = "0.13.0"
-acapy-client = {git = "https://github.com/Indicio-tech/acapy-client.git", rev = "2ca217e91a4cd42c78f038edf4547e955d893989"}
+acapy-client = {git = "https://github.com/Indicio-tech/acapy-client.git", rev = "d2dcbfbe1e34e30ba2a6039610743221ae842a68"}
 echo-agent = {git = "https://github.com/Indicio-tech/echo-agent.git", rev = "main", extras=["client"]}
 aries-staticagent = ">=0.9.0rc4"
 aiohttp = "^3.7.4"
