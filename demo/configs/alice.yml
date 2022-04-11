@@ -29,7 +29,7 @@ debug-presentations: true
 auto-accept-invites: true
 auto-accept-requests: true
 auto-ping-connection: true
-connections-invite: true
+invite: true
 invite-metadata-json: '{"group": "admin"}'
 
 # Credentials and Presentations
@@ -53,3 +53,6 @@ auto-provision: true
 # Enable undelivered queue
 # Important for communication with toolbox over http (as opposed to ws)
 enable-undelivered-queue: true
+
+# Catch Admin Trust Pings
+monitor-ping: true
