@@ -13,7 +13,7 @@ import pytest
 from typing import cast
 from acapy_client import Client
 from acapy_client.models.conn_record import ConnRecord
-from acapy_client.api.present_proof_v10 import send_proof_request
+from acapy_client.api.present_proof_v1_0 import send_proof_request
 
 from tests.test_holder import issue_credential, issuer_holder_connection
 from tests.conftest import connection

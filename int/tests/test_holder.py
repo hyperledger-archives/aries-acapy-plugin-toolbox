@@ -27,8 +27,8 @@ from acapy_client.api.connection import (
 )
 from acapy_client.api.schema import publish_schema
 from acapy_client.api.credential_definition import publish_cred_def
-from acapy_client.api.issue_credential_v10 import issue_credential_automated
-from acapy_client.api.issue_credential_v10 import get_issue_credential_records
+from acapy_client.api.issue_credential_v1_0 import issue_credential_automated
+from acapy_client.api.issue_credential_v1_0 import get_issue_credential_records
 
 
 @pytest.fixture(scope="module")
