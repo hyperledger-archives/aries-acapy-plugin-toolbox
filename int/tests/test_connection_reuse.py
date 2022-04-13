@@ -55,6 +55,7 @@ async def test_connection_reuse(
         "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/receive-oob-invitation",
         "invitation": invitation.invitation_url,
         "auto_accept": True,
+        "use_existing_connection": True,
     }
     connections_final = await get_connections.asyncio(client=backchannel)
     len_conn_final = len(connections_final.results)
