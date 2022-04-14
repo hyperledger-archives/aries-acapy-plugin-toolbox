@@ -44,14 +44,14 @@ async def test_connection_reuse(
             "@type": "https://github.com/hyperledger/aries-toolbox/tree/master/docs/admin-connections/0.1/receive-oob-invitation",
             "invitation": invitation.invitation_url,
             "auto_accept": True,
-        }
+        },
     )
     await echo.get_message(
         echo_connection,
         msg_type=(
             "https://github.com/hyperledger/aries-toolbox/tree/master/docs/"
             "admin-connections/0.1/connected"
-        )
+        ),
     )
     connections_initial = await get_connections.asyncio(client=backchannel)
     len_conn_initial = len(connections_initial.results)
@@ -64,14 +64,14 @@ async def test_connection_reuse(
             "invitation": invitation.invitation_url,
             "auto_accept": True,
             "use_existing_connection": True,
-        }
+        },
     )
     await echo.get_message(
         echo_connection,
         msg_type=(
             "https://github.com/hyperledger/aries-toolbox/tree/master/docs/"
             "admin-connections/0.1/connected"
-        )
+        ),
     )
     connections_final = await get_connections.asyncio(client=backchannel)
     len_conn_final = len(connections_final.results)
