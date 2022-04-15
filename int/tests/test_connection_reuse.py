@@ -1,4 +1,6 @@
 """Connections Tests"""
+import pytest
+
 from acapy_client import Client
 from acapy_client.api.connection import (
     get_connections,
@@ -8,7 +10,6 @@ from acapy_client.api.out_of_band import post_out_of_band_create_invitation
 from acapy_client.models.invitation_create_request import InvitationCreateRequest
 from echo_agent.client import EchoClient
 from echo_agent.models import ConnectionInfo
-import pytest
 
 
 @pytest.fixture(autouse=True)
@@ -24,7 +25,7 @@ async def clear_connection_state(backchannel: Client, connection_id: str):
 
 
 @pytest.mark.asyncio
-async def test_connection_reuse(
+async def test_connection_reuse_single_invitation(
     backchannel: Client,
     echo: EchoClient,
     echo_connection: ConnectionInfo,
@@ -56,7 +57,7 @@ async def test_connection_reuse(
     connections_initial = await get_connections.asyncio(client=backchannel)
     len_conn_initial = len(connections_initial.results)
 
-    # Send another invitation
+    # Accept the same invitation again
     await echo.send_message(
         echo_connection,
         {
