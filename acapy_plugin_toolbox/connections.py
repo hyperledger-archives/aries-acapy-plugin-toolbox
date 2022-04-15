@@ -306,6 +306,7 @@ ReceiveOOBInvitation, ReceiveOOBInvitationSchema = generate_model_schema(
         "invitation": fields.Str(required=True),
         "auto_accept": fields.Bool(missing=False),
         "mediation_id": fields.Str(required=False),
+        "use_existing_connection": fields.Bool(missing=False),
     },
 )
 

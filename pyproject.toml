@@ -32,14 +32,14 @@ packages = [
 python = "^3.6.9"
 marshmallow = "3.5.1"
 python-dateutil = "^2.8.1"
-aries-cloudagent = {version = "^0.7.3", extras = ["indy"]}
+aries-cloudagent = {version = "^0.7.4rc0", extras = ["indy"]}
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
 pytest-asyncio = "^0.15.1"
 asynctest = "0.13.0"
 pre-commit = "^2.13.0"
-black = "^21.6b0"
+black = "^22.3.0"
 flake8 = "^3.9.2"
 
 [tool.pytest.ini_options]

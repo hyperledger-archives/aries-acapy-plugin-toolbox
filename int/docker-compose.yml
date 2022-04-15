@@ -32,6 +32,7 @@ services:
       --monitor-ping
       --auto-store-credential
       --preserve-exchange-records
+      --public-invites
 
   echo:
     image: dbluhm/echo-agent:6c22a88
