@@ -53,16 +53,20 @@ async def issuer_holder_connection(backchannel: Client, connection):
     )
     return invitation_created, connection_created
 
+
 def version_generator():
     version = 6
     while True:
         yield f"1.{version}"
         version += 1
 
+
 version_gen = version_generator()
+
 
 def get_version():
     return next(version_gen)
+
 
 @pytest.fixture
 async def issue_credential(
