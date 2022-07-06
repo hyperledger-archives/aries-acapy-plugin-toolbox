@@ -22,7 +22,6 @@ class HttpWsTransport(BaseInboundTransport):
         self.host = host
         self.port = port
         self.site: web.BaseSite = None
-        self.is_external = False
 
     inbound_ws_message_handler = ws.WsTransport.inbound_message_handler
     inbound_http_message_handler = http.HttpTransport.inbound_message_handler
