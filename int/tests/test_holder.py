@@ -54,6 +54,20 @@ async def issuer_holder_connection(backchannel: Client, connection):
     return invitation_created, connection_created
 
 
+def version_generator():
+    version = 6
+    while True:
+        yield f"1.{version}"
+        version += 1
+
+
+version_gen = version_generator()
+
+
+def get_version():
+    return next(version_gen)
+
+
 @pytest.fixture
 async def issue_credential(
     backchannel: Client,
@@ -65,7 +79,7 @@ async def issue_credential(
     wait_for_message,
 ):
     connected = issuer_holder_connection
-    cred_def = await create_cred_def(version="1.0")
+    cred_def = await create_cred_def(version=get_version())
     assert isinstance(cred_def, CredentialDefinitionSendResult)
     issue_result = await asyncio.wait_for(
         issue_credential_automated.asyncio(
@@ -119,7 +133,7 @@ async def test_holder_credential_exchange(
     wait_for_message,
 ):
     connected = issuer_holder_connection
-    cred_def = await create_cred_def(version="1.0")
+    cred_def = await create_cred_def(version=get_version())
     assert isinstance(cred_def, CredentialDefinitionSendResult)
     issue_result = await asyncio.wait_for(
         issue_credential_automated.asyncio(
