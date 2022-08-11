@@ -324,7 +324,6 @@ class ReceiveInvitationHandler(BaseHandler):
             invitation,
             auto_accept=context.message.auto_accept,
             mediation_id=context.message.mediation_id,
-            connection_reuse = context.message.use_existing_connection,
         )
         connection_resp = Connection(**conn_record_to_message_repr(connection))
         connection_resp.assign_thread_from(context.message)
@@ -344,6 +343,7 @@ class ReceiveOOBInvitationHandler(BaseHandler):
             invitation,
             auto_accept=context.message.auto_accept,
             mediation_id=context.message.mediation_id,
+            connection_reuse = context.message.use_existing_connection,
         )
         connection_resp = Connection(**conn_record_to_message_repr(connection))
         connection_resp.assign_thread_from(context.message)
