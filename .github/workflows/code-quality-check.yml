@@ -10,7 +10,7 @@ on:
 
 env:
   FLAKE8_VERSION: 3.9.2
-  BLACK_VERSION: 21.8b0
+  BLACK_VERSION: 22.6.0
 
 jobs:
   format:
