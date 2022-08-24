@@ -89,6 +89,17 @@ validation = ["prance[osv] (>=0.11)"]
 yaml = ["PyYAML (>=3.10)"]
 
 [[package]]
+name = "aries-askar"
+version = "0.2.7"
+description = ""
+category = "main"
+optional = false
+python-versions = ">=3.6.3"
+
+[package.dependencies]
+cached-property = ">=1.5,<2.0"
+
+[[package]]
 name = "aries-cloudagent"
 version = "0.7.4"
 description = ""
@@ -102,11 +113,14 @@ aiohttp-apispec = ">=2.2.1,<2.3.0"
 aiohttp-cors = ">=0.7.0,<0.8.0"
 aioredis = ">=2.0.0,<2.1.0"
 apispec = ">=3.3.0,<3.4.0"
+aries-askar = {version = ">=0.2.5,<0.3.0", optional = true, markers = "extra == \"askar\""}
 async-timeout = ">=4.0.2,<4.1.0"
 base58 = ">=2.1.0,<2.2.0"
 ConfigArgParse = ">=1.5.3,<1.6.0"
 deepmerge = ">=0.3.0,<0.4.0"
 ecdsa = ">=0.16.1,<0.17.0"
+indy-credx = {version = ">=0.3,<1.0", optional = true, markers = "extra == \"askar\""}
+indy-vdr = {version = ">=0.3.3,<0.4.0", optional = true, markers = "extra == \"askar\""}
 jsonpath-ng = "1.5.2"
 Markdown = ">=3.1.1,<3.2.0"
 markupsafe = "2.0.1"
@@ -127,6 +141,7 @@ qrcode = {version = ">=6.1,<7.0", extras = ["pil"]}
 requests = ">=2.25.0,<2.26.0"
 rlp = "0.5.1"
 unflatten = ">=0.1,<1.0"
+ursa-bbs-signatures = {version = ">=1.0.1,<1.1.0", optional = true, markers = "extra == \"bbs\""}
 
 [package.extras]
 askar = ["aries-askar (>=0.2.5,<0.3.0)", "indy-credx (>=0.3,<1.0)", "indy-vdr (>=0.3.3,<0.4.0)"]
@@ -155,7 +170,7 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "atomicwrites"
-version = "1.4.0"
+version = "1.4.1"
 description = "Atomic file writes."
 category = "dev"
 optional = false
@@ -163,17 +178,17 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
 name = "attrs"
-version = "21.4.0"
+version = "22.1.0"
 description = "Classes Without Boilerplate"
 category = "main"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+python-versions = ">=3.5"
 
 [package.extras]
-dev = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "zope.interface", "furo", "sphinx", "sphinx-notfound-page", "pre-commit", "cloudpickle"]
+dev = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "mypy (>=0.900,!=0.940)", "pytest-mypy-plugins", "zope.interface", "furo", "sphinx", "sphinx-notfound-page", "pre-commit", "cloudpickle"]
 docs = ["furo", "sphinx", "zope.interface", "sphinx-notfound-page"]
-tests = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "zope.interface", "cloudpickle"]
-tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "mypy", "pytest-mypy-plugins", "cloudpickle"]
+tests = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "mypy (>=0.900,!=0.940)", "pytest-mypy-plugins", "zope.interface", "cloudpickle"]
+tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "mypy (>=0.900,!=0.940)", "pytest-mypy-plugins", "cloudpickle"]
 
 [[package]]
 name = "base58"
@@ -184,7 +199,7 @@ optional = false
 python-versions = ">=3.5"
 
 [package.extras]
-tests = ["mypy", "PyHamcrest (>=2.0.2)", "pytest (>=4.6)", "pytest-benchmark", "pytest-cov", "pytest-flake8"]
+tests = ["pytest-flake8", "pytest-cov", "pytest-benchmark", "pytest (>=4.6)", "PyHamcrest (>=2.0.2)", "mypy"]
 
 [[package]]
 name = "black"
@@ -209,6 +224,14 @@ colorama = ["colorama (>=0.4.3)"]
 d = ["aiohttp (>=3.7.4)"]
 jupyter = ["ipython (>=7.8.0)", "tokenize-rt (>=3.2.0)"]
 uvloop = ["uvloop (>=0.15.2)"]
+
+[[package]]
+name = "cached-property"
+version = "1.5.2"
+description = "A decorator for caching properties in classes."
+category = "main"
+optional = false
+python-versions = "*"
 
 [[package]]
 name = "cachetools"
@@ -255,7 +278,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
 name = "charset-normalizer"
-version = "2.1.0"
+version = "2.1.1"
 description = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
 category = "main"
 optional = false
@@ -322,7 +345,7 @@ python-versions = ">=3"
 
 [[package]]
 name = "distlib"
-version = "0.3.4"
+version = "0.3.5"
 description = "Distribution utilities"
 category = "dev"
 optional = false
@@ -371,7 +394,7 @@ pyflakes = ">=2.3.0,<2.4.0"
 
 [[package]]
 name = "frozendict"
-version = "2.3.2"
+version = "2.3.4"
 description = "A simple immutable dictionary"
 category = "main"
 optional = false
@@ -446,6 +469,22 @@ zipp = {version = ">=3.1.0", markers = "python_version < \"3.10\""}
 [package.extras]
 docs = ["sphinx", "jaraco.packaging (>=8.2)", "rst.linker (>=1.9)"]
 testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-cov", "pytest-enabler (>=1.0.1)", "pytest-black (>=0.3.7)", "pytest-mypy"]
+
+[[package]]
+name = "indy-credx"
+version = "0.3.1"
+description = ""
+category = "main"
+optional = false
+python-versions = ">=3.6.3"
+
+[[package]]
+name = "indy-vdr"
+version = "0.3.4"
+description = ""
+category = "main"
+optional = false
+python-versions = ">=3.6.3"
 
 [[package]]
 name = "inflection"
@@ -636,8 +675,8 @@ python-versions = ">=3.6"
 importlib-metadata = {version = ">=0.12", markers = "python_version < \"3.8\""}
 
 [package.extras]
-dev = ["pre-commit", "tox"]
-testing = ["pytest", "pytest-benchmark"]
+testing = ["pytest-benchmark", "pytest"]
+dev = ["tox", "pre-commit"]
 
 [[package]]
 name = "ply"
@@ -703,7 +742,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
 name = "pydantic"
-version = "1.9.1"
+version = "1.9.2"
 description = "Data validation and settings management using python type hints"
 category = "main"
 optional = false
@@ -719,7 +758,7 @@ email = ["email-validator (>=1.0.3)"]
 
 [[package]]
 name = "pydid"
-version = "0.3.4"
+version = "0.3.5"
 description = "Python library for validating, constructing, and representing DIDs and DID Documents"
 category = "main"
 optional = false
@@ -847,7 +886,7 @@ six = ">=1.5"
 
 [[package]]
 name = "python3-indy"
-version = "1.16.0.post241"
+version = "1.16.0.post286"
 description = "This is the official SDK for Hyperledger Indy (https://www.hyperledger.org/projects), which provides a distributed-ledger-based foundation for self-sovereign identity (https://sovrin.org). The major artifact of the SDK is a c-callable library."
 category = "main"
 optional = false
@@ -978,24 +1017,32 @@ python-versions = "*"
 
 [[package]]
 name = "urllib3"
-version = "1.26.9"
+version = "1.26.12"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 category = "main"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*, <4"
 
 [package.extras]
+brotli = ["brotlicffi (>=0.8.0)", "brotli (>=1.0.9)", "brotlipy (>=0.6.0)"]
+secure = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "certifi", "urllib3-secure-extra", "ipaddress"]
 socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
-secure = ["ipaddress", "certifi", "idna (>=2.0.0)", "cryptography (>=1.3.4)", "pyOpenSSL (>=0.14)"]
-brotli = ["brotlipy (>=0.6.0)", "brotli (>=1.0.9)", "brotlicffi (>=0.8.0)"]
+
+[[package]]
+name = "ursa-bbs-signatures"
+version = "1.0.1"
+description = ""
+category = "main"
+optional = false
+python-versions = ">=3.6.3"
 
 [[package]]
 name = "virtualenv"
-version = "20.15.1"
+version = "20.16.2"
 description = "Virtual Python Environment builder"
 category = "dev"
 optional = false
-python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
+python-versions = ">=3.6"
 
 [package.dependencies]
 distlib = ">=0.3.1,<1"
@@ -1003,11 +1050,10 @@ filelock = ">=3.2,<4"
 importlib-metadata = {version = ">=0.12", markers = "python_version < \"3.8\""}
 importlib-resources = {version = ">=1.0", markers = "python_version < \"3.7\""}
 platformdirs = ">=2,<3"
-six = ">=1.9.0,<2"
 
 [package.extras]
 docs = ["proselint (>=0.10.2)", "sphinx (>=3)", "sphinx-argparse (>=0.2.5)", "sphinx-rtd-theme (>=0.4.3)", "towncrier (>=21.3)"]
-testing = ["coverage (>=4)", "coverage-enable-subprocess (>=1)", "flaky (>=3)", "pytest (>=4)", "pytest-env (>=0.6.2)", "pytest-freezegun (>=0.4.1)", "pytest-mock (>=2)", "pytest-randomly (>=1)", "pytest-timeout (>=1)", "packaging (>=20.0)"]
+testing = ["coverage (>=4)", "coverage-enable-subprocess (>=1)", "flaky (>=3)", "packaging (>=20.0)", "pytest (>=4)", "pytest-env (>=0.6.2)", "pytest-freezegun (>=0.4.1)", "pytest-mock (>=2)", "pytest-randomly (>=1)", "pytest-timeout (>=1)"]
 
 [[package]]
 name = "wcwidth"
@@ -1064,7 +1110,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6.9"
-content-hash = "cf46a5aedbc344c75efca2acd0e488e8546a13ecb159a560d08c2e6580d5761d"
+content-hash = "e0fe73db8dbf68738ab7da6c81da39150da5a6a363de8f712cda90c402712742"
 
 [metadata.files]
 aiohttp = []
@@ -1073,6 +1119,7 @@ aiohttp-cors = []
 aioredis = []
 aiosignal = []
 apispec = []
+aries-askar = []
 aries-cloudagent = []
 async-timeout = []
 asynctest = []
@@ -1080,6 +1127,7 @@ atomicwrites = []
 attrs = []
 base58 = []
 black = []
+cached-property = []
 cachetools = []
 certifi = []
 cffi = []
@@ -1103,6 +1151,8 @@ idna = []
 idna-ssl = []
 importlib-metadata = []
 importlib-resources = []
+indy-credx = []
+indy-vdr = []
 inflection = []
 iniconfig = []
 jinja2 = []
@@ -1152,6 +1202,7 @@ typed-ast = []
 typing-extensions = []
 unflatten = []
 urllib3 = []
+ursa-bbs-signatures = []
 virtualenv = []
 wcwidth = []
 webargs = []
