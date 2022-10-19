@@ -8,13 +8,12 @@
 | ---------------- | ---------------- | ---------------- |
 | Adam Burdett     | burdettadam      | burdettadam      |
 | Daniel Bluhm     | dbluhm           | dbluhm           |
-| Sam Curren       | TelegramSam      | TelegramSam      |
 
 ## Emeritus Maintainers
 
-| Name         | Github  | LFID    |
-|--------------|---------|---------|
-|   |  |  |
+| Name         | Github       | LFID             |
+|--------------|--------------|------------------|
+| Sam Curren   | TelegramSam  | TelegramSam      |
 
 ## Becoming a Maintainer
 
