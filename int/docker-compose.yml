@@ -33,7 +33,7 @@ services:
       --preserve-exchange-records
       --public-invites
     healthcheck:
-      test: nc -z localhost 3002
+      test: nc -z localhost 3001
       start_period: 5s
       interval: 1s
       timeout: 5s
