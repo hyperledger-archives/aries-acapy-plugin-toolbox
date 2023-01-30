@@ -22,6 +22,7 @@ from aries_cloudagent.messaging.models.base_record import BaseRecord, BaseRecord
 from aries_cloudagent.messaging.util import canon
 from aries_cloudagent.protocols.problem_report.v1_0.message import ProblemReport
 from aries_cloudagent.storage.error import StorageNotFoundError
+from aries_cloudagent.storage.base import BaseStorage
 from marshmallow import fields
 
 from aries_cloudagent.revocation.error import (
@@ -53,6 +54,8 @@ MESSAGE_TYPES = {
     CRED_DEF_GET_LIST: "acapy_plugin_toolbox.credential_definitions.CredDefGetList",
     CRED_DEF_LIST: "acapy_plugin_toolbox.credential_definitions.CredDefList",
 }
+
+CRED_DEF_SENT_RECORD_TYPE = "cred_def_sent"
 
 LOGGER = logging.getLogger(__name__)
 
@@ -448,7 +451,48 @@ class CredDefGetListHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle get schema list request."""
         session = await context.session()
-        records = await CredDefRecord.query(session, {})
-        cred_def_list = CredDefList(results=records)
+        storage = session.inject(BaseStorage)
+
+        toolbox_records = [
+            cred_def_records
+            for cred_def_records in await CredDefRecord.query(session, {})
+        ]
+
+        toolbox_record_ids = [cred_def.cred_def_id for cred_def in toolbox_records]
+
+        acapy_record_ids = [
+            storage_record.tags["cred_def_id"]
+            for storage_record in await storage.find_all_records(
+                CRED_DEF_SENT_RECORD_TYPE
+            )
+        ]
+
+        unknown_record_ids = set(acapy_record_ids) - set(toolbox_record_ids)
+
+        if unknown_record_ids:
+            ledger: BaseLedger = session.inject(BaseLedger)
+            async with ledger:
+                cred_defs = [
+                    await ledger.get_credential_definition(cred_def_id)
+                    for cred_def_id in unknown_record_ids
+                ]
+
+            cred_def_records = [
+                CredDefRecord(
+                    cred_def_id=cred_def["id"],
+                    schema_id=cred_def["schema_id"],
+                    attributes=cred_def["attrNames"],
+                    author=CredDefRecord.AUTHOR_SELF,
+                    state=CredDefRecord.STATE_WRITTEN,
+                )
+                for cred_def in cred_defs
+            ]
+
+            for record in cred_def_records:
+                await record.save(session)
+
+            toolbox_records.extend(cred_def_records)
+
+        cred_def_list = CredDefList(results=toolbox_records)
         cred_def_list.assign_thread_from(context.message)
         await responder.send_reply(cred_def_list)
