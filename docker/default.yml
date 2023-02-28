@@ -13,7 +13,7 @@ debug-connections: true
 auto-accept-invites: true
 auto-accept-requests: true
 auto-ping-connection: true
-connections-invite: true
+invite: true
 label: Aries Cloud Agent + Toolbox Plugin
 invite-label: ACA-Py (Admin)
 invite-metadata-json: '{"group": "admin"}'

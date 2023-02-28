@@ -6,6 +6,9 @@ from aries_cloudagent.protocols.connections.v1_0.messages.connection_invitation 
 )
 from aries_cloudagent.connections.models.conn_record import ConnRecord as con
 from aries_cloudagent.messaging.agent_message import AgentMessage
+from aries_cloudagent.protocols.out_of_band.v1_0.models.invitation import (
+    InvitationRecord,
+)
 from asynctest import mock
 
 import acapy_plugin_toolbox.invitations as inv
@@ -15,7 +18,7 @@ from tests.conftest import RequestContext
 @pytest.fixture
 def message():
     """Message fixture"""
-    yield inv.CreateInvitation(
+    yield inv.OOBCreateInvitation(
         label="test_label",
         auto_accept=True,
         multi_use=True,
@@ -40,10 +43,10 @@ async def test_createinvitationhandler(context, mock_responder):
     """CreateInvitationHandler test.
 
     A unit test for the CreateInvitationHandler class."""
-    createinvhandler = inv.CreateInvitationHandler()
+    oobcreateinvhandler = inv.OOBCreateInvitationHandler()
     connection = mock.MagicMock(spec=con)
     connection.metadata_set = mock.CoroutineMock()
-    connection.connection_id = patch.object(con, "metadata_set", mock.CoroutineMock())
+    connection.connection_id = "test_connection_id"
     connection.alias = "test_alias"
     connection.accept = True
     connection.invitation_mode = "test_mode"
@@ -51,18 +54,23 @@ async def test_createinvitationhandler(context, mock_responder):
 
     invitation = mock.MagicMock(spec=ConnectionInvitation)
     invitation.label = "test_label"
+    invitation_record = mock.MagicMock(spec=InvitationRecord)
+    invitation_record.invi_msg_id = "test_invi_msg_id"
+    invitation_record.invitation_url = "test_invitation_url"
     mock_conn_mgr = mock.MagicMock()
-    mock_conn_mgr.create_invitation = mock.CoroutineMock(
-        return_value=(connection, invitation)
-    )
+    mock_conn_mgr.create_invitation = mock.CoroutineMock(return_value=invitation_record)
 
     with patch.object(
-        inv, "ConnectionManager", mock.MagicMock(return_value=mock_conn_mgr)
+        inv, "OutOfBandManager", mock.MagicMock(return_value=mock_conn_mgr)
     ), patch.object(
         AgentMessage, "assign_thread_from", mock.CoroutineMock()
-    ) as mock_assign:
+    ) as mock_assign, patch.object(
+        con,
+        "retrieve_by_invitation_msg_id",
+        mock.CoroutineMock(return_value=connection),
+    ):
 
-        await createinvhandler.handle(context, mock_responder)
+        await oobcreateinvhandler.handle(context, mock_responder)
         connection.metadata_set.assert_called_once()
         mock_assign.assert_called_once()
         assert isinstance(mock_responder.messages[0][0], inv.Invitation)

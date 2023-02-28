@@ -32,9 +32,10 @@ services:
       --monitor-ping
       --auto-store-credential
       --preserve-exchange-records
+      --public-invites
 
   echo:
-    image: dbluhm/echo-agent:6c22a88
+    image: ghcr.io/indicio-tech/echo-agent:0.1.2
     ports:
       - "3002:3002"
     command: --host 0.0.0.0 --port 3002 --log-level debug
