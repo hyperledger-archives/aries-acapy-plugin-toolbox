@@ -20,7 +20,7 @@ def connection():
 @pytest.fixture
 def message():
     """Message fixture"""
-    yield con.ReceiveInvitation(
+    yield con.ReceiveOOBInvitation(
         auto_accept=True,
         mediation_id="test_id",
         invitation="http://example.org?c_i=eyPartyTime",
