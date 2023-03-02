@@ -14,14 +14,17 @@ from aries_cloudagent.messaging.base_handler import (
     BaseResponder,
     RequestContext,
 )
+from aries_cloudagent.messaging.schemas.routes import add_schema_non_secrets_record
 from aries_cloudagent.messaging.models.base_record import BaseRecord, BaseRecordSchema
 from aries_cloudagent.ledger.base import BaseLedger
 from aries_cloudagent.indy.issuer import IndyIssuer
 from aries_cloudagent.storage.error import StorageNotFoundError
+from aries_cloudagent.storage.base import BaseStorage
 
 from .util import generate_model_schema, admin_only
 
 PROTOCOL = "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin-schemas/0.1"
+SCHEMA_SENT_RECORD_TYPE = "schema_sent"
 
 SEND_SCHEMA = "{}/send-schema".format(PROTOCOL)
 SCHEMA_ID = "{}/schema-id".format(PROTOCOL)
@@ -177,6 +180,9 @@ class SendSchemaHandler(BaseHandler):
             author=SchemaRecord.AUTHOR_SELF,
         )
         await schema.save(session, reason="Committed to ledger")
+        await add_schema_non_secrets_record(
+            profile=context.profile, schema_id=schema_id
+        )
 
         result = SchemaID(schema_id=schema_id)
         result.assign_thread_from(context.message)
@@ -256,8 +262,50 @@ class SchemaGetListHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle get schema list request."""
+
         session = await context.session()
-        records = await SchemaRecord.query(session, {})
-        schema_list = SchemaList(results=records)
+        storage = session.inject(BaseStorage)
+
+        toolbox_records = [
+            schema_records for schema_records in await SchemaRecord.query(session, {})
+        ]
+
+        toolbox_record_ids = [schema.schema_id for schema in toolbox_records]
+
+        acapy_record_ids = [
+            storage_record.tags["schema_id"]
+            for storage_record in await storage.find_all_records(
+                SCHEMA_SENT_RECORD_TYPE
+            )
+        ]
+
+        unknown_record_ids = set(acapy_record_ids) - set(toolbox_record_ids)
+
+        if unknown_record_ids:
+            ledger: BaseLedger = session.inject(BaseLedger)
+            async with ledger:
+                schemas = [
+                    await ledger.get_schema(schema_id)
+                    for schema_id in unknown_record_ids
+                ]
+
+            schema_records = [
+                SchemaRecord(
+                    schema_id=schema["id"],
+                    schema_name=schema["name"],
+                    attributes=schema["attrNames"],
+                    schema_version=schema["version"],
+                    author=SchemaRecord.AUTHOR_SELF,
+                    state=SchemaRecord.STATE_WRITTEN,
+                )
+                for schema in schemas
+            ]
+
+            for record in schema_records:
+                await record.save(session)
+
+            toolbox_records.extend(schema_records)
+
+        schema_list = SchemaList(results=toolbox_records)
         schema_list.assign_thread_from(context.message)
         await responder.send_reply(schema_list)
