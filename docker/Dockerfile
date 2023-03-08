@@ -2,7 +2,7 @@ FROM bcgovimages/von-image:py36-1.16-0 AS base
 
 # Install and Configure Poetry
 USER root
-ENV POETRY_VERSION=1.1.11
+ENV POETRY_VERSION=1.3.2
 ENV POETRY_HOME=/opt/poetry
 RUN curl -sSL https://install.python-poetry.org | python -
 
