@@ -35,7 +35,7 @@ services:
       --preserve-exchange-records
       --public-invites
     healthcheck:
-      test: curl -s -o /dev/null -w '%{http_code}' "http://localhost:3001/status/live" | grep "200" > /dev/null
+      test: python -c 'import sys; import urllib.request; sys.exit(0 if urllib.request.urlopen("http://localhost:3001/status/live").getcode() == 200 else 1)'
       start_period: 30s
       interval: 7s
       timeout: 5s
@@ -47,7 +47,7 @@ services:
       - "3002:3002"
     command: --host 0.0.0.0 --port 3002 --log-level debug
     healthcheck:
-      test: nc -z localhost 3002
+      test: nc -z 0.0.0.0 3002
       start_period: 5s
       interval: 1s
       timeout: 5s
