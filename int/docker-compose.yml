@@ -25,7 +25,7 @@ services:
       --admin 0.0.0.0 3001 --admin-insecure-mode
       --plugin acapy_plugin_toolbox
       --genesis-url https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
-      --wallet-type indy
+      --wallet-type askar
       --wallet-name default
       --wallet-key "insecure, for use in testing only"
       --auto-provision
