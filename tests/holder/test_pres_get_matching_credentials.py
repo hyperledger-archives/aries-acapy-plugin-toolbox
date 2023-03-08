@@ -34,7 +34,9 @@ def message():
 @pytest.fixture
 def holder():
     mock_holder = mock.MagicMock(IndyHolder)
-    mock_holder.get_credentials_for_presentation_request_by_referent = mock.CoroutineMock()
+    mock_holder.get_credentials_for_presentation_request_by_referent = (
+        mock.CoroutineMock()
+    )
     yield mock_holder
 
 
