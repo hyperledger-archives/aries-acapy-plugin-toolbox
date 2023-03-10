@@ -175,28 +175,28 @@ class GetListHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle get connection list request."""
-        session = await context.session()
-        tag_filter = dict(
-            filter(
-                lambda item: item[1] is not None,
-                {
-                    "my_did": context.message.my_did,
-                    "their_did": context.message.their_did,
-                }.items(),
+        async with context.session() as session:
+            tag_filter = dict(
+                filter(
+                    lambda item: item[1] is not None,
+                    {
+                        "my_did": context.message.my_did,
+                        "their_did": context.message.their_did,
+                    }.items(),
+                )
             )
-        )
-        # Filter out invitations, admin-invitations will handle those
-        post_filter_negative = {"state": ConnRecord.State.INVITATION.rfc160}
-        # TODO: Filter on state (needs mapping back to ACA-Py connection states)
-        records = await ConnRecord.query(
-            session, tag_filter, post_filter_negative=post_filter_negative
-        )
-        results = [
-            Connection(**conn_record_to_message_repr(record)) for record in records
-        ]
-        connection_list = List(connections=results)
-        connection_list.assign_thread_from(context.message)
-        await responder.send_reply(connection_list)
+            # Filter out invitations, admin-invitations will handle those
+            post_filter_negative = {"state": ConnRecord.State.INVITATION.rfc160}
+            # TODO: Filter on state (needs mapping back to ACA-Py connection states)
+            records = await ConnRecord.query(
+                session, tag_filter, post_filter_negative=post_filter_negative
+            )
+            results = [
+                Connection(**conn_record_to_message_repr(record)) for record in records
+            ]
+            connection_list = List(connections=results)
+            connection_list.assign_thread_from(context.message)
+            await responder.send_reply(connection_list)
 
 
 Update, UpdateSchema = generate_model_schema(

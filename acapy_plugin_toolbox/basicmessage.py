@@ -207,47 +207,47 @@ class GetHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received get requests."""
-        session = await context.session()
-        tag_filter = dict(
-            filter(
-                lambda item: item[1] is not None,
-                {"connection_id": context.message.connection_id}.items(),
+        async with context.session() as session:
+            tag_filter = dict(
+                filter(
+                    lambda item: item[1] is not None,
+                    {"connection_id": context.message.connection_id}.items(),
+                )
             )
-        )
-        msgs = sorted(
-            await BasicMessageRecord.query(session, tag_filter),
-            key=lambda msg: datetime_from_iso(msg.sent_time),
-            reverse=True,
-        )
-        count = len(msgs)
-        offset = 0
-        if (
-            context.message.offset
-            and context.message.offset > 0
-            and context.message.offset < count
-        ):
-            offset = context.message.offset
-            count = count - offset
+            msgs = sorted(
+                await BasicMessageRecord.query(session, tag_filter),
+                key=lambda msg: datetime_from_iso(msg.sent_time),
+                reverse=True,
+            )
+            count = len(msgs)
+            offset = 0
+            if (
+                context.message.offset
+                and context.message.offset > 0
+                and context.message.offset < count
+            ):
+                offset = context.message.offset
+                count = count - offset
 
-        if (
-            context.message.limit
-            and context.message.limit > 0
-            and context.message.limit < count
-        ):
-            count = context.message.limit
+            if (
+                context.message.limit
+                and context.message.limit > 0
+                and context.message.limit < count
+            ):
+                count = context.message.limit
 
-        remaining = len(msgs) - offset - count
-        end = offset + count
-        msgs = msgs[offset:end]
-        msg_list = MessageList(
-            connection_id=context.message.connection_id,  # None when not given
-            messages=msgs,
-            offset=offset,
-            count=count,
-            remaining=remaining,
-        )
-        msg_list.assign_thread_from(context.message)
-        await responder.send_reply(msg_list)
+            remaining = len(msgs) - offset - count
+            end = offset + count
+            msgs = msgs[offset:end]
+            msg_list = MessageList(
+                connection_id=context.message.connection_id,  # None when not given
+                messages=msgs,
+                offset=offset,
+                count=count,
+                remaining=remaining,
+            )
+            msg_list.assign_thread_from(context.message)
+            await responder.send_reply(msg_list)
 
 
 Send, SendSchema = generate_model_schema(
@@ -283,50 +283,50 @@ class SendHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received send requests."""
         # pylint: disable=protected-access
-        session = await context.session()
-        profile = context.profile
-        try:
-            connection = await ConnRecord.retrieve_by_id(
-                session, context.message.connection_id
+        async with context.session() as session:
+            profile = context.profile
+            try:
+                connection = await ConnRecord.retrieve_by_id(
+                    session, context.message.connection_id
+                )
+            except StorageNotFoundError:
+                report = ProblemReport(
+                    description={"en": "Connection not found."}, who_retries="none"
+                )
+                report.assign_thread_from(context.message)
+                await responder.send_reply(report)
+                return
+
+            msg = BasicMessage(
+                content=context.message.content,
+                localization=LocalizationDecorator(locale="en"),
             )
-        except StorageNotFoundError:
-            report = ProblemReport(
-                description={"en": "Connection not found."}, who_retries="none"
+
+            # Need to use a connection target, reply_to_verkey, and reply_from_verkey
+            # if we want to send to a socket
+            conn_mgr = ConnectionManager(profile)
+            targets = await conn_mgr.get_connection_targets(connection=connection)
+            assert isinstance(targets, list)
+            assert targets
+            assert isinstance(targets[0], ConnectionTarget)
+            await responder.send(
+                msg,
+                connection_id=context.message.connection_id,
+                reply_to_verkey=targets[0].recipient_keys[0],
+                reply_from_verkey=targets[0].sender_key,
             )
-            report.assign_thread_from(context.message)
-            await responder.send_reply(report)
-            return
 
-        msg = BasicMessage(
-            content=context.message.content,
-            localization=LocalizationDecorator(locale="en"),
-        )
-
-        # Need to use a connection target, reply_to_verkey, and reply_from_verkey
-        # if we want to send to a socket
-        conn_mgr = ConnectionManager(profile)
-        targets = await conn_mgr.get_connection_targets(connection=connection)
-        assert isinstance(targets, list)
-        assert targets
-        assert isinstance(targets[0], ConnectionTarget)
-        await responder.send(
-            msg,
-            connection_id=context.message.connection_id,
-            reply_to_verkey=targets[0].recipient_keys[0],
-            reply_from_verkey=targets[0].sender_key,
-        )
-
-        record = BasicMessageRecord(
-            connection_id=context.message.connection_id,
-            message_id=msg._id,
-            sent_time=msg.sent_time,
-            content=msg.content,
-            state=BasicMessageRecord.STATE_SENT,
-        )
-        await record.save(session, reason="Message sent.")
-        sent_msg = Sent(connection_id=connection.connection_id, message=record)
-        sent_msg.assign_thread_from(context.message)
-        await responder.send_reply(sent_msg)
+            record = BasicMessageRecord(
+                connection_id=context.message.connection_id,
+                message_id=msg._id,
+                sent_time=msg.sent_time,
+                content=msg.content,
+                state=BasicMessageRecord.STATE_SENT,
+            )
+            await record.save(session, reason="Message sent.")
+            sent_msg = Sent(connection_id=connection.connection_id, message=record)
+            sent_msg.assign_thread_from(context.message)
+            await responder.send_reply(sent_msg)
 
 
 Delete, DeleteSchema = generate_model_schema(
@@ -365,32 +365,32 @@ class DeleteHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received delete requests."""
-        session = await context.session()
-        tag_filter = dict(
-            filter(
-                lambda item: item[1] is not None,
-                {
-                    "connection_id": context.message.connection_id,
-                    "message_id": context.message.message_id,
-                }.items(),
-            )
-        )
-        msgs = await BasicMessageRecord.query(session, tag_filter)
-        if context.message.before_date:
-            msgs = list(
+        async with context.session() as session:
+            tag_filter = dict(
                 filter(
-                    lambda msg: datetime_from_iso(msg.sent_time)
-                    < datetime_from_iso(context.message.before_date),
-                    msgs,
+                    lambda item: item[1] is not None,
+                    {
+                        "connection_id": context.message.connection_id,
+                        "message_id": context.message.message_id,
+                    }.items(),
                 )
             )
+            msgs = await BasicMessageRecord.query(session, tag_filter)
+            if context.message.before_date:
+                msgs = list(
+                    filter(
+                        lambda msg: datetime_from_iso(msg.sent_time)
+                        < datetime_from_iso(context.message.before_date),
+                        msgs,
+                    )
+                )
 
-        for msg in msgs:
-            await msg.delete_record(session)
+            for msg in msgs:
+                await msg.delete_record(session)
 
-        ack = Deleted(
-            connection_id=context.message.connection_id,
-            deleted=msgs if context.message.return_deleted else None,
-        )
-        ack.assign_thread_from(context.message)
-        await responder.send_reply(ack)
+            ack = Deleted(
+                connection_id=context.message.connection_id,
+                deleted=msgs if context.message.return_deleted else None,
+            )
+            ack.assign_thread_from(context.message)
+            await responder.send_reply(ack)
