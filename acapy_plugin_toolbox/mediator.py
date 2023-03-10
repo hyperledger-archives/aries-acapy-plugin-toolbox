@@ -94,11 +94,11 @@ class MediationRequestsGetHandler(BaseHandler):
                 }.items(),
             )
         )
-        session = await context.session()
-        records = await MediationRecord.query(session, tag_filter=tag_filter)
-        response = MediationRequests(requests=records)
-        response.assign_thread_from(context.message)
-        await responder.send_reply(response)
+        async with context.session() as session:
+            records = await MediationRecord.query(session, tag_filter=tag_filter)
+            response = MediationRequests(requests=records)
+            response.assign_thread_from(context.message)
+            await responder.send_reply(response)
 
 
 MediationGrant, MediationGrantSchema = generate_model_schema(
@@ -125,18 +125,18 @@ class MediationGrantHandler(BaseHandler):
 
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle mediation grant request."""
-        session = await context.session()
-        manager = MediationManager(session.profile)
-        record = await MediationRecord.retrieve_by_id(
-            session, context.message.mediation_id
-        )
+        async with context.session() as session:
+            manager = MediationManager(session.profile)
+            record = await MediationRecord.retrieve_by_id(
+                session, context.message.mediation_id
+            )
 
-        grant = await manager.grant_request(record)
-        await responder.send(grant, connection_id=record.connection_id)
+            grant = await manager.grant_request(record)
+            await responder.send(grant, connection_id=record.connection_id)
 
-        granted = MediationGranted(mediation_id=record.mediation_id)
-        granted.assign_thread_from(context.message)
-        await responder.send_reply(granted)
+            granted = MediationGranted(mediation_id=record.mediation_id)
+            granted.assign_thread_from(context.message)
+            await responder.send_reply(granted)
 
 
 MediationDeny, MediationDenySchema = generate_model_schema(
@@ -163,18 +163,18 @@ class MediationDenyHandler(BaseHandler):
 
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle mediation deny request."""
-        session = await context.session()
-        manager = MediationManager(session.profile)
-        record = await MediationRecord.retrieve_by_id(
-            session, context.message.mediation_id
-        )
+        async with context.session() as session:
+            manager = MediationManager(session.profile)
+            record = await MediationRecord.retrieve_by_id(
+                session, context.message.mediation_id
+            )
 
-        deny = await manager.deny_request(record)
-        await responder.send(deny, connection_id=record.connection_id)
+            deny = await manager.deny_request(record)
+            await responder.send(deny, connection_id=record.connection_id)
 
-        denied = MediationDenied(mediation_id=record.mediation_id)
-        denied.assign_thread_from(context.message)
-        await responder.send_reply(denied)
+            denied = MediationDenied(mediation_id=record.mediation_id)
+            denied.assign_thread_from(context.message)
+            await responder.send_reply(denied)
 
 
 RoutesGet, RoutesGetSchema = generate_model_schema(

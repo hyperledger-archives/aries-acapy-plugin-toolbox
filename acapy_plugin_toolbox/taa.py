@@ -71,34 +71,34 @@ class GetHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received get request."""
-        session = await context.session()
-        ledger: BaseLedger = session.inject(BaseLedger)
-        if not ledger or ledger.BACKEND_NAME != "indy":
-            report = ProblemReport(
-                description={"en": "Invalid ledger."}, who_retries="none"
+        async with context.session() as session:
+            ledger: BaseLedger = session.inject(BaseLedger)
+            if not ledger or ledger.BACKEND_NAME != "indy":
+                report = ProblemReport(
+                    description={"en": "Invalid ledger."}, who_retries="none"
+                )
+                report.assign_thread_from(context.message)
+                await responder.send_reply(report)
+                return
+
+            async with ledger:
+                taa_info = await ledger.get_txn_author_agreement()
+                acceptance = await ledger.get_latest_txn_author_acceptance()
+
+            if taa_info["taa_required"] and not acceptance:
+                needed = True
+            elif acceptance and acceptance["digest"] != taa_info["taa_record"]["digest"]:
+                needed = True
+            else:
+                needed = False
+
+            result = Taa(
+                version=taa_info["taa_record"]["version"],
+                text=taa_info["taa_record"]["text"],
+                needed=needed,
             )
-            report.assign_thread_from(context.message)
-            await responder.send_reply(report)
-            return
-
-        async with ledger:
-            taa_info = await ledger.get_txn_author_agreement()
-            acceptance = await ledger.get_latest_txn_author_acceptance()
-
-        if taa_info["taa_required"] and not acceptance:
-            needed = True
-        elif acceptance and acceptance["digest"] != taa_info["taa_record"]["digest"]:
-            needed = True
-        else:
-            needed = False
-
-        result = Taa(
-            version=taa_info["taa_record"]["version"],
-            text=taa_info["taa_record"]["text"],
-            needed=needed,
-        )
-        result.assign_thread_from(context.message)
-        await responder.send_reply(result)
+            result.assign_thread_from(context.message)
+            await responder.send_reply(result)
 
 
 Accept, AcceptSchema = generate_model_schema(
@@ -130,41 +130,41 @@ class AcceptHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle taa acceptance messages."""
-        session = await context.session()
-        ledger: BaseLedger = session.inject(BaseLedger)
-        if not ledger or ledger.BACKEND_NAME != "indy":
-            report = ProblemReport(
-                description={"en": "Invalid ledger."}, who_retries="none"
-            )
-            report.assign_thread_from(context.message)
-            await responder.send_reply(report)
-            return
-
-        taa_record = {
-            "version": context.message.version,
-            "text": context.message.text,
-            "digest": ledger.taa_digest(context.message.version, context.message.text),
-        }
-        try:
-            async with ledger:
-                await ledger.accept_txn_author_agreement(
-                    taa_record, context.message.mechanism
+        async with context.session() as session:
+            ledger: BaseLedger = session.inject(BaseLedger)
+            if not ledger or ledger.BACKEND_NAME != "indy":
+                report = ProblemReport(
+                    description={"en": "Invalid ledger."}, who_retries="none"
                 )
-        except Exception as err:
-            report = ProblemReport(
-                description={
-                    "en": "An error occured while attempting to accept"
-                    " the Transaction Author Agreement: {}".format(err)
-                },
-                who_retries="none",
-            )
-            report.assign_thread_from(context.message)
-            await responder.send_reply(report)
-            return
+                report.assign_thread_from(context.message)
+                await responder.send_reply(report)
+                return
 
-        result = Accepted()
-        result.assign_thread_from(context.message)
-        await responder.send_reply(result)
+            taa_record = {
+                "version": context.message.version,
+                "text": context.message.text,
+                "digest": ledger.taa_digest(context.message.version, context.message.text),
+            }
+            try:
+                async with ledger:
+                    await ledger.accept_txn_author_agreement(
+                        taa_record, context.message.mechanism
+                    )
+            except Exception as err:
+                report = ProblemReport(
+                    description={
+                        "en": "An error occured while attempting to accept"
+                        " the Transaction Author Agreement: {}".format(err)
+                    },
+                    who_retries="none",
+                )
+                report.assign_thread_from(context.message)
+                await responder.send_reply(report)
+                return
+
+            result = Accepted()
+            result.assign_thread_from(context.message)
+            await responder.send_reply(result)
 
 
 GetAcceptance, GetAcceptanceSchema = generate_model_schema(
@@ -196,32 +196,32 @@ class GetAcceptanceHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received get acceptance request."""
-        session = await context.session()
-        ledger: BaseLedger = session.inject(BaseLedger)
-        if not ledger or ledger.BACKEND_NAME != "indy":
-            report = ProblemReport(
-                description={"en": "Invalid ledger."}, who_retries="none"
+        async with context.session() as session:
+            ledger: BaseLedger = session.inject(BaseLedger)
+            if not ledger or ledger.BACKEND_NAME != "indy":
+                report = ProblemReport(
+                    description={"en": "Invalid ledger."}, who_retries="none"
+                )
+                report.assign_thread_from(context.message)
+                await responder.send_reply(report)
+                return
+
+            async with ledger:
+                taa_info = await ledger.get_txn_author_agreement()
+                acceptance = await ledger.get_latest_txn_author_acceptance()
+
+            if taa_info["taa_required"] and not acceptance:
+                needed = True
+            elif acceptance and acceptance["digest"] != taa_info["taa_record"]["digest"]:
+                needed = True
+            else:
+                needed = False
+
+            result = Acceptance(
+                needed=needed,
+                version=acceptance.get("version"),
+                time=acceptance.get("time"),
+                mechanism=acceptance.get("mechanism"),
             )
-            report.assign_thread_from(context.message)
-            await responder.send_reply(report)
-            return
-
-        async with ledger:
-            taa_info = await ledger.get_txn_author_agreement()
-            acceptance = await ledger.get_latest_txn_author_acceptance()
-
-        if taa_info["taa_required"] and not acceptance:
-            needed = True
-        elif acceptance and acceptance["digest"] != taa_info["taa_record"]["digest"]:
-            needed = True
-        else:
-            needed = False
-
-        result = Acceptance(
-            needed=needed,
-            version=acceptance.get("version"),
-            time=acceptance.get("time"),
-            mechanism=acceptance.get("mechanism"),
-        )
-        result.assign_thread_from(context.message)
-        await responder.send_reply(result)
+            result.assign_thread_from(context.message)
+            await responder.send_reply(result)

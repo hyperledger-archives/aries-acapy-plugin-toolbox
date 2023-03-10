@@ -64,10 +64,10 @@ def require_role(role):
             context, *_ = [arg for arg in args if isinstance(arg, RequestContext)]
             responder, *_ = [arg for arg in args if isinstance(arg, BaseResponder)]
             if context.connection_record:
-                session = await context.session()
-                group = await context.connection_record.metadata_get(session, "group")
-                if group == role:
-                    return await func(*args)
+                async with context.session() as session:
+                    group = await context.connection_record.metadata_get(session, "group")
+                    if group == role:
+                        return await func(*args)
 
             report = ProblemReport(
                 description={
