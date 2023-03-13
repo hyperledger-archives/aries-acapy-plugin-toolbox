@@ -87,20 +87,20 @@ class MediationRequestsGetHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle mediation requests get message."""
         async with context.session() as session:
-        tag_filter = dict(
-            filter(
-                lambda item: item[1] is not None,
-                {
-                    "state": context.message.state,
-                    "role": MediationRecord.ROLE_CLIENT,
-                    "connection_id": context.message.connection_id,
-                }.items(),
+            tag_filter = dict(
+                filter(
+                    lambda item: item[1] is not None,
+                    {
+                        "state": context.message.state,
+                        "role": MediationRecord.ROLE_CLIENT,
+                        "connection_id": context.message.connection_id,
+                    }.items(),
+                )
             )
-        )
-        records = await MediationRecord.query(session, tag_filter=tag_filter)
-        response = MediationRequests(requests=records)
-        response.assign_thread_from(context.message)
-        await responder.send_reply(response)
+            records = await MediationRecord.query(session, tag_filter=tag_filter)
+            response = MediationRequests(requests=records)
+            response.assign_thread_from(context.message)
+            await responder.send_reply(response)
 
 
 MediationRequestSend, MediationRequestSendSchema = generate_model_schema(
