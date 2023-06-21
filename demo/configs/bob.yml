@@ -17,7 +17,7 @@ outbound-transport: http
 
 # Ledger
 # Use Indicio TestNet. Become an endorser at https://selfserve.indiciotech.io/.
-genesis-url: https://raw.githubusercontent.com/Indicio-tech/indicio-network/master/genesis_files/pool_transactions_testnet_genesis
+genesis-url: https://raw.githubusercontent.com/Indicio-tech/indicio-network/main/genesis_files/pool_transactions_testnet_genesis
 
 # Admin
 admin-insecure-mode: true
