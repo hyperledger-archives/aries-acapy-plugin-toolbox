@@ -6,7 +6,7 @@ Running ACA-Py with the Toolbox Plugin
 To build the container:
 
 ```sh
-$ docker build -t acapy-toolbox .
+$ docker build -t acapy-toolbox -f docker/Dockerfile .
 ```
 
 To start an agent using the default configuration:
@@ -33,7 +33,7 @@ $ docker run -it -p 3000:3000 -p 3001:3001 --rm \
 For each of the commands listed below, ensure the image has been built:
 
 ```sh
-$ docker build -t acapy-toolbox .
+$ docker build -t acapy-toolbox -f docker/Dockerfile .
 ```
 
 #### Listing configuration options
