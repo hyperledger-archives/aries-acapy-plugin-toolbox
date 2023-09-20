@@ -1,5 +1,30 @@
-Aries Cloud Agent - Python Plugin for Aries Toolbox
-===================================================
+# Deprecation Notice
+
+This project is no longer receiving updates. This project was a companion to the
+[Aries Toolbox](https://github.com/hyperledger/aries-toolbox), which is also
+deprecated.
+
+The Aries Toolbox was an invaluable tool in helping to bootstrap the Aries
+Ecosystem by providing ways to interact with Agents in development. This plugin
+in particular enabled use of the Toolbox with Aries Cloud Agent - Python
+(ACA-Py). Through this plugin, the toolbox provided one of the earliest UIs to
+an agent, enabling us to take advantage of the power of ACA-Py from the dekstop
+and demonstrate Agents, DIDComm, AnonCreds, and more.
+
+This plugin was also the first of its kind, directly influencing the development
+of ACA-Py and plugins to ACA-Py significantly.
+
+While the Aries Toolbox itself has been deprecated, the protocol provided by
+this plugin is independently notable. The protocol is effectively an Admin API
+to ACA-Py over DIDComm. This enables authenticated remote access to functions
+like Credential Issuance and Verification. If you're interested in remote
+management of agents with access governed by DIDs and Verifiable Credentials,
+this may be an excellent place to start.
+
+If you have questions about this project or potential replacements, feel free to
+reach out on Hyperledger's Discord: https://discord.gg/hyperledger
+
+# Aries Cloud Agent - Python Plugin for Aries Toolbox
 
 ## ACA-Py Version Compatibility
 
