@@ -12,7 +12,6 @@ from acapy_plugin_toolbox.holder.v0_1 import (
 )
 from acapy_plugin_toolbox.holder.v0_1.error import InvalidPresentationExchange
 from aries_cloudagent.indy.holder import IndyHolder
-from aries_cloudagent.indy.sdk.holder import IndySdkHolder
 from aries_cloudagent.protocols.present_proof.v1_0.models.presentation_exchange import (
     V10PresentationExchange as PresExRecord,
 )
@@ -34,7 +33,11 @@ def message():
 
 @pytest.fixture
 def holder():
-    yield mock.MagicMock(IndySdkHolder)
+    mock_holder = mock.MagicMock(IndyHolder)
+    mock_holder.get_credentials_for_presentation_request_by_referent = (
+        mock.CoroutineMock()
+    )
+    yield mock_holder
 
 
 @pytest.fixture

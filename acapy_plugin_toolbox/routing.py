@@ -86,21 +86,21 @@ class MediationRequestsGetHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle mediation requests get message."""
-        session = await context.session()
-        tag_filter = dict(
-            filter(
-                lambda item: item[1] is not None,
-                {
-                    "state": context.message.state,
-                    "role": MediationRecord.ROLE_CLIENT,
-                    "connection_id": context.message.connection_id,
-                }.items(),
+        async with context.session() as session:
+            tag_filter = dict(
+                filter(
+                    lambda item: item[1] is not None,
+                    {
+                        "state": context.message.state,
+                        "role": MediationRecord.ROLE_CLIENT,
+                        "connection_id": context.message.connection_id,
+                    }.items(),
+                )
             )
-        )
-        records = await MediationRecord.query(session, tag_filter=tag_filter)
-        response = MediationRequests(requests=records)
-        response.assign_thread_from(context.message)
-        await responder.send_reply(response)
+            records = await MediationRecord.query(session, tag_filter=tag_filter)
+            response = MediationRequests(requests=records)
+            response.assign_thread_from(context.message)
+            await responder.send_reply(response)
 
 
 MediationRequestSend, MediationRequestSendSchema = generate_model_schema(
@@ -127,28 +127,28 @@ class SendMediationRequestHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         # Verify connection exists
-        session = await context.session()
-        manager = MediationManager(session.profile)
-        try:
-            connection = await ConnRecord.retrieve_by_id(
-                session, context.message.connection_id
-            )
-        except StorageNotFoundError:
-            report = ProblemReport(
-                description={"en": "Connection not found."}, who_retries="none"
-            )
-            report.assign_thread_from(context.message)
-            await responder.send_reply(report)
-            return
+        async with context.session() as session:
+            manager = MediationManager(session.profile)
+            try:
+                connection = await ConnRecord.retrieve_by_id(
+                    session, context.message.connection_id
+                )
+            except StorageNotFoundError:
+                report = ProblemReport(
+                    description={"en": "Connection not found."}, who_retries="none"
+                )
+                report.assign_thread_from(context.message)
+                await responder.send_reply(report)
+                return
 
-        _record, request = await manager.prepare_request(connection.connection_id)
-        # Send mediation request
-        await responder.send(request, connection_id=connection.connection_id)
+            _record, request = await manager.prepare_request(connection.connection_id)
+            # Send mediation request
+            await responder.send(request, connection_id=connection.connection_id)
 
-        # Send notification of mediation request sent
-        sent = MediationRequestSent(connection_id=connection.connection_id)
-        sent.assign_thread_from(context.message)
-        await responder.send_reply(sent)
+            # Send notification of mediation request sent
+            sent = MediationRequestSent(connection_id=connection.connection_id)
+            sent.assign_thread_from(context.message)
+            await responder.send_reply(sent)
 
 
 KeylistUpdateSend, KeylistUpdateSendSchema = generate_model_schema(
@@ -181,26 +181,26 @@ class KeylistUpdateSendHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle KeylistUpdateSend messages."""
-        session = await context.session()
-        manager = MediationManager(session.profile)
-        if context.message.action == KeylistUpdateRule.RULE_ADD:
-            update = await manager.add_key(
-                context.message.verkey, context.message.connection_id
-            )
-        elif context.message.action == KeylistUpdateRule.RULE_REMOVE:
-            update = await manager.remove_key(
-                context.message.verkey, context.message.connection_id
-            )
+        async with context.session() as session:
+            manager = MediationManager(session.profile)
+            if context.message.action == KeylistUpdateRule.RULE_ADD:
+                update = await manager.add_key(
+                    context.message.verkey, context.message.connection_id
+                )
+            elif context.message.action == KeylistUpdateRule.RULE_REMOVE:
+                update = await manager.remove_key(
+                    context.message.verkey, context.message.connection_id
+                )
 
-        await responder.send(update, connection_id=context.message.connection_id)
+            await responder.send(update, connection_id=context.message.connection_id)
 
-        sent = KeylistUpdateSent(
-            connection_id=context.message.connection_id,
-            verkey=context.message.verkey,
-            action=context.message.action,
-        )
-        sent.assign_thread_from(context.message)
-        await responder.send_reply(sent)
+            sent = KeylistUpdateSent(
+                connection_id=context.message.connection_id,
+                verkey=context.message.verkey,
+                action=context.message.action,
+            )
+            sent.assign_thread_from(context.message)
+            await responder.send_reply(sent)
 
 
 RoutesGet, RoutesGetSchema = generate_model_schema(
@@ -225,10 +225,10 @@ class RoutesGetHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle RotuesGet."""
-        session = await context.session()
-        manager = MediationManager(session.profile)
-        routes = Routes(
-            routes=await manager.get_my_keylist(context.message.connection_id)
-        )
-        routes.assign_thread_from(context.message)
-        await responder.send_reply(routes)
+        async with context.session() as session:
+            manager = MediationManager(session.profile)
+            routes = Routes(
+                routes=await manager.get_my_keylist(context.message.connection_id)
+            )
+            routes.assign_thread_from(context.message)
+            await responder.send_reply(routes)

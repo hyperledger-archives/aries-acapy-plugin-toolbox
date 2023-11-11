@@ -46,7 +46,7 @@ auto-verify-presentation: true
 tails-server-base-url: http://tails-server:6543
 
 # Wallet
-wallet-type: indy
+wallet-type: askar
 wallet-key: "insecure, for use in demo only"
 auto-provision: true
 

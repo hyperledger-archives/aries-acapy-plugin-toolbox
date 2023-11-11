@@ -158,35 +158,35 @@ class SendSchemaHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received send schema request."""
-        session = await context.session()
-        ledger: BaseLedger = session.inject(BaseLedger)
-        issuer: IndyIssuer = session.inject(IndyIssuer)
-        async with ledger:
-            schema_id, schema_def = await shield(
-                ledger.create_and_send_schema(
-                    issuer,
-                    context.message.schema_name,
-                    context.message.schema_version,
-                    context.message.attributes,
+        async with context.session() as session:
+            ledger: BaseLedger = session.inject(BaseLedger)
+            issuer: IndyIssuer = session.inject(IndyIssuer)
+            async with ledger:
+                schema_id, schema_def = await shield(
+                    ledger.create_and_send_schema(
+                        issuer,
+                        context.message.schema_name,
+                        context.message.schema_version,
+                        context.message.attributes,
+                    )
                 )
+            # Note: We may not need to save the schema as done below.
+            schema = SchemaRecord(
+                schema_id=schema_id,
+                schema_name=context.message.schema_name,
+                schema_version=context.message.schema_version,
+                attributes=context.message.attributes,
+                state=SchemaRecord.STATE_WRITTEN,
+                author=SchemaRecord.AUTHOR_SELF,
             )
-        # Note: We may not need to save the schema as done below.
-        schema = SchemaRecord(
-            schema_id=schema_id,
-            schema_name=context.message.schema_name,
-            schema_version=context.message.schema_version,
-            attributes=context.message.attributes,
-            state=SchemaRecord.STATE_WRITTEN,
-            author=SchemaRecord.AUTHOR_SELF,
-        )
-        await schema.save(session, reason="Committed to ledger")
-        await add_schema_non_secrets_record(
-            profile=context.profile, schema_id=schema_id
-        )
+            await schema.save(session, reason="Committed to ledger")
+            await add_schema_non_secrets_record(
+                profile=context.profile, schema_id=schema_id
+            )
 
-        result = SchemaID(schema_id=schema_id)
-        result.assign_thread_from(context.message)
-        await responder.send_reply(result)
+            result = SchemaID(schema_id=schema_id)
+            result.assign_thread_from(context.message)
+            await responder.send_reply(result)
 
 
 SchemaGet, SchemaGetSchema = generate_model_schema(
@@ -210,35 +210,35 @@ class SchemaGetHandler(BaseHandler):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received schema get request."""
         try:
-            session = await context.session()
-            schema_record = await SchemaRecord.retrieve_by_schema_id(
-                session, context.message.schema_id
+            async with context.session() as session:
+                schema_record = await SchemaRecord.retrieve_by_schema_id(
+                    session, context.message.schema_id
+                )
+                schema_msg = Schema(**schema_record.serialize())
+                schema_msg.assign_thread_from(context.message)
+                await responder.send_reply(schema_msg)
+                return
+        except StorageNotFoundError:
+            pass
+        
+        async with context.session() as session:
+            ledger: BaseLedger = session.inject(BaseLedger)
+            async with ledger:
+                schema = await ledger.get_schema(context.message.schema_id)
+
+            schema_record = SchemaRecord(
+                schema_id=schema["id"],
+                schema_name=schema["name"],
+                schema_version=schema["version"],
+                attributes=schema["attrNames"],
+                state=SchemaRecord.STATE_WRITTEN,
+                author=SchemaRecord.AUTHOR_OTHER,
             )
+            await schema_record.save(session, reason="Retrieved from ledger")
+
             schema_msg = Schema(**schema_record.serialize())
             schema_msg.assign_thread_from(context.message)
             await responder.send_reply(schema_msg)
-            return
-        except StorageNotFoundError:
-            pass
-
-        session = await context.session()
-        ledger: BaseLedger = session.inject(BaseLedger)
-        async with ledger:
-            schema = await ledger.get_schema(context.message.schema_id)
-
-        schema_record = SchemaRecord(
-            schema_id=schema["id"],
-            schema_name=schema["name"],
-            schema_version=schema["version"],
-            attributes=schema["attrNames"],
-            state=SchemaRecord.STATE_WRITTEN,
-            author=SchemaRecord.AUTHOR_OTHER,
-        )
-        await schema_record.save(session, reason="Retrieved from ledger")
-
-        schema_msg = Schema(**schema_record.serialize())
-        schema_msg.assign_thread_from(context.message)
-        await responder.send_reply(schema_msg)
 
 
 SchemaGetList, SchemaGetListSchema = generate_model_schema(
@@ -262,50 +262,49 @@ class SchemaGetListHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle get schema list request."""
+        async with context.session() as session:
+            storage = session.inject(BaseStorage)
 
-        session = await context.session()
-        storage = session.inject(BaseStorage)
-
-        toolbox_records = [
-            schema_records for schema_records in await SchemaRecord.query(session, {})
-        ]
-
-        toolbox_record_ids = [schema.schema_id for schema in toolbox_records]
-
-        acapy_record_ids = [
-            storage_record.tags["schema_id"]
-            for storage_record in await storage.find_all_records(
-                SCHEMA_SENT_RECORD_TYPE
-            )
-        ]
-
-        unknown_record_ids = set(acapy_record_ids) - set(toolbox_record_ids)
-
-        if unknown_record_ids:
-            ledger: BaseLedger = session.inject(BaseLedger)
-            async with ledger:
-                schemas = [
-                    await ledger.get_schema(schema_id)
-                    for schema_id in unknown_record_ids
-                ]
-
-            schema_records = [
-                SchemaRecord(
-                    schema_id=schema["id"],
-                    schema_name=schema["name"],
-                    attributes=schema["attrNames"],
-                    schema_version=schema["version"],
-                    author=SchemaRecord.AUTHOR_SELF,
-                    state=SchemaRecord.STATE_WRITTEN,
-                )
-                for schema in schemas
+            toolbox_records = [
+                schema_records for schema_records in await SchemaRecord.query(session, {})
             ]
 
-            for record in schema_records:
-                await record.save(session)
+            toolbox_record_ids = [schema.schema_id for schema in toolbox_records]
 
-            toolbox_records.extend(schema_records)
+            acapy_record_ids = [
+                storage_record.tags["schema_id"]
+                for storage_record in await storage.find_all_records(
+                    SCHEMA_SENT_RECORD_TYPE
+                )
+            ]
 
-        schema_list = SchemaList(results=toolbox_records)
-        schema_list.assign_thread_from(context.message)
-        await responder.send_reply(schema_list)
+            unknown_record_ids = set(acapy_record_ids) - set(toolbox_record_ids)
+
+            if unknown_record_ids:
+                ledger: BaseLedger = session.inject(BaseLedger)
+                async with ledger:
+                    schemas = [
+                        await ledger.get_schema(schema_id)
+                        for schema_id in unknown_record_ids
+                    ]
+
+                schema_records = [
+                    SchemaRecord(
+                        schema_id=schema["id"],
+                        schema_name=schema["name"],
+                        attributes=schema["attrNames"],
+                        schema_version=schema["version"],
+                        author=SchemaRecord.AUTHOR_SELF,
+                        state=SchemaRecord.STATE_WRITTEN,
+                    )
+                    for schema in schemas
+                ]
+
+                for record in schema_records:
+                    await record.save(session)
+
+                toolbox_records.extend(schema_records)
+
+            schema_list = SchemaList(results=toolbox_records)
+            schema_list.assign_thread_from(context.message)
+            await responder.send_reply(schema_list)

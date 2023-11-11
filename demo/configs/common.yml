@@ -33,7 +33,7 @@ auto-respond-presentation-request: true
 auto-verify-presentation: true
 
 # Wallet
-wallet-type: indy
+wallet-type: askar
 wallet-key: "insecure, for use in demo only"
 auto-provision: true
 

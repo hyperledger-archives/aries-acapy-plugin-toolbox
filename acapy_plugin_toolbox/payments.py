@@ -167,47 +167,47 @@ class GetAddressListHandler(BaseHandler):
             report.assign_thread_from(context.message)
             await responder.send_reply(report)
             return
+        
+        async with context.session() as session:
+            ledger: BaseLedger = session.inject(BaseLedger)
+            try:
+                addresses = json.loads(
+                    await payment.list_payment_addresses(ledger.wallet.handle)
+                )
 
-        session = await context.session()
-        ledger: BaseLedger = session.inject(BaseLedger)
-        try:
-            addresses = json.loads(
-                await payment.list_payment_addresses(ledger.wallet.handle)
-            )
+                async with ledger:
+                    address_results = []
+                    for address in addresses:
+                        balance = 0
+                        sources = []
+                        async for source in get_sources(ledger, address):
+                            balance += source["amount"]
+                            sources.append(source)
+                        address_results.append(
+                            {
+                                "address": address,
+                                "method": SOV_METHOD,
+                                "balance": sovatoms_to_tokens(balance),
+                                "raw_repr": {"sources": sources},
+                            }
+                        )
+            except (LedgerError, PaymentError) as err:
+                report = ProblemReport(description={"en": str(err)}, who_retries="none")
+                await responder.send_reply(report)
+                return
+            except IndyError as err:
+                # TODO: Remove when IndyErrorHandler bug is fixed.
+                # Likely to be next ACA-Py release.
+                message = "Unexpected IndyError while retrieving addresses"
+                if hasattr(err, "message"):
+                    message += ": {}".format(err.message)
+                report = ProblemReport(description={"en": message}, who_retries="none")
+                await responder.send_reply(report)
+                return
 
-            async with ledger:
-                address_results = []
-                for address in addresses:
-                    balance = 0
-                    sources = []
-                    async for source in get_sources(ledger, address):
-                        balance += source["amount"]
-                        sources.append(source)
-                    address_results.append(
-                        {
-                            "address": address,
-                            "method": SOV_METHOD,
-                            "balance": sovatoms_to_tokens(balance),
-                            "raw_repr": {"sources": sources},
-                        }
-                    )
-        except (LedgerError, PaymentError) as err:
-            report = ProblemReport(description={"en": str(err)}, who_retries="none")
-            await responder.send_reply(report)
-            return
-        except IndyError as err:
-            # TODO: Remove when IndyErrorHandler bug is fixed.
-            # Likely to be next ACA-Py release.
-            message = "Unexpected IndyError while retrieving addresses"
-            if hasattr(err, "message"):
-                message += ": {}".format(err.message)
-            report = ProblemReport(description={"en": message}, who_retries="none")
-            await responder.send_reply(report)
-            return
-
-        result = AddressList(addresses=address_results)
-        result.assign_thread_from(context.message)
-        await responder.send_reply(result)
+            result = AddressList(addresses=address_results)
+            result.assign_thread_from(context.message)
+            await responder.send_reply(result)
 
 
 CreateAddress, CreateAddressSchema = generate_model_schema(
@@ -231,70 +231,70 @@ class CreateAddressHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle received create address requests."""
-        session = await context.session()
-        wallet: BaseWallet = session.inject(BaseWallet)
-        ledger: BaseLedger = session.inject(BaseLedger)
-        if context.message.method != SOV_METHOD:
-            report = ProblemReport(
-                description={
-                    "en": (
-                        'Method "{}" is not supported.'.format(context.message.method)
-                    )
-                },
-                who_retries="none",
+        async with context.session() as session:
+            wallet: BaseWallet = session.inject(BaseWallet)
+            ledger: BaseLedger = session.inject(BaseLedger)
+            if context.message.method != SOV_METHOD:
+                report = ProblemReport(
+                    description={
+                        "en": (
+                            'Method "{}" is not supported.'.format(context.message.method)
+                        )
+                    },
+                    who_retries="none",
+                )
+                report.assign_thread_from(context.message)
+                await responder.send_reply(report)
+                return
+
+            if context.message.seed and len(context.message.seed) < 32:
+                report = ProblemReport(
+                    description={"en": ("Seed must be 32 characters in length")},
+                    who_retries="none",
+                )
+                report.assign_thread_from(context.message)
+                await responder.send_reply(report)
+                return
+
+            try:
+                address_str = await payment.create_payment_address(
+                    wallet.handle, SOV_METHOD, json.dumps({"seed": context.message.seed})
+                )
+            except IndyError as err:
+                message = "Failed to create payment address"
+                if hasattr(err, "message"):
+                    message += ": {}".format(err.message)
+                report = ProblemReport(description={"en": message}, who_retries="none")
+                await responder.send_reply(report)
+                return
+
+            try:
+                async with ledger:
+                    balance = 0
+                    sources = []
+                    async for source in get_sources(ledger, address_str):
+                        balance += source["amount"]
+                        sources.append(source)
+            except (LedgerError, PaymentError) as err:
+                report = ProblemReport(description={"en": str(err)}, who_retries="none")
+                await responder.send_reply(report)
+                return
+            except IndyError as err:
+                # TODO: Remove when IndyErrorHandler bug is fixed.
+                # Likely to be next ACA-Py release.
+                message = "Unexpected IndyError while retrieving address balances"
+                if hasattr(err, "message"):
+                    message += ": {}".format(err.message)
+                report = ProblemReport(description={"en": message}, who_retries="none")
+                await responder.send_reply(report)
+                return
+
+            address = Address(
+                address=address_str, method=SOV_METHOD, balance=sovatoms_to_tokens(balance)
             )
-            report.assign_thread_from(context.message)
-            await responder.send_reply(report)
+            address.assign_thread_from(context.message)
+            await responder.send_reply(address)
             return
-
-        if context.message.seed and len(context.message.seed) < 32:
-            report = ProblemReport(
-                description={"en": ("Seed must be 32 characters in length")},
-                who_retries="none",
-            )
-            report.assign_thread_from(context.message)
-            await responder.send_reply(report)
-            return
-
-        try:
-            address_str = await payment.create_payment_address(
-                wallet.handle, SOV_METHOD, json.dumps({"seed": context.message.seed})
-            )
-        except IndyError as err:
-            message = "Failed to create payment address"
-            if hasattr(err, "message"):
-                message += ": {}".format(err.message)
-            report = ProblemReport(description={"en": message}, who_retries="none")
-            await responder.send_reply(report)
-            return
-
-        try:
-            async with ledger:
-                balance = 0
-                sources = []
-                async for source in get_sources(ledger, address_str):
-                    balance += source["amount"]
-                    sources.append(source)
-        except (LedgerError, PaymentError) as err:
-            report = ProblemReport(description={"en": str(err)}, who_retries="none")
-            await responder.send_reply(report)
-            return
-        except IndyError as err:
-            # TODO: Remove when IndyErrorHandler bug is fixed.
-            # Likely to be next ACA-Py release.
-            message = "Unexpected IndyError while retrieving address balances"
-            if hasattr(err, "message"):
-                message += ": {}".format(err.message)
-            report = ProblemReport(description={"en": message}, who_retries="none")
-            await responder.send_reply(report)
-            return
-
-        address = Address(
-            address=address_str, method=SOV_METHOD, balance=sovatoms_to_tokens(balance)
-        )
-        address.assign_thread_from(context.message)
-        await responder.send_reply(address)
-        return
 
 
 GetFees, GetFeesSchema = generate_model_schema(
@@ -360,41 +360,41 @@ class GetFeesHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle get fees."""
-        session = await context.session()
-        ledger: BaseLedger = session.inject(BaseLedger)
-        if context.message.method != SOV_METHOD:
-            report = ProblemReport(
-                description={
-                    "en": (
-                        'Method "{}" is not supported.'.format(context.message.method)
-                    )
-                },
-                who_retries="none",
-            )
-            report.assign_thread_from(context.message)
-            await responder.send_reply(report)
-            return
+        async with context.session() as session:
+            ledger: BaseLedger = session.inject(BaseLedger)
+            if context.message.method != SOV_METHOD:
+                report = ProblemReport(
+                    description={
+                        "en": (
+                            'Method "{}" is not supported.'.format(context.message.method)
+                        )
+                    },
+                    who_retries="none",
+                )
+                report.assign_thread_from(context.message)
+                await responder.send_reply(report)
+                return
 
-        try:
-            async with ledger:
-                xfer_auth = await get_transfer_auth(ledger)
-        except (LedgerError, PaymentError) as err:
-            report = ProblemReport(description={"en": str(err)}, who_retries="none")
-            await responder.send_reply(report)
-            return
-        except IndyError as err:
-            # TODO: Remove when IndyErrorHandler bug is fixed.
-            # Likely to be next ACA-Py release.
-            message = "Unexpected IndyError while retrieving transfer fee"
-            if hasattr(err, "message"):
-                message += ": {}".format(err.message)
-            report = ProblemReport(description={"en": message}, who_retries="none")
-            await responder.send_reply(report)
-            return
+            try:
+                async with ledger:
+                    xfer_auth = await get_transfer_auth(ledger)
+            except (LedgerError, PaymentError) as err:
+                report = ProblemReport(description={"en": str(err)}, who_retries="none")
+                await responder.send_reply(report)
+                return
+            except IndyError as err:
+                # TODO: Remove when IndyErrorHandler bug is fixed.
+                # Likely to be next ACA-Py release.
+                message = "Unexpected IndyError while retrieving transfer fee"
+                if hasattr(err, "message"):
+                    message += ": {}".format(err.message)
+                report = ProblemReport(description={"en": message}, who_retries="none")
+                await responder.send_reply(report)
+                return
 
-        fees = Fees(total=sovatoms_to_tokens(xfer_auth["price"]))
-        fees.assign_thread_from(context.message)
-        await responder.send_reply(fees)
+            fees = Fees(total=sovatoms_to_tokens(xfer_auth["price"]))
+            fees.assign_thread_from(context.message)
+            await responder.send_reply(fees)
 
 
 Transfer, TransferSchema = generate_model_schema(
@@ -539,53 +539,53 @@ class TransferHandler(BaseHandler):
     @admin_only
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle payment"""
-        session = await context.session()
-        ledger: BaseLedger = session.inject(BaseLedger)
-        if context.message.method != SOV_METHOD:
-            report = ProblemReport(
-                description={
-                    "en": (
-                        'Method "{}" is not supported.'.format(context.message.method)
-                    )
-                },
-                who_retries="none",
-            )
-            report.assign_thread_from(context.message)
-            await responder.send_reply(report)
-            return
-
-        async with ledger:
-            try:
-                fee = (await get_transfer_auth(ledger))["price"]
-                inputs, outputs = await prepare_payment(
-                    ledger,
-                    context.message.from_address,
-                    context.message.to_address,
-                    tokens_to_sovatoms(context.message.amount),
-                    fee,
+        async with context.session() as session:
+            ledger: BaseLedger = session.inject(BaseLedger)
+            if context.message.method != SOV_METHOD:
+                report = ProblemReport(
+                    description={
+                        "en": (
+                            'Method "{}" is not supported.'.format(context.message.method)
+                        )
+                    },
+                    who_retries="none",
                 )
-                receipts = await make_payment(ledger, inputs, outputs)
-            except (LedgerError, PaymentError) as err:
-                report = ProblemReport(description={"en": str(err)}, who_retries="none")
-                await responder.send_reply(report)
-                return
-            except IndyError as err:
-                # TODO: Remove when IndyErrorHandler bug is fixed.
-                # Likely to be next ACA-Py release.
-                message = "Unexpected IndyError while making payment"
-                if hasattr(err, "message"):
-                    message += ": {}".format(err.message)
-                report = ProblemReport(description={"en": message}, who_retries="none")
+                report.assign_thread_from(context.message)
                 await responder.send_reply(report)
                 return
 
-        completed = TransferComplete(
-            from_address=context.message.from_address,
-            to_address=context.message.to_address,
-            amount=context.message.amount,
-            fees=sovatoms_to_tokens(fee),
-            method=SOV_METHOD,
-            raw_repr=receipts,
-        )
-        completed.assign_thread_from(context.message)
-        await responder.send_reply(completed)
+            async with ledger:
+                try:
+                    fee = (await get_transfer_auth(ledger))["price"]
+                    inputs, outputs = await prepare_payment(
+                        ledger,
+                        context.message.from_address,
+                        context.message.to_address,
+                        tokens_to_sovatoms(context.message.amount),
+                        fee,
+                    )
+                    receipts = await make_payment(ledger, inputs, outputs)
+                except (LedgerError, PaymentError) as err:
+                    report = ProblemReport(description={"en": str(err)}, who_retries="none")
+                    await responder.send_reply(report)
+                    return
+                except IndyError as err:
+                    # TODO: Remove when IndyErrorHandler bug is fixed.
+                    # Likely to be next ACA-Py release.
+                    message = "Unexpected IndyError while making payment"
+                    if hasattr(err, "message"):
+                        message += ": {}".format(err.message)
+                    report = ProblemReport(description={"en": message}, who_retries="none")
+                    await responder.send_reply(report)
+                    return
+
+            completed = TransferComplete(
+                from_address=context.message.from_address,
+                to_address=context.message.to_address,
+                amount=context.message.amount,
+                fees=sovatoms_to_tokens(fee),
+                method=SOV_METHOD,
+                raw_repr=receipts,
+            )
+            completed.assign_thread_from(context.message)
+            await responder.send_reply(completed)

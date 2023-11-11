@@ -149,9 +149,9 @@ class SendCredHandler(BaseHandler):
         connection_id = str(context.message.connection_id)
         preview_spec = context.message.credential_proposal
 
-        session = await context.session()
         try:
-            conn_record = await ConnRecord.retrieve_by_id(session, connection_id)
+            async with context.session() as session:
+                conn_record = await ConnRecord.retrieve_by_id(session, connection_id)
         except StorageNotFoundError:
             report = ProblemReport(
                 description={"en": "Connection not found."}, who_retries="none"
@@ -362,12 +362,12 @@ class CredGetListHandler(BaseHandler):
                 }.items(),
             )
         )
-        session = await context.session()
-        records = await V10CredentialExchange.query(
-            session, {}, post_filter_positive=post_filter_positive
-        )
-        cred_list = CredList(results=[record.serialize() for record in records])
-        await responder.send_reply(cred_list)
+        async with context.session() as session:
+            records = await V10CredentialExchange.query(
+                session, {}, post_filter_positive=post_filter_positive
+            )
+            cred_list = CredList(results=[record.serialize() for record in records])
+            await responder.send_reply(cred_list)
 
 
 PresGetList, PresGetListSchema = generate_model_schema(
@@ -413,12 +413,12 @@ class PresGetListHandler(BaseHandler):
                 }.items(),
             )
         )
-        session = await context.session()
-        records = await V10PresentationExchange.query(
-            session, {}, post_filter_positive=post_filter_positive
-        )
-        cred_list = PresList(results=[record.serialize() for record in records])
-        await responder.send_reply(cred_list)
+        async with context.session() as session:
+            records = await V10PresentationExchange.query(
+                session, {}, post_filter_positive=post_filter_positive
+            )
+            cred_list = PresList(results=[record.serialize() for record in records])
+            await responder.send_reply(cred_list)
 
 
 @expand_message_class
