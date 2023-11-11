@@ -1,7 +1,6 @@
 from typing import cast
 
 from aries_cloudagent.indy.holder import IndyHolder
-from aries_cloudagent.indy.sdk.holder import IndySdkHolder
 from aries_cloudagent.messaging.base_handler import BaseResponder, RequestContext
 from aries_cloudagent.messaging.models.base import BaseModelError
 from aries_cloudagent.messaging.valid import UUIDFour
@@ -41,7 +40,7 @@ class CredDelete(AdminHolderMessage):
     async def handle(self, context: RequestContext, responder: BaseResponder):
         """Handle delete credential message."""
 
-        holder = cast(IndySdkHolder, context.inject(IndyHolder))
+        holder = context.inject(IndyHolder)
         async with context.session() as session:
             async with ExceptionReporter(
                 responder,
